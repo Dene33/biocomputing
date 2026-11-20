@@ -73,6 +73,27 @@ class Encoder:
         self.b = -self.W @ z.mean(0)
         self.projection = "pca"
 
+    def fit_supervised(self, obs: np.ndarray, actions: np.ndarray, ridge: float = 1.0) -> None:
+        """Project onto the observation directions that predict the actions (reduced-rank regression), one per
+        channel, whitened. PCA spends electrodes on whatever varies most; this spends them on what the task needs."""
+        z = self.normalizer(obs)
+        zc = z - z.mean(0)
+        y = (actions - actions.mean(0)) / np.maximum(actions.std(0), 1e-2)
+        B = np.linalg.solve(zc.T @ zc + ridge * len(z) * np.eye(z.shape[1]) / 1000.0, zc.T @ y)  # (obs, act)
+        _, _, vt = np.linalg.svd(zc @ B, full_matrices=False)
+        k = min(len(self.channels), vt.shape[0])
+        dirs = B @ vt[:k].T  # (obs, k): obs directions whose projections give the top fitted-action components
+        # Fill any remaining channels with leading principal components of what is left.
+        if k < len(self.channels):
+            resid = zc - zc @ dirs @ np.linalg.pinv(dirs)
+            _, _, vr = np.linalg.svd(resid, full_matrices=False)
+            dirs = np.c_[dirs, vr[: len(self.channels) - k].T]
+        proj = zc @ dirs
+        dirs = dirs / np.maximum(proj.std(0), 1e-6)
+        self.W = dirs.T
+        self.b = -self.W @ z.mean(0)
+        self.projection = "supervised"
+
     def fit_select(self, obs: np.ndarray, dims, spread: float = 1.0) -> None:
         """Population code of a few observation dimensions: each channel is tuned to a random direction in the
         (normalized) subspace of ``dims``, with a random threshold, so the channels together tile that subspace

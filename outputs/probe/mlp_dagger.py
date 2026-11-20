@@ -17,13 +17,19 @@ rng = np.random.default_rng(0)
 hidden = int(sys.argv[1]) if len(sys.argv) > 1 else 256
 mode = sys.argv[2] if len(sys.argv) > 2 else "mlp"
 from biocompute.interface.decoders import LinearReadout
-Wrf = np.random.default_rng(1).standard_normal((hidden, 78)) / np.sqrt(78) * 1.5
+import os
+GAIN = float(os.environ.get("GAIN", 1.5)); WEIGHT = float(os.environ.get("WEIGHT", 0)); MEM = int(os.environ.get("MEM", 0))
+TAG = os.environ.get("TAG", "")
+IN = 78 * (2 if MEM else 1)
+Wrf = np.random.default_rng(1).standard_normal((hidden, IN)) / np.sqrt(IN) * GAIN
 brf = np.random.default_rng(2).standard_normal(hidden) * 0.5
 
 
 def run(policy, seed, beta):
     task = make_task("stand_push", 20, seed=seed)
     env.reset()
+    if policy is not None and hasattr(policy, "__defaults__") and MEM:
+        pass
     q = deque([np.zeros(23, np.float32)])
     O, L = [], []
     for s in range(1000):
@@ -55,13 +61,30 @@ for r in range(10):
     Xt = torch.tensor((Xa - mu) / sd, dtype=torch.float32)
     Yt = torch.tensor((Ya - ym) / ys, dtype=torch.float32)
     if mode == "rf":
-        F = np.c_[(Xa - mu) / sd, np.tanh(np.clip((Xa - mu) / sd, -5, 5) @ Wrf.T + brf)]
-        ro = LinearReadout(F.shape[1]); cv = ro.fit_cv(F, (Ya - ym) / ys, alphas=np.logspace(-3, 3, 7))
+        def lift(Z):
+            if MEM:
+                Z = np.c_[Z, np.r_[np.zeros((1, Z.shape[1])), np.diff(Z, axis=0)] * 3]
+            return np.c_[Z, np.tanh(Z @ Wrf.T + brf)]
+        F = np.concatenate([lift(np.clip((x - mu) / sd, -5, 5)) for x in X])
+        w = None
+        if WEIGHT:
+            gyro = np.abs(Xa[:, 0:2]).sum(1)
+            w = 1.0 + WEIGHT * (gyro > np.percentile(gyro, 80))
+        ro = LinearReadout(F.shape[1])
+        if w is None:
+            cv = ro.fit_cv(F, (Ya - ym) / ys, alphas=np.logspace(-3, 3, 7))
+        else:
+            cv = ro.fit_cv(F, (Ya - ym) / ys, alphas=np.logspace(-3, 3, 7)); ro.fit(F, (Ya - ym) / ys, alpha=cv["alpha"], weights=w)
+        state = {"prev": None}
         def policy(o, ro=ro, mu=mu, sd=sd, ym=ym, ys=ys):
             z = np.clip((o - mu) / sd, -5, 5)
+            if MEM:
+                d = np.zeros_like(z) if state["prev"] is None else (z - state["prev"]) * 3
+                state["prev"] = z
+                z = np.r_[z, d]
             return ro(np.r_[z, np.tanh(z @ Wrf.T + brf)]) * ys + ym
         ev = [run(policy, 100 + s, 0.0)[2] for s in range(5)]
-        print(f"rf={hidden} round {r} samples {len(Xa)} val_r2 {cv['val_r2']:.3f} alpha {cv['alpha']:.3g} eval {np.mean(ev):.1f}s full {sum(e >= 20 for e in ev)}/5", flush=True)
+        print(f"{TAG} rf={hidden} round {r} samples {len(Xa)} val_r2 {cv['val_r2']:.3f} alpha {cv['alpha']:.3g} eval {np.mean(ev):.1f}s full {sum(e >= 20 for e in ev)}/5", flush=True)
         continue
     net = torch.nn.Sequential(torch.nn.Linear(78, hidden), torch.nn.ELU(), torch.nn.Linear(hidden, hidden),
                               torch.nn.ELU(), torch.nn.Linear(hidden, 23))
