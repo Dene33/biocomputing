@@ -53,3 +53,14 @@ def test_cross_validated_ridge_resists_overfitting():
     ro = LinearReadout(400)
     cv = ro.fit_cv(X, Y)
     assert cv["alpha"] > 0.1 and 0.3 < cv["val_r2"] < 0.95
+
+
+def test_standardized_targets_weight_every_joint_equally():
+    """A joint with a huge spread (an arm pinned past its limit) must not swamp a small balance joint."""
+    rng = np.random.default_rng(3)
+    X = rng.standard_normal((3000, 20))
+    Y = np.c_[100.0 * (X[:, :1] + rng.standard_normal((3000, 1))), 0.05 * X[:, 1:2]]
+    ro = LinearReadout(20, out_dim=2)
+    ro.fit_cv(X, Y, standardize_y=True)
+    assert r2_per_output(Y, ro.predict(X))[1] > 0.98
+    assert np.allclose(ro(X[0]), ro.predict(X[:1])[0], atol=1e-4)

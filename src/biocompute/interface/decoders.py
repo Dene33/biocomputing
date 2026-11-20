@@ -47,7 +47,22 @@ class LinearReadout:
         self.mean = np.zeros(in_dim, dtype=np.float32)
         self.std = np.ones(in_dim, dtype=np.float32)
 
-    def fit(self, X: np.ndarray, Y: np.ndarray, alpha: float = 1.0, weights: np.ndarray | None = None) -> None:
+    y_mean: np.ndarray | None = None
+    y_std: np.ndarray | None = None
+    """Per-output target standardization (set when fitted with ``standardize_y``): each joint is fitted in units
+    of its own spread, so joints that move a lot (or are pinned far past a limit) don't swamp the balance joints."""
+
+    def _y_in(self, Y: np.ndarray) -> np.ndarray:
+        return Y if self.y_mean is None else (Y - self.y_mean) / self.y_std
+
+    def _y_out(self, P: np.ndarray) -> np.ndarray:
+        return P if self.y_mean is None else P * self.y_std + self.y_mean
+
+    def fit(self, X: np.ndarray, Y: np.ndarray, alpha: float = 1.0, weights: np.ndarray | None = None,
+            standardize_y: bool | None = None) -> None:
+        if standardize_y is not None:
+            self.y_mean, self.y_std = (Y.mean(0), np.maximum(Y.std(0), 1e-2)) if standardize_y else (None, None)
+        Y = self._y_in(Y)
         self.mean = X.mean(0)
         self.std = np.maximum(X.std(0), 1e-3)
         Z = np.c_[(X - self.mean) / self.std, np.ones(len(X))]
@@ -58,10 +73,13 @@ class LinearReadout:
         reg[-1, -1] = 0.0
         self.W = np.linalg.solve(Z.T @ Z + reg, Z.T @ Y).astype(np.float32)
 
-    def fit_cv(self, X: np.ndarray, Y: np.ndarray, alphas=None, folds: int = 5) -> dict:
+    def fit_cv(self, X: np.ndarray, Y: np.ndarray, alphas=None, folds: int = 5, standardize_y: bool = False) -> dict:
         """Choose the ridge penalty by cross-validation over contiguous blocks (neighbouring steps are correlated,
         so shuffled folds would leak), refit on everything, and return the validation R² per alpha."""
         alphas = np.logspace(-2, 5, 15) if alphas is None else np.asarray(alphas)
+        Y_raw = Y
+        if standardize_y:
+            Y = (Y - Y.mean(0)) / np.maximum(Y.std(0), 1e-2)
         n = len(X)
         edges = np.linspace(0, n, folds + 1).astype(int)
         scores = np.zeros((len(alphas), folds))
@@ -80,16 +98,16 @@ class LinearReadout:
                 scores[i, f] = r2_pooled(Y[val], Zv @ W + ym)
         mean_scores = scores.mean(1)
         best = int(np.argmax(mean_scores))
-        self.fit(X, Y, alpha=float(alphas[best]))
+        self.fit(X, Y_raw, alpha=float(alphas[best]), standardize_y=standardize_y)
         self.alpha = float(alphas[best])
         return {"alpha": self.alpha, "val_r2": float(mean_scores[best]),
                 "val_r2_by_alpha": dict(zip(map(float, alphas), map(float, mean_scores)))}
 
     def __call__(self, x: np.ndarray) -> np.ndarray:
-        return (np.r_[(x - self.mean) / self.std, 1.0] @ self.W).astype(np.float32)
+        return self._y_out(np.r_[(x - self.mean) / self.std, 1.0] @ self.W).astype(np.float32)
 
     def predict(self, X: np.ndarray) -> np.ndarray:
-        return (np.c_[(X - self.mean) / self.std, np.ones(len(X))] @ self.W).astype(np.float32)
+        return self._y_out(np.c_[(X - self.mean) / self.std, np.ones(len(X))] @ self.W).astype(np.float32)
 
 
 def r2_pooled(Y: np.ndarray, P: np.ndarray) -> float:
