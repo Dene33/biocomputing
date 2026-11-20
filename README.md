@@ -12,16 +12,16 @@ The culture drives **all 23 joints of Asimov 1 at 50 Hz** in MuJoCo. Two ways to
 | Path | What |
 | --- | --- |
 | `src/biocompute/device.py` | `Biocomputer` protocol (`stimulate`, `step` → `SpikeBlock`) and `SimulatedBiocomputer`. A real CL1/FinalSpark adapter implements the same protocol. |
-| `src/biocompute/culture/network.py` | `OrganoidCulture`: Izhikevich neurons (80 % excitatory RS/IB/CH, 20 % inhibitory FS/LTS), a flattened organoid lying on the array, distance-dependent sparse connectivity with axonal delays, Tsodyks–Markram short-term depression, Poisson background. Torch, CPU or GPU, seeded. |
+| `src/biocompute/culture/network.py` | `OrganoidCulture`: Izhikevich neurons (80 % excitatory RS/IB/CH, 20 % inhibitory FS/LTS), a flattened organoid lying on the array, distance-dependent sparse connectivity with axonal delays, Tsodyks–Markram short-term depression, Poisson background. `wells=K`: K independent organoids, as on a multi-well plate. Torch, CPU or GPU (synaptic delivery as one sparse matrix–vector product per 0.5 ms substep), seeded. |
 | `src/biocompute/culture/plasticity.py` | STDP, reward-modulated STDP (in-silico upper bound), forgetting towards baseline weights, rest |
 | `src/biocompute/culture/aging.py` | Excitability drift and cell loss over days |
-| `src/biocompute/mea/electrodes.py` | MEA: multi-unit detection with distance-dependent probability, false positives, dead channels, stimulation that falls off with distance, rate and amplitude limits, artifact blanking. Presets `mcs60` (60 channels, 200 µm), `grid256`, `hd1024` (MaxWell-like). |
-| `src/biocompute/interface/` | Encoders (observation → pulses; amplitude or rate coding; random or PCA projection), spike features and ridge readout, the fixed motor-map decoder, DishBrain feedback |
+| `src/biocompute/mea/electrodes.py` | MEA: multi-unit detection with distance-dependent probability, false positives, dead channels, stimulation that falls off with distance, rate and amplitude limits, artifact blanking. Presets `mcs60` (60 channels, 200 µm), `grid256`, `hd1024` (MaxWell-like). One grid per well. |
+| `src/biocompute/interface/` | Encoders (observation → pulses; amplitude or rate coding; identity, PCA, supervised or random projection), spike features, ridge readout (`LinearReadout`, GPU for thousands of features), trained nonlinear decoder (`MLPReadout`), the fixed motor-map decoder, DishBrain feedback |
 | `src/biocompute/robot/asimov.py` | `AsimovEnv`: Asimov 1 stepped one 20 ms control step at a time, built on cyclotron's `sim2sim` |
 | `src/biocompute/robot/teacher.py` | The trained walking policy (ONNX): the teacher and the ceiling |
 | `src/biocompute/loop.py` | The closed loop. The culture needs 20 ms of its own time to answer, so an action applies one step late. |
-| `src/biocompute/train/` | Tasks, DAgger, feedback sessions |
-| `scripts/` | `characterise_culture.py`, `baselines.py`, `train_reservoir.py`, `train_feedback.py`, `evaluate.py`, `view.py` |
+| `src/biocompute/train/` | Tasks, DAgger (serial, and `parallel.py`: several copies of the same dish in worker processes), feedback sessions |
+| `scripts/` | `characterise_culture.py`, `baselines.py`, `train_reservoir.py`, `train_dagger.py` (parallel DAgger, ridge or MLP decoder), `eval_readout.py` (many seeds, ablations), `train_feedback.py`, `evaluate.py`, `view.py`, `train_expert.py` / `program_expert.py` (stance-only balance experts: they cannot pass `stand_push`) |
 
 ## Setup
 
