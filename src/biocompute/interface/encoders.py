@@ -48,6 +48,7 @@ class Encoder:
         seed: int = 0,
     ):
         self.channels = np.asarray(channels, int)
+        self.seed = seed
         self.mode, self.projection, self.slots_ms = mode, projection, tuple(slots_ms)
         self.gain, self.min_amplitude, self.rate_amplitude = gain, min_amplitude, rate_amplitude
         self.normalizer = normalizer or ObsNormalizer.identity(obs_dim)
@@ -71,6 +72,25 @@ class Encoder:
         self.W = W
         self.b = -self.W @ z.mean(0)
         self.projection = "pca"
+
+    def fit_select(self, obs: np.ndarray, dims, spread: float = 1.0) -> None:
+        """Population code of a few observation dimensions: each channel is tuned to a random direction in the
+        (normalized) subspace of ``dims``, with a random threshold, so the channels together tile that subspace
+        (like sensory neurons with different preferred stimuli and thresholds). Every dimension gets redundant,
+        nonlinear coverage instead of one electrode each."""
+        dims = np.asarray(dims, int)
+        rng = np.random.default_rng(self.seed + 7)
+        z = self.normalizer(obs)[:, dims]
+        mean = z.mean(0)
+        k = len(self.channels)
+        dirs = rng.standard_normal((k, len(dims)))
+        dirs /= np.linalg.norm(dirs, axis=1, keepdims=True)
+        W = np.zeros((k, self.W.shape[1]))
+        W[:, dims] = dirs
+        self.W = W
+        self.b = -dirs @ mean + spread * rng.uniform(-1.0, 1.0, k)
+        self.projection = "select"
+        self.dims = dims
 
     def reset(self) -> None:
         self.phase[:] = 0.0
