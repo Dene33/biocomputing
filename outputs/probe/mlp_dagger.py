@@ -52,6 +52,19 @@ Wrf = np.random.default_rng(1).standard_normal((hidden, IN)) / np.sqrt(IN) * GAI
 brf = np.random.default_rng(2).standard_normal(hidden) * 0.5
 
 
+SNOISE = float(os.environ.get("SNOISE", 0))  # noise (× std) on every state dim except the last action
+_SD = None
+
+
+def corrupt(o):
+    if not SNOISE or _SD is None:
+        return o
+    n = SNOISE * _SD * rng.standard_normal(78)
+    n[6:9] = 0.0
+    n[55:] = 0.0
+    return (o + n).astype(np.float32)
+
+
 def run(policy, seed, beta):
     task = make_task("stand_push", 20, seed=seed)
     env.reset()
@@ -65,8 +78,8 @@ def run(policy, seed, beta):
             env.push(f)
         o = env.observe()
         lab = np.clip(teacher(o), lo, hi)
-        a = lab if (policy is None or rng.random() < beta) else policy(o)
-        O.append(o)
+        a = lab if (policy is None or rng.random() < beta) else policy(corrupt(o))
+        O.append(corrupt(o))
         L.append(lab)
         q.append(np.asarray(a, np.float32))
         if env.step(q.popleft()).fell:
@@ -83,6 +96,8 @@ for r in range(10):
         X.append(O)
         Y.append(L)
     Xa, Ya = np.concatenate(X), np.concatenate(Y)
+    if _SD is None:
+        _SD = Xa.std(0)
     mu, sd = Xa.mean(0), np.maximum(Xa.std(0), 1e-2)
     ym, ys = Ya.mean(0), np.maximum(Ya.std(0), 1e-2)
     Xt = torch.tensor((Xa - mu) / sd, dtype=torch.float32)

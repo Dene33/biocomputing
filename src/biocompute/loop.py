@@ -34,21 +34,29 @@ class CultureController:
         feedback: Feedback | None = None,
         source: str = "mea",
         step_ms: float = 20.0,
+        efference: bool = False,
     ):
         self.device, self.encoder, self.features = device, encoder, features
         self.readout, self.feedback, self.source, self.step_ms = readout, feedback, source, step_ms
+        self.efference = efference
+        self.stimulate_inputs = True
+        """False: the culture gets no sensory stimulation (control: spikes then carry no information)."""
         self.last_block: SpikeBlock | None = None
         if source == "oracle":
             n = device.culture.n
             self.oracle = SpikeFeatures(np.arange(n), bins=1, taus_ms=(40.0, 160.0), step_ms=step_ms)
 
+    EFFERENCE = slice(55, 78)
+    """The robot's last action in the observation: the decoder's own previous command (efference copy)."""
+
     @property
     def feature_dim(self) -> int:
+        extra = 23 if self.efference else 0
         if self.source == "none":
-            return len(self.encoder.channels)
+            return len(self.encoder.channels) + extra
         if self.source == "oracle":
-            return self.oracle.dim
-        return self.features.dim
+            return self.oracle.dim + extra
+        return self.features.dim + extra
 
     def reset_readout_state(self) -> None:
         """Clear the decoder's filters (the culture itself carries on: a real one can't be reset)."""
@@ -73,7 +81,9 @@ class CultureController:
         return self.features(block)
 
     def act(self, obs: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-        x = self.sense(obs)
+        x = self.sense(obs, stimulate=self.stimulate_inputs)
+        if self.efference:
+            x = np.r_[x, obs[self.EFFERENCE]].astype(np.float32)
         a = self.readout(x) if self.readout is not None else np.zeros(N_JOINTS, np.float32)
         return a, x
 

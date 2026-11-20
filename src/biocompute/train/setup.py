@@ -33,6 +33,12 @@ class Setup:
     diverse_wells: bool = False
     """Each well gets its own random rotation of the encoder's channels: the same information, mixed differently,
     so each organoid computes different nonlinear features (its noise still averages out across wells)."""
+    efference: bool = False
+    """The decoder also gets its own last command (the robot's last action, obs[55:78]) directly, as an efference
+    copy, instead of the culture having to carry it; with ``identity`` encoding the culture then gets only the
+    52 sensory dimensions."""
+    silent_inputs: bool = False
+    """Control: no sensory stimulation reaches the culture."""
     source: str = "mea"
     """``mea``, ``oracle``, ``none`` (no culture) or ``dead`` (MEA readout, recurrent synapses removed)."""
     seed: int = 0
@@ -68,7 +74,8 @@ def build(setup: Setup, obs_samples: np.ndarray, action_samples: np.ndarray | No
     if setup.projection == "pca":
         encoder.fit_pca(obs_samples)
     elif setup.projection == "identity":
-        encoder.fit_identity(obs_samples)
+        skip = (6, 7, 8) + (tuple(range(55, 78)) if setup.efference else ())
+        encoder.fit_identity(obs_samples, skip=skip)
     elif setup.projection == "supervised":
         if action_samples is None:
             raise ValueError("projection='supervised' needs action_samples.")
@@ -94,6 +101,7 @@ def build(setup: Setup, obs_samples: np.ndarray, action_samples: np.ndarray | No
     if device is not None:
         features = SpikeFeatures(device.mea.alive_channels, bins=setup.bins, taus_ms=setup.taus_ms)
     source = {"dead": "mea"}.get(setup.source, setup.source)
-    ctrl = CultureController(device, encoder, features, source=source)
+    ctrl = CultureController(device, encoder, features, source=source, efference=setup.efference)
+    ctrl.stimulate_inputs = not setup.silent_inputs
     ctrl.feedback_channels = channels[setup.n_stim : setup.n_stim + setup.n_feedback]  # well 0's
     return ctrl

@@ -156,7 +156,7 @@ class LinearReadout:
         blocks = []
         for f in range(folds):  # streamed: one block of X on the GPU at a time; statistics kept on the host
             Xb, Yb = g(X[edges[f] : edges[f + 1]]), g(Y[edges[f] : edges[f + 1]])
-            h = lambda t: t.double().cpu().numpy()
+            h = lambda t: t.cpu().numpy().astype(np.float64)
             blocks.append((len(Xb), h(Xb.sum(0)), h(Xb.T @ Xb), h(Xb.T @ Yb), h(Yb.sum(0))))
             del Xb, Yb
         tot = [sum(b[i] for b in blocks) for i in range(5)]
@@ -232,3 +232,87 @@ class MotorMapDecoder:
         diff = np.array([counts[p].sum() - counts[m].sum() for p, m in zip(self.plus, self.minus)], np.float32)
         self.state = self.decay * self.state + (1 - self.decay) * diff
         return np.tanh(self.gain * self.state / self.rate_scale).astype(np.float32)
+
+
+class MLPReadout:
+    """A small trained nonlinear decoder: features → 23 actions, as BCI decoders are. Two ELU layers, plus a direct
+    linear path from the last ``skip_dim`` inputs (the efference copy) so the decoder can use its own last command
+    precisely. Targets are standardized per joint; samples can be weighted. Trained with torch (GPU if available);
+    inference is numpy, so control loops don't need torch."""
+
+    def __init__(self, in_dim: int, out_dim: int = 23, hidden: int = 256, skip_dim: int = 0, dropout: float = 0.2):
+        self.in_dim, self.out_dim, self.hidden, self.skip_dim, self.dropout = in_dim, out_dim, hidden, skip_dim, dropout
+        self.params = None
+
+    def _net(self, torch):
+        nn = torch.nn
+
+        class Net(nn.Module):
+            def __init__(s):
+                super().__init__()
+                s.drop = nn.Dropout(self.dropout)
+                s.l1 = nn.Linear(self.in_dim, self.hidden)
+                s.l2 = nn.Linear(self.hidden, self.hidden)
+                s.l3 = nn.Linear(self.hidden, self.out_dim)
+                s.skip = nn.Linear(max(self.skip_dim, 1), self.out_dim, bias=False)
+
+            def forward(s, x):
+                h = torch.nn.functional.elu(s.l1(s.drop(x)))
+                h = torch.nn.functional.elu(s.l2(h))
+                y = s.l3(h)
+                if self.skip_dim:
+                    y = y + s.skip(x[:, -self.skip_dim :])
+                return y
+
+        return Net()
+
+    def fit(self, X: np.ndarray, Y: np.ndarray, weights: np.ndarray | None = None, epochs: int = 30,
+            batch: int = 512, lr: float = 1e-3, weight_decay: float = 1e-4, val_frac: float = 0.1, seed: int = 0) -> dict:
+        import torch
+
+        dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        torch.manual_seed(seed)
+        self.mean, self.std = X.mean(0), np.maximum(X.std(0), 1e-3)
+        self.y_mean, self.y_std = Y.mean(0), np.maximum(Y.std(0), 1e-2)
+        n = len(X)
+        cut = int(n * (1 - val_frac))  # the most recent samples validate (contiguous: neighbours are correlated)
+        Xt = torch.as_tensor(((X - self.mean) / self.std).astype(np.float32))
+        Yt = torch.as_tensor(((Y - self.y_mean) / self.y_std).astype(np.float32))
+        Wt = torch.as_tensor((np.ones(n) if weights is None else weights).astype(np.float32))
+        net = self._net(torch).to(dev)
+        opt = torch.optim.AdamW(net.parameters(), lr, weight_decay=weight_decay)
+        idx_train = torch.arange(cut)
+        for ep in range(epochs):
+            net.train()
+            perm = idx_train[torch.randperm(cut)]
+            for i in range(0, cut, batch):
+                b = perm[i : i + batch]
+                xb, yb, wb = Xt[b].to(dev), Yt[b].to(dev), Wt[b].to(dev)
+                loss = ((((net(xb) - yb) ** 2).mean(1)) * wb).sum() / wb.sum()
+                opt.zero_grad()
+                loss.backward()
+                opt.step()
+        net.eval()
+        with torch.no_grad():
+            P = torch.cat([net(Xt[i : i + 4096].to(dev)).cpu() for i in range(cut, n, 4096)]).numpy()
+        V = Yt[cut:].numpy()
+        val_r2 = float(1 - ((V - P) ** 2).sum() / max(((V - V.mean(0)) ** 2).sum(), 1e-12))
+        self.params = {k: v.detach().cpu().numpy() for k, v in net.state_dict().items()}
+        del net, Xt, Yt
+        if dev.type == "cuda":
+            torch.cuda.empty_cache()
+        return {"val_r2": val_r2}
+
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        p = self.params
+        z = ((X - self.mean) / self.std).astype(np.float32)
+        elu = lambda a: np.where(a > 0, a, np.expm1(np.minimum(a, 0)))
+        h = elu(z @ p["l1.weight"].T + p["l1.bias"])
+        h = elu(h @ p["l2.weight"].T + p["l2.bias"])
+        y = h @ p["l3.weight"].T + p["l3.bias"]
+        if self.skip_dim:
+            y = y + z[:, -self.skip_dim :] @ p["skip.weight"].T
+        return (y * self.y_std + self.y_mean).astype(np.float32)
+
+    def __call__(self, x: np.ndarray) -> np.ndarray:
+        return self.predict(x[None])[0]

@@ -12,7 +12,7 @@ import time
 
 import numpy as np
 
-from biocompute.interface.decoders import LinearReadout, r2_pooled
+from biocompute.interface.decoders import LinearReadout
 from biocompute.robot.asimov import N_JOINTS
 
 _W: dict = {}
@@ -72,7 +72,8 @@ class Pool:
 
 def train(pool: Pool, feature_dim: int, task: str, rounds: int = 10, episodes_per_round: int = 8,
           beta0: float = 0.5, beta_decay: float = 0.6, seconds: float = 20.0, latency: int = 1,
-          eval_seeds: int = 4, log=print, seed: int = 0, recovery_weight: float = 4.0) -> dict:
+          eval_seeds: int = 4, log=print, seed: int = 0, recovery_weight: float = 4.0, readout_kind: str = "ridge",
+          skip_dim: int = 0) -> dict:
     """``recovery_weight``: extra weight on samples in the top 20 % of pelvis angular speed (push recoveries).
     They are a small share of the data but decide whether the robot falls."""
     X, Y, O, history = [], [], [], []
@@ -91,8 +92,14 @@ def train(pool: Pool, feature_dim: int, task: str, rounds: int = 10, episodes_pe
         Xa, Ya, Oa = np.concatenate(X), np.concatenate(Y), np.concatenate(O)
         gyro = np.abs(Oa[:, 0:2]).sum(1)
         w = 1.0 + recovery_weight * (gyro > np.percentile(gyro, 80))
-        ro = LinearReadout(feature_dim)
-        cv = ro.fit_cv(Xa, Ya, standardize_y=True, weights=w)
+        if readout_kind == "mlp":
+            from biocompute.interface.decoders import MLPReadout
+
+            ro = MLPReadout(feature_dim, skip_dim=skip_dim)
+            cv = ro.fit(Xa, Ya, weights=w, seed=seed + r) | {"alpha": float("nan")}
+        else:
+            ro = LinearReadout(feature_dim)
+            cv = ro.fit_cv(Xa, Ya, standardize_y=True, weights=w)
         readout = ro
         ev = pool.map([dict(readout=ro, task=task, seconds=seconds, seed=100 + s, beta=0.0, latency=latency,
                             label=False) for s in range(eval_seeds)])
