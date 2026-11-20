@@ -1,0 +1,103 @@
+"""Robot observation → stimulation pulses.
+
+Pulses are delivered only in fixed time slots of each control step (default: one slot at 0 ms). Every pulse blanks
+recording on all channels for a couple of milliseconds, so stimulating all channels in the same slot leaves the
+rest of the step free to record, as closed-loop MEA experiments do.
+
+- ``amplitude`` coding: every sensory channel pulses in every slot; the amplitude carries the value.
+- ``rate`` coding: fixed amplitude; a channel pulses in a slot when its phase accumulator crosses 1, so the pulse rate
+  carries the value (at most one pulse per slot).
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+import numpy as np
+
+
+@dataclass
+class ObsNormalizer:
+    mean: np.ndarray
+    std: np.ndarray
+
+    @classmethod
+    def fit(cls, obs: np.ndarray, min_std: float = 1e-2) -> ObsNormalizer:
+        return cls(obs.mean(0), np.maximum(obs.std(0), min_std))
+
+    @classmethod
+    def identity(cls, dim: int) -> ObsNormalizer:
+        return cls(np.zeros(dim), np.ones(dim))
+
+    def __call__(self, obs: np.ndarray) -> np.ndarray:
+        return np.clip((obs - self.mean) / self.std, -4.0, 4.0)
+
+
+class Encoder:
+    def __init__(
+        self,
+        channels: np.ndarray,
+        obs_dim: int = 78,
+        mode: str = "amplitude",
+        projection: str = "random",
+        slots_ms: tuple[float, ...] = (0.0,),
+        gain: float = 1.5,
+        min_amplitude: float = 0.1,
+        rate_amplitude: float = 0.8,
+        normalizer: ObsNormalizer | None = None,
+        seed: int = 0,
+    ):
+        self.channels = np.asarray(channels, int)
+        self.mode, self.projection, self.slots_ms = mode, projection, tuple(slots_ms)
+        self.gain, self.min_amplitude, self.rate_amplitude = gain, min_amplitude, rate_amplitude
+        self.normalizer = normalizer or ObsNormalizer.identity(obs_dim)
+        k = len(self.channels)
+        rng = np.random.default_rng(seed)
+        self.W = rng.standard_normal((k, obs_dim)) / np.sqrt(obs_dim)
+        self.b = np.zeros(k)
+        self.phase = np.zeros(k)
+
+    def fit_pca(self, obs: np.ndarray) -> None:
+        """Project onto the observation's principal components (each channel one signed component), instead of a
+        random projection: the most variance per electrode."""
+        z = self.normalizer(obs)
+        centred = z - z.mean(0)
+        _, s, vt = np.linalg.svd(centred, full_matrices=False)
+        k = len(self.channels)
+        m = (k + 1) // 2
+        sd = s[:m] / np.sqrt(len(z))  # each component's standard deviation
+        comps = vt[:m] / np.maximum(sd, 1e-6)[:, None]  # whitened: each projection has unit variance
+        self.W = np.concatenate([comps, -comps])[:k]  # push–pull pairs: one channel for each sign of a component
+        self.b = -self.W @ z.mean(0)
+        self.projection = "pca"
+
+    def reset(self) -> None:
+        self.phase[:] = 0.0
+
+    def drive(self, obs: np.ndarray) -> np.ndarray:
+        """Per channel, a value in (0, 1)."""
+        z = self.normalizer(obs)
+        return 1.0 / (1.0 + np.exp(-self.gain * (self.W @ z + self.b)))
+
+    def pulses(self, obs: np.ndarray, step_ms: float) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """(channels, times_ms, amplitudes) for one control step."""
+        x = self.drive(obs)
+        chans, times, amps = [], [], []
+        if self.mode == "amplitude":
+            a = self.min_amplitude + (1 - self.min_amplitude) * x
+            for t in self.slots_ms:
+                chans.append(self.channels)
+                times.append(np.full(len(self.channels), t))
+                amps.append(a)
+        elif self.mode == "rate":
+            per_slot = x  # probability-like: at x = 1, a pulse in every slot
+            for t in self.slots_ms:
+                self.phase += per_slot
+                fire = self.phase >= 1.0
+                self.phase[fire] -= 1.0
+                chans.append(self.channels[fire])
+                times.append(np.full(int(fire.sum()), t))
+                amps.append(np.full(int(fire.sum()), self.rate_amplitude))
+        else:
+            raise ValueError(f"Unknown encoding {self.mode!r}.")
+        return np.concatenate(chans), np.concatenate(times), np.concatenate(amps)
