@@ -45,6 +45,11 @@ class MEAConfig:
     dead_fraction: float = 0.0
     seed: int = 0
 
+    wells: int = 1
+    """One grid per well of a multi-well plate, ``well_spacing_um`` apart along x (matching the culture's wells).
+    Channels are numbered well by well."""
+    well_spacing_um: float = 10000.0
+
 
 MEA_PRESETS: dict[str, dict] = {
     "mcs60": dict(rows=8, cols=8, pitch_um=200.0, skip_corners=True),
@@ -68,7 +73,9 @@ class MEA:
         if cfg.skip_corners:
             corners = {(xs[0], ys[0]), (xs[-1], ys[0]), (xs[0], ys[-1]), (xs[-1], ys[-1])}
             grid = [p for p in grid if p not in corners]
+        grid = [(x + k * cfg.well_spacing_um, y) for k in range(cfg.wells) for x, y in grid]
         self.xy = np.array(grid, dtype=np.float32)
+        self.channels_per_well = len(grid) // cfg.wells
         self.n_channels = len(self.xy)
         rng = np.random.default_rng(cfg.seed + 1000)
         self.dead = np.zeros(self.n_channels, dtype=bool)

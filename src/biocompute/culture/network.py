@@ -59,6 +59,11 @@ class CultureConfig:
     seed: int = 0
     device: str = "cpu"
 
+    wells: int = 1
+    """Independent organoids (as in a multi-well MEA plate), each with its own seed, side by side
+    ``well_spacing_um`` apart so no synapse joins them. Neurons are numbered well by well."""
+    well_spacing_um: float = 10000.0
+
     # Filled by presets; documented here for discoverability.
     extra: dict = field(default_factory=dict)
 
@@ -82,30 +87,18 @@ class OrganoidCulture:
         self.cfg = cfg
         dev = torch.device(cfg.device if (cfg.device != "cuda" or torch.cuda.is_available()) else "cpu")
         self.device = dev
+        parts = [self._make_well(cfg.seed + 7919 * k if k else cfg.seed, k) for k in range(cfg.wells)]
         self.gen = torch.Generator(device="cpu").manual_seed(cfg.seed)
-        n = cfg.n_neurons
-        n_exc = int(round(n * cfg.frac_excitatory))
-        self.n, self.n_exc = n, n_exc
-        g = self.gen
-
-        # --- Placement: a disc lying on the array.
-        r = cfg.radius_um * torch.sqrt(torch.rand(n, generator=g))
-        theta = 2 * math.pi * torch.rand(n, generator=g)
-        z = cfg.thickness_um * torch.rand(n, generator=g)
-        self.pos = torch.stack([r * torch.cos(theta), r * torch.sin(theta), z], dim=1)  # (n, 3) µm, CPU
-
-        # --- Izhikevich parameters (Izhikevich 2003, heterogeneous).
-        re = torch.rand(n_exc, generator=g)
-        ri = torch.rand(n - n_exc, generator=g)
-        self.excitatory = torch.zeros(n, dtype=torch.bool)
-        self.excitatory[:n_exc] = True
-        a = torch.cat([torch.full((n_exc,), 0.02), 0.02 + 0.08 * ri])
-        b = torch.cat([torch.full((n_exc,), 0.2), 0.25 - 0.05 * ri])
-        c = torch.cat([-65 + 15 * re**2, torch.full((n - n_exc,), -65.0)])
-        d = torch.cat([8 - 6 * re**2, torch.full((n - n_exc,), 2.0)])
-
-        # --- Connectivity.
-        pre, post, w, delay = self._connect()
+        n_per = cfg.n_neurons
+        n = n_per * cfg.wells
+        self.n, self.n_exc, self.n_per_well = n, int(round(n_per * cfg.frac_excitatory)), n_per
+        self.pos = torch.cat([q["pos"] for q in parts])
+        self.excitatory = torch.cat([q["exc"] for q in parts])
+        a, b, c, d = (torch.cat([q[k] for q in parts]) for k in "abcd")
+        pre = torch.cat([q["pre"] + k * n_per for k, q in enumerate(parts)])
+        post = torch.cat([q["post"] + k * n_per for k, q in enumerate(parts)])
+        w = torch.cat([q["w"] for q in parts])
+        delay = torch.cat([q["delay"] for q in parts])
 
         to = dict(device=dev)
         self.a, self.b, self.c, self.d = (x.to(**to) for x in (a, b, c, d))
@@ -125,6 +118,34 @@ class OrganoidCulture:
         """An object with ``on_substep(culture, spikes)``, see plasticity.py."""
 
         self.reset_state()
+
+    def _make_well(self, seed: int, k: int) -> dict:
+        """One organoid: placement, Izhikevich parameters and connectivity, on the CPU."""
+        cfg = self.cfg
+        self.gen = torch.Generator(device="cpu").manual_seed(seed)
+        g = self.gen
+        n = cfg.n_neurons
+        n_exc = int(round(n * cfg.frac_excitatory))
+
+        # --- Placement: a disc lying on the array (its well's array, shifted along x).
+        r = cfg.radius_um * torch.sqrt(torch.rand(n, generator=g))
+        theta = 2 * math.pi * torch.rand(n, generator=g)
+        z = cfg.thickness_um * torch.rand(n, generator=g)
+        self.pos = torch.stack([r * torch.cos(theta) + k * cfg.well_spacing_um, r * torch.sin(theta), z], dim=1)
+
+        # --- Izhikevich parameters (Izhikevich 2003, heterogeneous).
+        re = torch.rand(n_exc, generator=g)
+        ri = torch.rand(n - n_exc, generator=g)
+        self.excitatory = torch.zeros(n, dtype=torch.bool)
+        self.excitatory[:n_exc] = True
+        a = torch.cat([torch.full((n_exc,), 0.02), 0.02 + 0.08 * ri])
+        b = torch.cat([torch.full((n_exc,), 0.2), 0.25 - 0.05 * ri])
+        c = torch.cat([-65 + 15 * re**2, torch.full((n - n_exc,), -65.0)])
+        d = torch.cat([8 - 6 * re**2, torch.full((n - n_exc,), 2.0)])
+
+        # --- Connectivity.
+        pre, post, w, delay = self._connect()
+        return dict(pos=self.pos, exc=self.excitatory, a=a, b=b, c=c, d=d, pre=pre, post=post, w=w, delay=delay)
 
     # ------------------------------------------------------------------------------------------------------------
     def _connect(self):
@@ -172,6 +193,32 @@ class OrganoidCulture:
         self.t_ms = 0.0
         self.torch_gen = torch.Generator(device=dev).manual_seed(self.cfg.seed + 1)
 
+    def _delivery_matrix(self) -> torch.Tensor:
+        """CSR (2n × buckets·n): row = target (excitatory currents first, then inhibitory), column =
+        (delay − 1) · n + source, value = weight. Rebuilt only when the weights change (plasticity, edits)."""
+        version = (self.w._version, self.w.data_ptr())
+        cache = getattr(self, "_A_cache", None)
+        if cache is not None and cache[0] == version:
+            return cache[1]
+        if cache is None or cache[2] is None:
+            rows = self.post + self.n * (~self.syn_exc).long()
+            cols = (self.delay - 1) * self.n + self.pre
+            order = torch.argsort(rows * (self.cfg.delay_buckets * self.n) + cols)
+            crow = torch.zeros(2 * self.n + 1, dtype=torch.long, device=self.device)
+            crow[1:] = torch.cumsum(torch.bincount(rows, minlength=2 * self.n), 0)
+            structure = (order, crow, cols[order])
+        else:
+            structure = cache[2]
+        order, crow, col = structure
+        import warnings
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")  # CSR support is "beta"; the structure is valid by construction
+            A = torch.sparse_csr_tensor(crow, col, self.w[order].float(),
+                                        size=(2 * self.n, self.cfg.delay_buckets * self.n), check_invariants=False)
+        self._A_cache = (version, A, structure)
+        return A
+
     @property
     def n_synapses(self) -> int:
         return int(self.pre.numel())
@@ -184,22 +231,24 @@ class OrganoidCulture:
 
         # Synaptic input from spikes that left their neuron ``delay`` substeps ago.
         k = self.cfg.delay_buckets + 1
-        slot = (self.head - self.delay + 1) % k  # delay 1 = the spikes of the previous substep, at head
-        released = self.history[slot, self.pre]  # efficacy × spike, per synapse
         if self.device.type != "cpu":
-            # On the GPU, deliver densely: no host sync to find the active synapses (zeros add nothing).
-            contrib = self.w * released
-            self.i_exc.index_add_(0, self.post, contrib * self.syn_exc_f)
-            self.i_inh.index_add_(0, self.post, contrib * self.syn_inh_f)
-            active = None
+            # GPU: one sparse matrix-vector product over (delay bucket, source neuron); no host sync.
+            A = self._delivery_matrix()
+            slots = [(self.head - d + 1) % k for d in range(1, self.cfg.delay_buckets + 1)]
+            x = self.history[slots].reshape(-1, 1)
+            out = (A @ x).squeeze(1)
+            self.i_exc += out[: self.n]
+            self.i_inh += out[self.n :]
         else:
+            slot = (self.head - self.delay + 1) % k  # delay 1 = the spikes of the previous substep, at head
+            released = self.history[slot, self.pre]  # efficacy × spike, per synapse
             active = released > 0
-        if active is not None and bool(active.any()):
-            contrib = self.w[active] * released[active]
-            target = self.post[active]
-            exc = self.syn_exc[active]
-            self.i_exc.index_add_(0, target[exc], contrib[exc])
-            self.i_inh.index_add_(0, target[~exc], contrib[~exc])
+            if bool(active.any()):
+                contrib = self.w[active] * released[active]
+                target = self.post[active]
+                exc = self.syn_exc[active]
+                self.i_exc.index_add_(0, target[exc], contrib[exc])
+                self.i_inh.index_add_(0, target[~exc], contrib[~exc])
 
         # Background Poisson drive and noise.
         bg = torch.rand(self.n, generator=g, device=self.device) < cfg.background_rate_hz * dt * 1e-3

@@ -1,0 +1,15 @@
+{
+  "seconds": 30.0,
+  "mean_rate_hz": 0.07719999999999999,
+  "median_rate_hz": 0.0,
+  "frac_silent": 0.7735,
+  "bursts": 0,
+  "burst_rate_per_min": 0.0,
+  "mean_ibi_s": NaN,
+  "cv_ibi": NaN,
+  "frac_spikes_in_bursts": 0.0,
+  "fano_100ms": 1.004300518134715,
+  "mea_rate_per_channel_hz": 0.5711110830307007,
+  "evoked_mea_spikes_50ms": 3.75,
+  "baseline_mea_spikes_50ms": 1.7999999523162842
+}

@@ -18,7 +18,7 @@ from biocompute.robot.asimov import N_JOINTS
 _W: dict = {}
 
 
-def _init(setup_dict: dict, obs_samples: np.ndarray, threads: int, warm_s: float) -> None:
+def _init(setup_dict: dict, obs_samples: np.ndarray, action_samples, threads: int, warm_s: float) -> None:
     import torch
 
     torch.set_num_threads(threads)
@@ -28,7 +28,8 @@ def _init(setup_dict: dict, obs_samples: np.ndarray, threads: int, warm_s: float
     from biocompute.train.setup import Setup, build
 
     _W["env"], _W["teacher"] = AsimovEnv(), Teacher()
-    _W["ctrl"] = build(Setup(**setup_dict), obs_samples)
+    setup_dict = dict(setup_dict, slots_ms=tuple(setup_dict["slots_ms"]), taus_ms=tuple(setup_dict["taus_ms"]))
+    _W["ctrl"] = build(Setup(**setup_dict), obs_samples, action_samples)
     if _W["ctrl"].device is not None:
         _W["ctrl"].device.step(warm_s * 1000.0)
     run = _W["env"].run
@@ -50,14 +51,16 @@ def _episode(job: dict) -> dict:
            "distance_x_m": float(ep.root_pos[-1][0] - ep.root_pos[0][0]) if ep.root_pos else 0.0}
     if job["label"]:
         out["X"] = np.array(ep.features, np.float32)
+        out["O"] = np.array(ep.obs, np.float32)
         out["Y"] = np.clip(np.array(ep.teacher, np.float32), _W["lo"], _W["hi"])
     return out
 
 
 class Pool:
     def __init__(self, setup_dict: dict, obs_samples: np.ndarray, workers: int, threads: int = 2,
-                 warm_s: float = 1.0):
-        self.pool = mp.get_context("spawn").Pool(workers, _init, (setup_dict, obs_samples, threads, warm_s))
+                 warm_s: float = 1.0, action_samples: np.ndarray | None = None):
+        self.pool = mp.get_context("spawn").Pool(workers, _init,
+                                                 (setup_dict, obs_samples, action_samples, threads, warm_s))
         self.workers = workers
 
     def map(self, jobs: list[dict]) -> list[dict]:
@@ -69,8 +72,10 @@ class Pool:
 
 def train(pool: Pool, feature_dim: int, task: str, rounds: int = 10, episodes_per_round: int = 8,
           beta0: float = 0.5, beta_decay: float = 0.6, seconds: float = 20.0, latency: int = 1,
-          eval_seeds: int = 4, log=print, seed: int = 0) -> dict:
-    X, Y, history = [], [], []
+          eval_seeds: int = 4, log=print, seed: int = 0, recovery_weight: float = 4.0) -> dict:
+    """``recovery_weight``: extra weight on samples in the top 20 % of pelvis angular speed (push recoveries).
+    They are a small share of the data but decide whether the robot falls."""
+    X, Y, O, history = [], [], [], []
     readout = None
     rng = np.random.default_rng(seed)
     best = (-1.0, None)
@@ -82,9 +87,12 @@ def train(pool: Pool, feature_dim: int, task: str, rounds: int = 10, episodes_pe
         res = pool.map(jobs)
         X += [x["X"] for x in res]
         Y += [x["Y"] for x in res]
-        Xa, Ya = np.concatenate(X), np.concatenate(Y)
+        O += [x["O"] for x in res]
+        Xa, Ya, Oa = np.concatenate(X), np.concatenate(Y), np.concatenate(O)
+        gyro = np.abs(Oa[:, 0:2]).sum(1)
+        w = 1.0 + recovery_weight * (gyro > np.percentile(gyro, 80))
         ro = LinearReadout(feature_dim)
-        cv = ro.fit_cv(Xa, Ya, standardize_y=True)
+        cv = ro.fit_cv(Xa, Ya, standardize_y=True, weights=w)
         readout = ro
         ev = pool.map([dict(readout=ro, task=task, seconds=seconds, seed=100 + s, beta=0.0, latency=latency,
                             label=False) for s in range(eval_seeds)])

@@ -84,3 +84,25 @@ def test_rate_limit_drops_excess_pulses():
     dev.stimulate([5] * 4, [0.0, 1.0, 2.0, 5.0], [0.5] * 4)  # 200 Hz limit: one every 5 ms
     dev.step(10.0)
     assert dev.pulses_delivered == 2 and dev.pulses_dropped == 2
+
+
+def test_gpu_sparse_delivery_matches_per_synapse_reference():
+    if not torch.cuda.is_available():
+        import pytest
+
+        pytest.skip("no GPU")
+    c = OrganoidCulture(make_config("cpu_2k", n_neurons=1500, device="cuda", wells=2, seed=5))
+    c.run(50.0)
+    c.history = torch.rand_like(c.history) * (torch.rand_like(c.history) < 0.1)
+    k = c.cfg.delay_buckets + 1
+    released = c.history[(c.head - c.delay + 1) % k, c.pre]
+    ref_e = torch.zeros(c.n, device="cuda").index_add_(0, c.post[c.syn_exc], (c.w * released)[c.syn_exc])
+    ref_i = torch.zeros(c.n, device="cuda").index_add_(0, c.post[~c.syn_exc], (c.w * released)[~c.syn_exc])
+    slots = [(c.head - d + 1) % k for d in range(1, k)]
+    out = (c._delivery_matrix() @ c.history[slots].reshape(-1, 1)).squeeze(1)
+    assert torch.allclose(out[: c.n], ref_e, atol=1e-3) and torch.allclose(out[c.n :], ref_i, atol=1e-3)
+    c.w.mul_(0.5)  # weights changed: the matrix must follow
+    out2 = (c._delivery_matrix() @ c.history[slots].reshape(-1, 1)).squeeze(1)
+    assert torch.allclose(out2[: c.n], ref_e * 0.5, atol=1e-3)
+    # wells are independent: no synapse crosses between them
+    assert not ((c.pre < c.n_per_well) ^ (c.post < c.n_per_well)).any()

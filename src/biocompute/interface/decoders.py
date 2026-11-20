@@ -73,7 +73,8 @@ class LinearReadout:
         reg[-1, -1] = 0.0
         self.W = np.linalg.solve(Z.T @ Z + reg, Z.T @ Y).astype(np.float32)
 
-    def fit_cv(self, X: np.ndarray, Y: np.ndarray, alphas=None, folds: int = 5, standardize_y: bool = False) -> dict:
+    def fit_cv(self, X: np.ndarray, Y: np.ndarray, alphas=None, folds: int = 5, standardize_y: bool = False,
+               weights: np.ndarray | None = None) -> dict:
         """Choose the ridge penalty by cross-validation over contiguous blocks (neighbouring steps are correlated,
         so shuffled folds would leak), refit on everything, and return the validation R² per alpha."""
         alphas = np.logspace(-2, 5, 15) if alphas is None else np.asarray(alphas)
@@ -98,7 +99,7 @@ class LinearReadout:
                 scores[i, f] = r2_pooled(Y[val], Zv @ W + ym)
         mean_scores = scores.mean(1)
         best = int(np.argmax(mean_scores))
-        self.fit(X, Y_raw, alpha=float(alphas[best]), standardize_y=standardize_y)
+        self.fit(X, Y_raw, alpha=float(alphas[best]), standardize_y=standardize_y, weights=weights)
         self.alpha = float(alphas[best])
         return {"alpha": self.alpha, "val_r2": float(mean_scores[best]),
                 "val_r2_by_alpha": dict(zip(map(float, alphas), map(float, mean_scores)))}

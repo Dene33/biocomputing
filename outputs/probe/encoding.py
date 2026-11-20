@@ -59,11 +59,8 @@ def run(name, **kw):
     O, Y = d["obs"], d["y"]
     proj = kw.pop("projection", "pca")
     setup = Setup(**{"culture": "gpu_20k", "mea": "hd1024"} | kw)
-    if proj == "supervised":
-        setup.projection = "random"
-    ctrl = build(setup, O)
-    if proj == "supervised":
-        ctrl.encoder.fit_supervised(O, Y)
+    setup.projection = proj
+    ctrl = build(setup, O, Y)
     if ctrl.device is not None:
         ctrl.device.step(1000.0)
     t = time.time()

@@ -23,7 +23,11 @@ def main():
     p.add_argument("--mea", default="hd1024")
     p.add_argument("--n-stim", type=int, default=32)
     p.add_argument("--slots", type=float, nargs="+", default=[0.0])
-    p.add_argument("--projection", default="pca")
+    p.add_argument("--projection", default="supervised", choices=["pca", "random", "supervised"])
+    p.add_argument("--culture-set", nargs="*", default=[], help="Culture overrides, key=value")
+    p.add_argument("--mea-set", nargs="*", default=[], help="MEA overrides, key=value")
+    p.add_argument("--bins", type=int, default=2)
+    p.add_argument("--recovery-weight", type=float, default=4.0)
     p.add_argument("--rounds", type=int, default=10)
     p.add_argument("--episodes", type=int, default=12)
     p.add_argument("--beta0", type=float, default=0.5)
@@ -48,8 +52,14 @@ def main():
     out.mkdir(parents=True, exist_ok=True)
     env, teacher = AsimovEnv(), Teacher()
     obs = dagger.teacher_observations(env, teacher, [make_task(a.task, a.seconds, seed=a.seed)], seconds=a.seconds)
+    kv = lambda items: {k: float(v) for k, v in (i.split("=") for i in items)}
     setup = Setup(culture=a.culture, mea=a.mea, n_stim=a.n_stim, source=a.source, seed=a.seed,
-                  slots_ms=tuple(a.slots), projection=a.projection)
+                  slots_ms=tuple(a.slots), projection=a.projection, bins=a.bins,
+                  culture_overrides=kv(a.culture_set), mea_overrides=kv(a.mea_set))
+    run = env.run
+    lo = (run.action_clip[:, 0] - run.default_joint_pos) / run.action_scale
+    hi = (run.action_clip[:, 1] - run.default_joint_pos) / run.action_scale
+    acts = np.clip(np.array([teacher(o) for o in obs]), lo, hi)
     # Feature dimension without building a culture here: the MEA's alive channels × (bins + filters).
     if a.source == "none":
         dim = a.n_stim
@@ -64,12 +74,13 @@ def main():
         n_ch = cfg.rows * cfg.cols - (4 if cfg.skip_corners else 0)
         n_ch -= int(round(cfg.dead_fraction * n_ch))
         dim = n_ch * (setup.bins + len(setup.taus_ms))
-    pool = parallel.Pool(setup.to_dict(), obs, a.workers, threads=a.threads)
+    pool = parallel.Pool(setup.to_dict(), obs, a.workers, threads=a.threads, action_samples=acts)
     print(f"{name}: {dim} features, {a.workers} workers", flush=True)
     t0 = time.time()
     rows = []
     res = parallel.train(pool, dim, a.task, rounds=a.rounds, episodes_per_round=a.episodes, beta0=a.beta0,
                          seconds=a.seconds, latency=a.latency, eval_seeds=a.eval_seeds, seed=a.seed,
+                         recovery_weight=a.recovery_weight,
                          log=lambda r: (rows.append(r), print(json.dumps(r), flush=True)))
     ro = res["best_readout"]
     ev = pool.map([dict(readout=ro, task=a.task, seconds=a.seconds, seed=1000 + s, beta=0.0, latency=a.latency,
