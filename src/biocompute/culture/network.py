@@ -108,8 +108,6 @@ class OrganoidCulture:
         self.w0 = self.w.clone()
         """Baseline weights, towards which plasticity decays (forgetting)."""
         self.syn_exc = self.excitatory[self.pre]
-        self.syn_exc_f = self.syn_exc.float()
-        self.syn_inh_f = 1.0 - self.syn_exc_f
         self.noise_scale = torch.where(self.excitatory, 1.0, cfg.noise_inh_scale).float() * cfg.noise_std
         self.alive = torch.ones(n, dtype=torch.bool, device=dev)
         self.excitability = torch.zeros(n, device=dev)
@@ -201,12 +199,15 @@ class OrganoidCulture:
         if cache is not None and cache[0] == version:
             return cache[1]
         if cache is None or cache[2] is None:
-            rows = self.post + self.n * (~self.syn_exc).long()
-            cols = (self.delay - 1) * self.n + self.pre
+            # Built on the CPU (the sort's temporaries would otherwise crowd the GPU), then moved.
+            post, pre, delay, exc = (t.cpu() for t in (self.post, self.pre, self.delay, self.syn_exc))
+            rows = post + self.n * (~exc).long()
+            cols = (delay - 1) * self.n + pre
             order = torch.argsort(rows * (self.cfg.delay_buckets * self.n) + cols)
-            crow = torch.zeros(2 * self.n + 1, dtype=torch.long, device=self.device)
+            crow = torch.zeros(2 * self.n + 1, dtype=torch.long)
             crow[1:] = torch.cumsum(torch.bincount(rows, minlength=2 * self.n), 0)
-            structure = (order, crow, cols[order])
+            structure = (order.to(self.device), crow.to(self.device), cols[order].to(self.device))
+            del rows, cols
         else:
             structure = cache[2]
         order, crow, col = structure
@@ -217,6 +218,8 @@ class OrganoidCulture:
             A = torch.sparse_csr_tensor(crow, col, self.w[order].float(),
                                         size=(2 * self.n, self.cfg.delay_buckets * self.n), check_invariants=False)
         self._A_cache = (version, A, structure)
+        if cache is None and self.device.type == "cuda":
+            torch.cuda.empty_cache()  # release the sort's temporaries
         return A
 
     @property

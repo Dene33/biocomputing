@@ -98,14 +98,16 @@ class SimulatedBiocomputer:
         channels, times = [], []
         raster = torch.zeros(steps, self.culture.n, dtype=torch.bool, device=self.device)
         pulsed = set(pulse_steps.tolist())
+        counts = torch.zeros(self.culture.n, dtype=torch.int32, device=self.device)
         for s in range(steps):
             i_ext = self.mea.stim_current(amps_t[s]) if s in pulsed else None
             raster[s] = self.culture.substep(i_ext)
+            counts += raster[s]
         ch, st = self.mea.record_step(raster, torch.from_numpy(blank).to(self.device), self.dt)
         order = np.argsort(st, kind="stable")
         channels.append(ch[order])
         times.append(st[order] * self.dt)
-        self.oracle_counts = raster.sum(0).float().cpu().numpy()
+        self.oracle_counts = counts.float().cpu().numpy()
         if self.keep_raster:
             self.last_raster = raster
         return SpikeBlock(

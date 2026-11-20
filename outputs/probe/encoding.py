@@ -14,7 +14,8 @@ from pathlib import Path
 import numpy as np
 
 HERE = Path(__file__).parent
-DATA = HERE / "teacher_data.pkl"
+import os
+DATA = HERE / os.environ.get("PROBE_DATA", "teacher_data.pkl")
 
 
 def collect():
@@ -28,7 +29,7 @@ def collect():
     sd = None
     rng = np.random.default_rng(0)
     O, Y = [], []
-    for ep in range(5):
+    for ep in range(int(os.environ.get("PROBE_EPISODES", 5))):
         task = make_task("stand_push", 20, seed=500 + ep)
         env.reset()
         q = deque([np.zeros(23, np.float32)])
@@ -70,6 +71,7 @@ def run(name, **kw):
     res = {"name": name, "ms_per_step": round(ms, 1), "dim": F.shape[1]}
     res["r2_features"] = LinearReadout(F.shape[1]).fit_cv(F, Y, standardize_y=True)["val_r2"]
     res["r2_drives_linear"] = LinearReadout(D.shape[1]).fit_cv(D, Y, standardize_y=True)["val_r2"]
+    np.savez_compressed(HERE / f"feats_{name}.npz", F=F.astype(np.float32), D=D.astype(np.float32))
     res["r2_decode_drives"] = LinearReadout(F.shape[1]).fit_cv(F, D, standardize_y=True)["val_r2"]
     print(json.dumps(res), flush=True)
     with open(HERE / "encoding_results.jsonl", "a") as f:

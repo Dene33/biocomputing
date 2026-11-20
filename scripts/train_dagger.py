@@ -27,6 +27,9 @@ def main():
     p.add_argument("--culture-set", nargs="*", default=[], help="Culture overrides, key=value")
     p.add_argument("--mea-set", nargs="*", default=[], help="MEA overrides, key=value")
     p.add_argument("--bins", type=int, default=2)
+    p.add_argument("--wells", type=int, default=1)
+    p.add_argument("--diverse-wells", action="store_true")
+    p.add_argument("--encoder-gain", type=float, default=1.5)
     p.add_argument("--recovery-weight", type=float, default=4.0)
     p.add_argument("--rounds", type=int, default=10)
     p.add_argument("--episodes", type=int, default=12)
@@ -47,14 +50,15 @@ def main():
     from biocompute.train.setup import Setup, build
     from biocompute.train.tasks import make_task
 
-    name = f"{a.task}_{a.source}_{a.culture}_{a.mea}_s{a.seed}{a.tag}"
+    name = f"{a.task}_{a.source}_{a.culture}_{a.mea}_w{a.wells}_s{a.seed}{a.tag}"
     out = Path(a.out) / name
     out.mkdir(parents=True, exist_ok=True)
     env, teacher = AsimovEnv(), Teacher()
     obs = dagger.teacher_observations(env, teacher, [make_task(a.task, a.seconds, seed=a.seed)], seconds=a.seconds)
     kv = lambda items: {k: float(v) for k, v in (i.split("=") for i in items)}
     setup = Setup(culture=a.culture, mea=a.mea, n_stim=a.n_stim, source=a.source, seed=a.seed,
-                  slots_ms=tuple(a.slots), projection=a.projection, bins=a.bins,
+                  slots_ms=tuple(a.slots), projection=a.projection, bins=a.bins, wells=a.wells,
+                  diverse_wells=a.diverse_wells, encoder_gain=a.encoder_gain,
                   culture_overrides=kv(a.culture_set), mea_overrides=kv(a.mea_set))
     run = env.run
     lo = (run.action_clip[:, 0] - run.default_joint_pos) / run.action_scale
@@ -71,7 +75,7 @@ def main():
         from biocompute.mea.electrodes import make_mea_config
 
         cfg = make_mea_config(a.mea, seed=a.seed)
-        n_ch = cfg.rows * cfg.cols - (4 if cfg.skip_corners else 0)
+        n_ch = (cfg.rows * cfg.cols - (4 if cfg.skip_corners else 0)) * a.wells
         n_ch -= int(round(cfg.dead_fraction * n_ch))
         dim = n_ch * (setup.bins + len(setup.taus_ms))
     pool = parallel.Pool(setup.to_dict(), obs, a.workers, threads=a.threads, action_samples=acts)

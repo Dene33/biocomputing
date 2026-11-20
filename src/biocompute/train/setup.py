@@ -30,6 +30,9 @@ class Setup:
     taus_ms: tuple = (40.0, 160.0)
     wells: int = 1
     """Independent organoids on a multi-well plate; each gets the same stimulation pattern on its own electrodes."""
+    diverse_wells: bool = False
+    """Each well gets its own random rotation of the encoder's channels: the same information, mixed differently,
+    so each organoid computes different nonlinear features (its noise still averages out across wells)."""
     source: str = "mea"
     """``mea``, ``oracle``, ``none`` (no culture) or ``dead`` (MEA readout, recurrent synapses removed)."""
     seed: int = 0
@@ -71,8 +74,18 @@ def build(setup: Setup, obs_samples: np.ndarray, action_samples: np.ndarray | No
     if device is not None and setup.wells > 1:
         # The same encoding into every well.
         encoder.channels = np.concatenate([w[: setup.n_stim] for w in wells])
-        encoder.W = np.tile(encoder.W, (setup.wells, 1))
-        encoder.b = np.tile(encoder.b, setup.wells)
+        W, b = [encoder.W], [encoder.b]
+        for k in range(1, setup.wells):
+            if setup.diverse_wells:
+                R, _ = np.linalg.qr(np.random.default_rng(setup.seed + 100 + k).standard_normal((len(stim), len(stim))))
+                Wk = R @ encoder.W
+                W.append(Wk)
+                b.append(-Wk @ encoder.normalizer(obs_samples).mean(0))
+            else:
+                W.append(encoder.W)
+                b.append(encoder.b)
+        encoder.W = np.concatenate(W)
+        encoder.b = np.concatenate(b)
         encoder.phase = np.zeros(len(encoder.channels))
         channels = np.concatenate([w[: setup.n_stim + setup.n_feedback] for w in wells])
     features = None

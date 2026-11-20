@@ -41,6 +41,18 @@ class SpikeFeatures:
         return np.sqrt(np.concatenate([counts.reshape(-1), self.traces.reshape(-1)])).astype(np.float32)
 
 
+def _backend(d: int):
+    """torch on the GPU for big readouts (thousands of features); numpy float64 otherwise."""
+    try:
+        import torch
+
+        if d >= 1500 and torch.cuda.is_available():
+            return torch, torch.device("cuda")
+    except ImportError:
+        pass
+    return None, None
+
+
 class LinearReadout:
     def __init__(self, in_dim: int, out_dim: int = 23):
         self.W = np.zeros((in_dim + 1, out_dim), dtype=np.float32)
@@ -65,6 +77,27 @@ class LinearReadout:
         Y = self._y_in(Y)
         self.mean = X.mean(0)
         self.std = np.maximum(X.std(0), 1e-3)
+        torch, dev = _backend(X.shape[1])
+        if torch is not None:
+            f = lambda a: torch.as_tensor(np.ascontiguousarray(a, np.float32), device=dev)
+            d = X.shape[1] + 1
+            ZtZ = torch.zeros(d, d, device=dev)
+            ZtY = torch.zeros(d, Y.shape[1], device=dev)
+            mean, std = f(self.mean), f(self.std)
+            for i in range(0, len(X), 20000):
+                Z = torch.cat([(f(X[i : i + 20000]) - mean) / std, torch.ones(len(X[i : i + 20000]), 1, device=dev)], 1)
+                Yt = f(Y[i : i + 20000])
+                if weights is not None:
+                    sw = f(np.sqrt(weights[i : i + 20000]))[:, None]
+                    Z, Yt = Z * sw, Yt * sw
+                ZtZ += Z.T @ Z
+                ZtY += Z.T @ Yt
+            reg = alpha * len(X) / 1000.0 * torch.eye(d, device=dev)
+            reg[-1, -1] = 0.0
+            self.W = torch.linalg.solve(ZtZ + reg, ZtY).cpu().numpy().astype(np.float32)
+            del ZtZ, ZtY
+            torch.cuda.empty_cache()
+            return
         Z = np.c_[(X - self.mean) / self.std, np.ones(len(X))]
         if weights is not None:
             sw = np.sqrt(weights)[:, None]
@@ -84,19 +117,72 @@ class LinearReadout:
         n = len(X)
         edges = np.linspace(0, n, folds + 1).astype(int)
         scores = np.zeros((len(alphas), folds))
+        # Sufficient statistics per fold, in one pass; each fold's training statistics are the totals minus its own.
+        torch, dev = _backend(X.shape[1])
+        if torch is not None:
+            return self._fit_cv_torch(X, Y, Y_raw, alphas, edges, standardize_y, weights, torch, dev)
+        X64, Y64 = np.asarray(X, np.float64), np.asarray(Y, np.float64)
+        blocks = []
         for f in range(folds):
-            val = np.zeros(n, bool)
-            val[edges[f] : edges[f + 1]] = True
-            mean, std = X[~val].mean(0), np.maximum(X[~val].std(0), 1e-3)
-            Zt = (X[~val] - mean) / std
-            Zv = (X[val] - mean) / std
-            ym = Y[~val].mean(0)
+            Xb, Yb = X64[edges[f] : edges[f + 1]], Y64[edges[f] : edges[f + 1]]
+            blocks.append((len(Xb), Xb.sum(0), Xb.T @ Xb, Xb.T @ Yb, Yb.sum(0)))
+        tot = [sum(b[i] for b in blocks) for i in range(5)]
+        for f in range(folds):
+            nt = tot[0] - blocks[f][0]
+            sx, G, C, sy = (tot[i] - blocks[f][i] for i in (1, 2, 3, 4))
+            mean, ym = sx / nt, sy / nt
+            std = np.sqrt(np.maximum(np.diag(G) / nt - mean**2, 0.0))
+            std = np.maximum(std, 1e-3)
             # Ridge for every alpha from one eigendecomposition (features centred, so the bias is the mean).
-            evals, evecs = np.linalg.eigh(Zt.T @ Zt)
-            proj = evecs.T @ (Zt.T @ (Y[~val] - ym))
+            ZtZ = (G - nt * np.outer(mean, mean)) / np.outer(std, std)
+            ZtY = (C - nt * np.outer(mean, ym)) / std[:, None]
+            evals, evecs = np.linalg.eigh(ZtZ)
+            proj = evecs.T @ ZtY
+            Zv = (X64[edges[f] : edges[f + 1]] - mean) / std
+            Yv = Y64[edges[f] : edges[f + 1]]
             for i, a in enumerate(alphas):
-                W = evecs @ (proj / (evals + a * len(Zt) / 1000.0)[:, None])
-                scores[i, f] = r2_pooled(Y[val], Zv @ W + ym)
+                W = evecs @ (proj / (evals + a * nt / 1000.0)[:, None])
+                scores[i, f] = r2_pooled(Yv, Zv @ W + ym)
+        mean_scores = scores.mean(1)
+        best = int(np.argmax(mean_scores))
+        self.fit(X, Y_raw, alpha=float(alphas[best]), standardize_y=standardize_y, weights=weights)
+        self.alpha = float(alphas[best])
+        return {"alpha": self.alpha, "val_r2": float(mean_scores[best]),
+                "val_r2_by_alpha": dict(zip(map(float, alphas), map(float, mean_scores)))}
+
+    def _fit_cv_torch(self, X, Y, Y_raw, alphas, edges, standardize_y, weights, torch, dev) -> dict:
+        folds = len(edges) - 1
+        g = lambda a: torch.as_tensor(np.ascontiguousarray(a, np.float32), device=dev)
+        blocks = []
+        for f in range(folds):  # streamed: one block of X on the GPU at a time; statistics kept on the host
+            Xb, Yb = g(X[edges[f] : edges[f + 1]]), g(Y[edges[f] : edges[f + 1]])
+            h = lambda t: t.double().cpu().numpy()
+            blocks.append((len(Xb), h(Xb.sum(0)), h(Xb.T @ Xb), h(Xb.T @ Yb), h(Yb.sum(0))))
+            del Xb, Yb
+        tot = [sum(b[i] for b in blocks) for i in range(5)]
+        scores = np.zeros((len(alphas), folds))
+        for f in range(folds):
+            nt = tot[0] - blocks[f][0]
+            sx, G, C, sy = (tot[i] - blocks[f][i] for i in (1, 2, 3, 4))
+            mean, ym = sx / nt, sy / nt
+            std = np.maximum(np.sqrt(np.maximum(np.diag(G) / nt - mean**2, 0.0)), 1e-3)
+            ZtZ = (G - nt * np.outer(mean, mean)) / np.outer(std, std)
+            del G
+            ZtY = (C - nt * np.outer(mean, ym)) / std[:, None]
+            evals, evecs = torch.linalg.eigh(g(ZtZ))
+            del ZtZ
+            proj = evecs.T @ g(ZtY)
+            Zv = (g(X[edges[f] : edges[f + 1]]) - g(mean)) / g(std)
+            Yv = g(Y[edges[f] : edges[f + 1]])
+            ymt = g(ym)
+            ss_tot = ((Yv - Yv.mean(0)) ** 2).sum().clamp(min=1e-12)
+            for i, a in enumerate(alphas):
+                W = evecs @ (proj / (evals.clamp(min=0) + a * nt / 1000.0)[:, None])
+                scores[i, f] = float(1.0 - ((Yv - (Zv @ W + ymt)) ** 2).sum() / ss_tot)
+            del evecs, Zv, proj
+            torch.cuda.empty_cache()
+        del blocks, tot
+        torch.cuda.empty_cache()
         mean_scores = scores.mean(1)
         best = int(np.argmax(mean_scores))
         self.fit(X, Y_raw, alpha=float(alphas[best]), standardize_y=standardize_y, weights=weights)

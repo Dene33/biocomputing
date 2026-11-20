@@ -82,18 +82,31 @@ class MEA:
         n_dead = int(round(cfg.dead_fraction * self.n_channels))
         self.dead[rng.choice(self.n_channels, n_dead, replace=False)] = True
 
-        # Electrode–neuron distances (electrodes at z = 0).
-        e = torch.tensor(np.c_[self.xy, np.zeros(self.n_channels)], dtype=torch.float32)
-        dist = torch.cdist(e, neuron_pos.float())  # (channels, neurons)
+        # Electrode–neuron distances (electrodes at z = 0), one block per well: electrodes only see their own well.
+        K = cfg.wells
+        C, N = self.channels_per_well, neuron_pos.shape[0] // K
+        self.wells, self.neurons_per_well = K, N
+        e = torch.tensor(np.c_[self.xy, np.zeros(self.n_channels)], dtype=torch.float32).reshape(K, C, 3)
+        dist = torch.cdist(e, neuron_pos.float().reshape(K, N, 3))  # (wells, channels, neurons)
+        dead = torch.from_numpy(self.dead).reshape(K, C)
         p = torch.sigmoid((cfg.detect_at_um - dist) / (cfg.detect_softness * cfg.detect_at_um))
         p[p < 1e-3] = 0.0
-        p[torch.from_numpy(self.dead)] = 0.0
-        self.detect = p.to(device)  # dense; rows are mostly zero but channels × neurons stays small
+        p[dead] = 0.0
+        self.detect3 = p.to(device)
         drive = cfg.stim_current * torch.exp(-dist / cfg.stim_length_um)
         drive[drive < 0.05 * cfg.stim_current] = 0.0
-        drive[torch.from_numpy(self.dead)] = 0.0
-        self.drive = drive.to(device)
+        drive[dead] = 0.0
+        self.drive3 = drive.to(device)
         self.gen = torch.Generator(device=device).manual_seed(cfg.seed + 2000)
+
+    @property
+    def detect(self) -> torch.Tensor:
+        """Detection probability, (channels, neurons) — dense, for inspection (zero across wells)."""
+        return torch.block_diag(*self.detect3)
+
+    @property
+    def drive(self) -> torch.Tensor:
+        return torch.block_diag(*self.drive3)
 
     @property
     def alive_channels(self) -> np.ndarray:
@@ -101,16 +114,18 @@ class MEA:
 
     def stim_current(self, amplitudes: torch.Tensor) -> torch.Tensor:
         """Current per neuron for pulses of ``amplitudes`` (channels,) delivered this substep."""
-        amps = amplitudes.clamp(0.0, self.cfg.max_amplitude)
-        return amps @ self.drive
+        amps = amplitudes.clamp(0.0, self.cfg.max_amplitude).reshape(self.wells, 1, -1)
+        return torch.bmm(amps, self.drive3).reshape(-1)
 
     def record(self, spikes: torch.Tensor, dt_ms: float) -> torch.Tensor:
         """Multi-unit detections per channel (int counts) for one substep's spikes (bool, neurons)."""
-        if bool(spikes.any()):
-            p = self.detect[:, spikes]  # (channels, spiking)
-            hits = (torch.rand(p.shape, generator=self.gen, device=self.device) < p).sum(1)
-        else:
-            hits = torch.zeros(self.n_channels, dtype=torch.long, device=self.device)
+        hits = torch.zeros(self.n_channels, dtype=torch.long, device=self.device)
+        n_idx = spikes.nonzero(as_tuple=True)[0]
+        if len(n_idx):
+            p = self.detect3[n_idx // self.neurons_per_well, :, n_idx % self.neurons_per_well]  # (spiking, C)
+            s, c = (torch.rand(p.shape, generator=self.gen, device=self.device) < p).nonzero(as_tuple=True)
+            hits.index_add_(0, (n_idx[s] // self.neurons_per_well) * self.channels_per_well + c,
+                            torch.ones_like(c))
         fp = torch.rand(self.n_channels, generator=self.gen, device=self.device) < self.cfg.false_positive_hz * dt_ms * 1e-3
         hits = hits + fp.long()
         hits[torch.from_numpy(self.dead).to(self.device)] = 0
@@ -123,11 +138,14 @@ class MEA:
         live = raster & ~blank[:, None]
         s_idx, n_idx = live.nonzero(as_tuple=True)
         ch_out, st_out = [], []
-        if len(n_idx):
-            p = self.detect[:, n_idx]  # (channels, spikes)
-            hit_c, hit_k = (torch.rand(p.shape, generator=self.gen, device=self.device) < p).nonzero(as_tuple=True)
-            ch_out.append(hit_c)
-            st_out.append(s_idx[hit_k])
+        for i in range(0, len(n_idx), 32768):  # chunks: a network burst can put 10⁵ spikes in one step
+            ni, si = n_idx[i : i + 32768], s_idx[i : i + 32768]
+            well = ni // self.neurons_per_well
+            p = self.detect3[well, :, ni % self.neurons_per_well]  # (spikes, channels of that well)
+            hit_k, hit_c = (torch.rand(p.shape, generator=self.gen, device=self.device) < p).nonzero(as_tuple=True)
+            ch_out.append(well[hit_k] * self.channels_per_well + hit_c)
+            st_out.append(si[hit_k])
+            del p
         fp = torch.rand((raster.shape[0], self.n_channels), generator=self.gen, device=self.device)
         fp = (fp < self.cfg.false_positive_hz * dt_ms * 1e-3) & ~blank[:, None]
         fp_s, fp_c = fp.nonzero(as_tuple=True)
@@ -141,4 +159,5 @@ class MEA:
     def neurons_near(self, channel: int, radius_um: float) -> torch.Tensor:
         """Indices of neurons that a channel's stimulation reaches above ``exp(-radius/length)``."""
         threshold = self.cfg.stim_current * math.exp(-radius_um / self.cfg.stim_length_um)
-        return (self.drive[channel] >= threshold).nonzero(as_tuple=True)[0]
+        w, c = divmod(int(channel), self.channels_per_well)
+        return (self.drive3[w, c] >= threshold).nonzero(as_tuple=True)[0] + w * self.neurons_per_well
