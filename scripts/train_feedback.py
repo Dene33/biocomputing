@@ -38,7 +38,7 @@ from biocompute.train.tasks import make_task
 parser = argparse.ArgumentParser()
 parser.add_argument("--protocol", default="scratch", choices=["scratch", "adapt"])
 parser.add_argument("--condition", default="dishbrain", choices=["dishbrain", "random", "silent", "frozen", "rstdp"])
-parser.add_argument("--task", default="stand")
+parser.add_argument("--task", default=None, help="Default: the readout's task (adapt) or stand_push (scratch)")
 parser.add_argument("--readout", default=None, help="adapt: a train_reservoir.py output folder")
 parser.add_argument("--perturb", default="none", choices=["none", "weak_knees", "slippery", "cell_loss"])
 parser.add_argument("--minutes", type=float, default=10.0)
@@ -56,6 +56,9 @@ if args.perturb == "weak_knees":
 elif args.perturb == "slippery":
     perturbation.foot_friction = 0.3
 env, teacher = AsimovEnv(perturbation=perturbation), Teacher()
+if args.task is None:
+    args.task = (json.loads((Path(args.readout) / "summary.json").read_text())["args"]["task"]
+                 if args.protocol == "adapt" and args.readout else "stand_push")
 task = make_task(args.task, args.seconds, seed=args.seed)
 
 if args.protocol == "adapt":

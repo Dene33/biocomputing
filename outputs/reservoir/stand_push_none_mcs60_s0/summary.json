@@ -1,0 +1,176 @@
+{
+  "name": "stand_push_none_mcs60_s0",
+  "setup": {
+    "culture": "cpu_2k",
+    "culture_overrides": {},
+    "mea": "mcs60",
+    "mea_overrides": {},
+    "n_stim": 32,
+    "n_feedback": 8,
+    "encoding": "amplitude",
+    "projection": "pca",
+    "slots_ms": [
+      0.0
+    ],
+    "bins": 2,
+    "taus_ms": [
+      40.0,
+      160.0
+    ],
+    "source": "none",
+    "seed": 0
+  },
+  "args": {
+    "task": "stand_push",
+    "source": "none",
+    "culture": "cpu_2k",
+    "mea": "mcs60",
+    "n_stim": 32,
+    "encoding": "amplitude",
+    "rounds": 8,
+    "episodes": 2,
+    "seconds": 20.0,
+    "alpha": null,
+    "latency": 1,
+    "eval_seeds": 5,
+    "seed": 0,
+    "threads": 2,
+    "out": "outputs/reservoir"
+  },
+  "train_seconds": 11.99481201171875,
+  "history": [
+    {
+      "round": 0,
+      "beta": 1.0,
+      "samples": 2000,
+      "train_r2": 0.7014318704605103,
+      "val_r2": 0.38789396569213486,
+      "alpha": 316.2277660168379,
+      "eval_survived_s": 2.4,
+      "eval_distance_x_m": -0.44742706979615365,
+      "seconds": 2.3160970211029053
+    },
+    {
+      "round": 1,
+      "beta": 0.6,
+      "samples": 2864,
+      "train_r2": 0.8358502388000488,
+      "val_r2": 0.24608308945521426,
+      "alpha": 31.622776601683793,
+      "eval_survived_s": 1.9000000000000001,
+      "eval_distance_x_m": -0.5322676073640167,
+      "seconds": 1.3855533599853516
+    },
+    {
+      "round": 2,
+      "beta": 0.36,
+      "samples": 3215,
+      "train_r2": 0.7890375852584839,
+      "val_r2": -0.25587247283536463,
+      "alpha": 100.0,
+      "eval_survived_s": 1.48,
+      "eval_distance_x_m": -0.6129587982229792,
+      "seconds": 1.2611241340637207
+    },
+    {
+      "round": 3,
+      "beta": 0.21599999999999997,
+      "samples": 3397,
+      "train_r2": 0.7759125232696533,
+      "val_r2": -0.13091492338133887,
+      "alpha": 100.0,
+      "eval_survived_s": 1.8,
+      "eval_distance_x_m": 0.45003097165449285,
+      "seconds": 1.0066044330596924
+    },
+    {
+      "round": 4,
+      "beta": 0.1296,
+      "samples": 3763,
+      "train_r2": 0.755142867565155,
+      "val_r2": -0.3811719061049946,
+      "alpha": 3.1622776601683795,
+      "eval_survived_s": 3.16,
+      "eval_distance_x_m": -0.5726152723856529,
+      "seconds": 1.1950206756591797
+    },
+    {
+      "round": 5,
+      "beta": 0.07775999999999998,
+      "samples": 4089,
+      "train_r2": 0.7515567541122437,
+      "val_r2": -0.07779824028703994,
+      "alpha": 0.01,
+      "eval_survived_s": 1.6,
+      "eval_distance_x_m": 0.07582033123090463,
+      "seconds": 1.1732611656188965
+    },
+    {
+      "round": 6,
+      "beta": 0.04665599999999999,
+      "samples": 4252,
+      "train_r2": 0.7285292744636536,
+      "val_r2": -0.4592469468680389,
+      "alpha": 0.01,
+      "eval_survived_s": 2.5,
+      "eval_distance_x_m": 0.23092508379473586,
+      "seconds": 0.9892745018005371
+    },
+    {
+      "round": 7,
+      "beta": 0.027993599999999993,
+      "samples": 4456,
+      "train_r2": 0.7378877401351929,
+      "val_r2": -0.5222920290020576,
+      "alpha": 0.01,
+      "eval_survived_s": 2.2600000000000002,
+      "eval_distance_x_m": -0.1224057734408535,
+      "seconds": 0.9857022762298584
+    }
+  ],
+  "eval": [
+    {
+      "task": "stand_push",
+      "seed": 0,
+      "survived_s": 2.2600000000000002,
+      "fell": true,
+      "distance_x_m": -0.1224057734408535,
+      "mean_speed_x": -0.05416184665524491
+    },
+    {
+      "task": "stand_push",
+      "seed": 1,
+      "survived_s": 2.2600000000000002,
+      "fell": true,
+      "distance_x_m": -0.1224057734408535,
+      "mean_speed_x": -0.05416184665524491
+    },
+    {
+      "task": "stand_push",
+      "seed": 2,
+      "survived_s": 2.2600000000000002,
+      "fell": true,
+      "distance_x_m": -0.1224057734408535,
+      "mean_speed_x": -0.05416184665524491
+    },
+    {
+      "task": "stand_push",
+      "seed": 3,
+      "survived_s": 2.2600000000000002,
+      "fell": true,
+      "distance_x_m": -0.1224057734408535,
+      "mean_speed_x": -0.05416184665524491
+    },
+    {
+      "task": "stand_push",
+      "seed": 4,
+      "survived_s": 2.2600000000000002,
+      "fell": true,
+      "distance_x_m": -0.1224057734408535,
+      "mean_speed_x": -0.05416184665524491
+    }
+  ],
+  "eval_survived_s_mean": 2.2600000000000002,
+  "eval_full_episodes": 0,
+  "eval_distance_x_m_mean": -0.1224057734408535
+}

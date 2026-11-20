@@ -77,6 +77,44 @@ The `cpu_2k` preset is tuned so that spontaneous activity looks like a cortical 
 
 It also responds to single-electrode stimulation. Bursts end because short-term depression uses up synaptic resources, as in culture models. These are plausible ranges, not a fit to one dataset: reports for organoids (e.g. Trujillo et al., *Cell Stem Cell* 2019) and dissociated cultures (Wagenaar et al., *BMC Neuroscience* 2006) vary with age and protocol. The realism dials are neuron count, electrode count and pitch, detection radius, noise, dead channels, stimulation limits, latency, forgetting time constant and aging.
 
+## Status and findings so far (20 November 2026)
+
+Built: everything in the layout above, with 11 passing tests. Teacher parity with cyclotron is exact.
+
+**Baselines** (`scripts/baselines.py`, 5 seeds, 20 s, 1-step latency):
+
+| Task | Teacher | Zero action |
+| --- | --- | --- |
+| `stand` | 20 s, 5/5 | 20 s, 5/5 |
+| `stand_push` | 20 s, 5/5 | 4.6 s, 0/5 |
+| `walk` | 6.1 m | 0 m |
+
+**Reservoir on `stand_push`** (one seed, `outputs/report.md`): no readout beats the zero-action floor.
+
+| Readout | Survived |
+| --- | --- |
+| 60-ch MEA | 3.0 s |
+| 256-ch | 1.9 s |
+| 1024-ch | 2.3 s |
+| Every neuron (oracle) | 2.4 s |
+| Dead culture | 2.0 s |
+| No culture | 2.3 s |
+
+What this says:
+
+1. **Electrode bandwidth is real but not the only limit.** 60 electrodes detect ~8 spikes per 20 ms step, at a realistic rate. More channels raise train R² from 0.73 to 0.95, but closed-loop control does not improve, even when the readout sees every neuron.
+2. **A linear readout cannot imitate this policy where it matters.** Even a linear policy on the raw 78 observations stands, but it falls after a 120–200 N push, and with one step of latency it cannot walk. The reservoir must supply the missing nonlinearity, and this 2000-neuron culture with a ridge readout does not.
+3. **DAgger data from falls hurts.** Validation R² turns negative as rounds add the states the student visits while falling.
+
+**DishBrain sessions:** both protocols run end to end (2-minute smoke tests only). Plain STDP runs away: mean excitatory weight goes from 2.2 to 3.8 in 2 simulated minutes. Synaptic scaling is needed before any M3 result means anything.
+
+**Next steps, most promising first:**
+
+- **Residual control:** the culture adds a bounded correction to the teacher, or to a simple PD/balance controller, rather than producing all 23 targets. This is honest about what a real culture can carry, and it fits the "small adaptive layer" view.
+- **A smaller action space:** a few gait synergies (PCA of the teacher's actions), rather than 23 independent joints.
+- **Stronger reservoir conditions:** the `gpu_20k` preset, input-driven rather than burst-dominated regimes (stimulation quiets bursting), and longer feature memory.
+- **Homeostatic scaling for STDP**, then the full M3 comparison over ≥5 seeds.
+
 ## Limits of the simulation
 
 - A point-neuron network is not an organoid. It has no glia, no 3D layered structure, no neuromodulators, no metabolic limits, and no variability between organoids beyond the seed.

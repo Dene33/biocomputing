@@ -1,0 +1,176 @@
+{
+  "name": "stand_push_mea_hd1024_s0",
+  "setup": {
+    "culture": "cpu_2k",
+    "culture_overrides": {},
+    "mea": "hd1024",
+    "mea_overrides": {},
+    "n_stim": 32,
+    "n_feedback": 8,
+    "encoding": "amplitude",
+    "projection": "pca",
+    "slots_ms": [
+      0.0
+    ],
+    "bins": 2,
+    "taus_ms": [
+      40.0,
+      160.0
+    ],
+    "source": "mea",
+    "seed": 0
+  },
+  "args": {
+    "task": "stand_push",
+    "source": "mea",
+    "culture": "cpu_2k",
+    "mea": "hd1024",
+    "n_stim": 32,
+    "encoding": "amplitude",
+    "rounds": 8,
+    "episodes": 2,
+    "seconds": 20.0,
+    "alpha": null,
+    "latency": 1,
+    "eval_seeds": 5,
+    "seed": 0,
+    "threads": 2,
+    "out": "outputs/reservoir"
+  },
+  "train_seconds": 954.1929125785828,
+  "history": [
+    {
+      "round": 0,
+      "beta": 1.0,
+      "samples": 2000,
+      "train_r2": 0.8227905631065369,
+      "val_r2": 0.006960854075503309,
+      "alpha": 10000.0,
+      "eval_survived_s": 4.12,
+      "eval_distance_x_m": 0.5534260031807076,
+      "seconds": 245.04515647888184
+    },
+    {
+      "round": 1,
+      "beta": 0.6,
+      "samples": 2436,
+      "train_r2": 0.9210717678070068,
+      "val_r2": -0.5280843415963244,
+      "alpha": 3162.2776601683795,
+      "eval_survived_s": 2.12,
+      "eval_distance_x_m": 0.5488392917274362,
+      "seconds": 131.35751819610596
+    },
+    {
+      "round": 2,
+      "beta": 0.36,
+      "samples": 2847,
+      "train_r2": 0.9218224883079529,
+      "val_r2": -1.013591490470676,
+      "alpha": 3162.2776601683795,
+      "eval_survived_s": 2.74,
+      "eval_distance_x_m": -0.596507672815303,
+      "seconds": 123.96770882606506
+    },
+    {
+      "round": 3,
+      "beta": 0.21599999999999997,
+      "samples": 3277,
+      "train_r2": 0.9170846343040466,
+      "val_r2": -1.0345512008605084,
+      "alpha": 3162.2776601683795,
+      "eval_survived_s": 2.82,
+      "eval_distance_x_m": -0.6063476237565594,
+      "seconds": 91.48229026794434
+    },
+    {
+      "round": 4,
+      "beta": 0.1296,
+      "samples": 3662,
+      "train_r2": 0.9564648270606995,
+      "val_r2": -0.46217215118636024,
+      "alpha": 1000.0,
+      "eval_survived_s": 1.84,
+      "eval_distance_x_m": -0.638252793200847,
+      "seconds": 89.8356032371521
+    },
+    {
+      "round": 5,
+      "beta": 0.07775999999999998,
+      "samples": 3855,
+      "train_r2": 0.9548341631889343,
+      "val_r2": -0.42622013783705437,
+      "alpha": 1000.0,
+      "eval_survived_s": 4.2,
+      "eval_distance_x_m": -0.43766541568944334,
+      "seconds": 88.19238424301147
+    },
+    {
+      "round": 6,
+      "beta": 0.04665599999999999,
+      "samples": 4056,
+      "train_r2": 0.9526478052139282,
+      "val_r2": -0.47580234546152667,
+      "alpha": 1000.0,
+      "eval_survived_s": 2.12,
+      "eval_distance_x_m": -0.5955470242626982,
+      "seconds": 65.75941276550293
+    },
+    {
+      "round": 7,
+      "beta": 0.027993599999999993,
+      "samples": 4294,
+      "train_r2": 0.9503312110900879,
+      "val_r2": -0.4090022280624174,
+      "alpha": 1000.0,
+      "eval_survived_s": 1.94,
+      "eval_distance_x_m": -0.5882807523691601,
+      "seconds": 83.04353404045105
+    }
+  ],
+  "eval": [
+    {
+      "task": "stand_push",
+      "seed": 0,
+      "survived_s": 1.84,
+      "fell": true,
+      "distance_x_m": -0.5717697643280872,
+      "mean_speed_x": -0.31074443713483
+    },
+    {
+      "task": "stand_push",
+      "seed": 1,
+      "survived_s": 3.12,
+      "fell": true,
+      "distance_x_m": -0.5543414533729705,
+      "mean_speed_x": -0.17767354274774694
+    },
+    {
+      "task": "stand_push",
+      "seed": 2,
+      "survived_s": 1.84,
+      "fell": true,
+      "distance_x_m": -0.5809790872704605,
+      "mean_speed_x": -0.3157495039513372
+    },
+    {
+      "task": "stand_push",
+      "seed": 3,
+      "survived_s": 2.14,
+      "fell": true,
+      "distance_x_m": -0.6121961365589051,
+      "mean_speed_x": -0.28607296100883417
+    },
+    {
+      "task": "stand_push",
+      "seed": 4,
+      "survived_s": 2.74,
+      "fell": true,
+      "distance_x_m": -0.5424222566953241,
+      "mean_speed_x": -0.19796432726106716
+    }
+  ],
+  "eval_survived_s_mean": 2.336,
+  "eval_full_episodes": 0,
+  "eval_distance_x_m_mean": -0.5723417396451496
+}

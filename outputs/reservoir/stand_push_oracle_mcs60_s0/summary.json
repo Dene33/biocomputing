@@ -1,0 +1,176 @@
+{
+  "name": "stand_push_oracle_mcs60_s0",
+  "setup": {
+    "culture": "cpu_2k",
+    "culture_overrides": {},
+    "mea": "mcs60",
+    "mea_overrides": {},
+    "n_stim": 32,
+    "n_feedback": 8,
+    "encoding": "amplitude",
+    "projection": "pca",
+    "slots_ms": [
+      0.0
+    ],
+    "bins": 2,
+    "taus_ms": [
+      40.0,
+      160.0
+    ],
+    "source": "oracle",
+    "seed": 0
+  },
+  "args": {
+    "task": "stand_push",
+    "source": "oracle",
+    "culture": "cpu_2k",
+    "mea": "mcs60",
+    "n_stim": 32,
+    "encoding": "amplitude",
+    "rounds": 8,
+    "episodes": 2,
+    "seconds": 20.0,
+    "alpha": null,
+    "latency": 1,
+    "eval_seeds": 5,
+    "seed": 0,
+    "threads": 2,
+    "out": "outputs/reservoir"
+  },
+  "train_seconds": 1360.2558634281158,
+  "history": [
+    {
+      "round": 0,
+      "beta": 1.0,
+      "samples": 2000,
+      "train_r2": 0.825280487537384,
+      "val_r2": -0.0054816316028812205,
+      "alpha": 10000.0,
+      "eval_survived_s": 2.84,
+      "eval_distance_x_m": -0.620653104160635,
+      "seconds": 312.9815182685852
+    },
+    {
+      "round": 1,
+      "beta": 0.6,
+      "samples": 2414,
+      "train_r2": 0.9694886803627014,
+      "val_r2": -0.5081123877961237,
+      "alpha": 1000.0,
+      "eval_survived_s": 1.74,
+      "eval_distance_x_m": -0.5878086534307183,
+      "seconds": 209.04332995414734
+    },
+    {
+      "round": 2,
+      "beta": 0.36,
+      "samples": 2713,
+      "train_r2": 0.9696282744407654,
+      "val_r2": -1.0170525632155256,
+      "alpha": 1000.0,
+      "eval_survived_s": 1.8,
+      "eval_distance_x_m": -0.4980307360627051,
+      "seconds": 151.71120882034302
+    },
+    {
+      "round": 3,
+      "beta": 0.21599999999999997,
+      "samples": 3041,
+      "train_r2": 0.9671513438224792,
+      "val_r2": -1.3364378804741377,
+      "alpha": 1000.0,
+      "eval_survived_s": 4.0600000000000005,
+      "eval_distance_x_m": -0.5797382304966864,
+      "seconds": 149.85083961486816
+    },
+    {
+      "round": 4,
+      "beta": 0.1296,
+      "samples": 3356,
+      "train_r2": 0.9659723043441772,
+      "val_r2": -0.9133972554993723,
+      "alpha": 1000.0,
+      "eval_survived_s": 3.96,
+      "eval_distance_x_m": 0.1803868600132451,
+      "seconds": 142.0231659412384
+    },
+    {
+      "round": 5,
+      "beta": 0.07775999999999998,
+      "samples": 3721,
+      "train_r2": 0.9824421405792236,
+      "val_r2": -0.4135556407184523,
+      "alpha": 316.2277660168379,
+      "eval_survived_s": 5.36,
+      "eval_distance_x_m": -0.2719404421017628,
+      "seconds": 132.3227117061615
+    },
+    {
+      "round": 6,
+      "beta": 0.04665599999999999,
+      "samples": 4066,
+      "train_r2": 0.9621651768684387,
+      "val_r2": -0.3031193706805956,
+      "alpha": 1000.0,
+      "eval_survived_s": 2.02,
+      "eval_distance_x_m": -0.5518201013100019,
+      "seconds": 123.03048706054688
+    },
+    {
+      "round": 7,
+      "beta": 0.027993599999999993,
+      "samples": 4377,
+      "train_r2": 0.9603342413902283,
+      "val_r2": -0.30618426102285035,
+      "alpha": 1000.0,
+      "eval_survived_s": 3.84,
+      "eval_distance_x_m": 0.5627588185614957,
+      "seconds": 119.45332074165344
+    }
+  ],
+  "eval": [
+    {
+      "task": "stand_push",
+      "seed": 0,
+      "survived_s": 2.16,
+      "fell": true,
+      "distance_x_m": -0.5655277593112013,
+      "mean_speed_x": -0.26181840708851906
+    },
+    {
+      "task": "stand_push",
+      "seed": 1,
+      "survived_s": 2.54,
+      "fell": true,
+      "distance_x_m": -0.6274085109172963,
+      "mean_speed_x": -0.2470112247705891
+    },
+    {
+      "task": "stand_push",
+      "seed": 2,
+      "survived_s": 2.2,
+      "fell": true,
+      "distance_x_m": -0.5091816108777886,
+      "mean_speed_x": -0.23144618676263115
+    },
+    {
+      "task": "stand_push",
+      "seed": 3,
+      "survived_s": 2.7800000000000002,
+      "fell": true,
+      "distance_x_m": 0.5510565788015261,
+      "mean_speed_x": 0.19822179093580075
+    },
+    {
+      "task": "stand_push",
+      "seed": 4,
+      "survived_s": 2.3000000000000003,
+      "fell": true,
+      "distance_x_m": -0.5933443383471168,
+      "mean_speed_x": -0.25797579928135506
+    }
+  ],
+  "eval_survived_s_mean": 2.396,
+  "eval_full_episodes": 0,
+  "eval_distance_x_m_mean": -0.3488811281303753
+}
