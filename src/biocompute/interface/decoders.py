@@ -58,11 +58,44 @@ class LinearReadout:
         reg[-1, -1] = 0.0
         self.W = np.linalg.solve(Z.T @ Z + reg, Z.T @ Y).astype(np.float32)
 
+    def fit_cv(self, X: np.ndarray, Y: np.ndarray, alphas=None, folds: int = 5) -> dict:
+        """Choose the ridge penalty by cross-validation over contiguous blocks (neighbouring steps are correlated,
+        so shuffled folds would leak), refit on everything, and return the validation R² per alpha."""
+        alphas = np.logspace(-2, 5, 15) if alphas is None else np.asarray(alphas)
+        n = len(X)
+        edges = np.linspace(0, n, folds + 1).astype(int)
+        scores = np.zeros((len(alphas), folds))
+        for f in range(folds):
+            val = np.zeros(n, bool)
+            val[edges[f] : edges[f + 1]] = True
+            mean, std = X[~val].mean(0), np.maximum(X[~val].std(0), 1e-3)
+            Zt = (X[~val] - mean) / std
+            Zv = (X[val] - mean) / std
+            ym = Y[~val].mean(0)
+            # Ridge for every alpha from one eigendecomposition (features centred, so the bias is the mean).
+            evals, evecs = np.linalg.eigh(Zt.T @ Zt)
+            proj = evecs.T @ (Zt.T @ (Y[~val] - ym))
+            for i, a in enumerate(alphas):
+                W = evecs @ (proj / (evals + a * len(Zt) / 1000.0)[:, None])
+                scores[i, f] = r2_pooled(Y[val], Zv @ W + ym)
+        mean_scores = scores.mean(1)
+        best = int(np.argmax(mean_scores))
+        self.fit(X, Y, alpha=float(alphas[best]))
+        self.alpha = float(alphas[best])
+        return {"alpha": self.alpha, "val_r2": float(mean_scores[best]),
+                "val_r2_by_alpha": dict(zip(map(float, alphas), map(float, mean_scores)))}
+
     def __call__(self, x: np.ndarray) -> np.ndarray:
         return (np.r_[(x - self.mean) / self.std, 1.0] @ self.W).astype(np.float32)
 
     def predict(self, X: np.ndarray) -> np.ndarray:
         return (np.c_[(X - self.mean) / self.std, np.ones(len(X))] @ self.W).astype(np.float32)
+
+
+def r2_pooled(Y: np.ndarray, P: np.ndarray) -> float:
+    """Variance-weighted R² over all outputs: 1 - total squared error / total variance. Joints that barely move
+    (their R² alone is meaningless) count in proportion to how much they move."""
+    return float(1.0 - ((Y - P) ** 2).sum() / max(((Y - Y.mean(0)) ** 2).sum(), 1e-12))
 
 
 def r2_per_output(Y: np.ndarray, P: np.ndarray) -> np.ndarray:

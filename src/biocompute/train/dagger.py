@@ -12,7 +12,7 @@ import time
 import numpy as np
 
 from biocompute.eval.metrics import robot_metrics
-from biocompute.interface.decoders import LinearReadout, r2_per_output
+from biocompute.interface.decoders import LinearReadout, r2_pooled
 from biocompute.loop import CultureController, run_episode
 from biocompute.robot.asimov import AsimovEnv
 from biocompute.train.tasks import Task
@@ -59,7 +59,7 @@ def train(
     episodes_per_round: int = 2,
     beta0: float = 1.0,
     beta_decay: float = 0.6,
-    alpha: float = 1.0,
+    alpha: float | None = None,
     latency_steps: int = 1,
     log=print,
 ) -> dict:
@@ -80,12 +80,15 @@ def train(
             Y.append(np.array(ep.teacher))
             steps += ep.steps
         Xa, Ya = np.concatenate(X), np.concatenate(Y)
-        readout.fit(Xa, Ya, alpha=alpha)
-        r2 = r2_per_output(Ya, readout.predict(Xa))
+        if alpha is None:
+            cv = readout.fit_cv(Xa, Ya)
+        else:
+            readout.fit(Xa, Ya, alpha=alpha)
+            cv = {"alpha": alpha, "val_r2": float("nan")}
+        r2 = r2_pooled(Ya, readout.predict(Xa))
         ctrl.readout = readout
         ev = evaluate(env, ctrl, tasks[:1], latency_steps)
-        row = {"round": r, "beta": beta, "samples": len(Xa), "train_r2_mean": float(r2.mean()),
-               "train_r2_min": float(r2.min()), "eval_survived_s": ev[0]["survived_s"],
+        row = {"round": r, "beta": beta, "samples": len(Xa), "train_r2": r2, "val_r2": cv["val_r2"], "alpha": cv["alpha"], "eval_survived_s": ev[0]["survived_s"],
                "eval_distance_x_m": ev[0]["distance_x_m"], "seconds": time.time() - t0}
         history.append(row)
         log(row)

@@ -31,7 +31,7 @@ parser.add_argument("--encoding", default="amplitude", choices=["amplitude", "ra
 parser.add_argument("--rounds", type=int, default=8)
 parser.add_argument("--episodes", type=int, default=2, help="Episodes per DAgger round")
 parser.add_argument("--seconds", type=float, default=20.0)
-parser.add_argument("--alpha", type=float, default=1.0)
+parser.add_argument("--alpha", type=float, default=None, help="Ridge penalty; default: cross-validated")
 parser.add_argument("--latency", type=int, default=1)
 parser.add_argument("--eval-seeds", type=int, default=5)
 parser.add_argument("--seed", type=int, default=0)
@@ -39,6 +39,7 @@ parser.add_argument("--threads", type=int, default=4)
 parser.add_argument("--out", default="outputs/reservoir")
 args = parser.parse_args()
 torch.set_num_threads(args.threads)
+torch.set_num_interop_threads(1)
 
 name = f"{args.task}_{args.source}_{args.mea}_s{args.seed}"
 out = Path(args.out) / name

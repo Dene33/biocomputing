@@ -13,7 +13,7 @@ for path in sorted((root / "reservoir").glob("*/summary.json")):
     last = s["history"][-1]
     rows.append({
         "kind": "reservoir", "task": s["args"]["task"], "source": s["args"]["source"], "mea": s["args"]["mea"],
-        "seed": s["args"]["seed"], "train_r2": round(last["train_r2_mean"], 3),
+        "seed": s["args"]["seed"], "train_r2": round(last["train_r2"], 3), "val_r2": round(last.get("val_r2", float("nan")), 3),
         "survived_s": round(s["eval_survived_s_mean"], 2),
         "full": f"{s['eval_full_episodes']}/{len(s['eval'])}", "distance_m": round(s["eval_distance_x_m_mean"], 2),
     })
@@ -34,9 +34,9 @@ for path in sorted((root / "feedback").glob("*/summary.json")):
     })
 
 lines = ["# Results", "", "## Reservoir (DAgger + ridge readout)", "",
-         "| task | readout source | MEA | seed | train R² | survived (s) | full episodes | distance (m) |",
-         "|---|---|---|---|---|---|---|---|"]
-lines += [f"| {r['task']} | {r['source']} | {r['mea']} | {r['seed']} | {r['train_r2']} | {r['survived_s']} | "
+         "| task | readout source | MEA | seed | train R² | validation R² | survived (s) | full episodes | distance (m) |",
+         "|---|---|---|---|---|---|---|---|---|"]
+lines += [f"| {r['task']} | {r['source']} | {r['mea']} | {r['seed']} | {r['train_r2']} | {r['val_r2']} | {r['survived_s']} | "
           f"{r['full']} | {r['distance_m']} |" for r in rows]
 lines += ["", "## DishBrain feedback sessions", "",
           "| protocol | task | perturbation | condition | seed | before (s) | first block (s) | last block (s) | "

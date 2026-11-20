@@ -44,3 +44,12 @@ def test_motor_map_and_feedback():
     assert len(ch) == 16 and set(t) == {0.0, 10.0}  # 100 Hz on all 8 together
     fb.bad()
     assert fb.busy
+
+
+def test_cross_validated_ridge_resists_overfitting():
+    rng = np.random.default_rng(2)
+    X = rng.standard_normal((600, 400))  # many more features than are useful
+    Y = X[:, :3] @ rng.standard_normal((3, 23)) + 0.5 * rng.standard_normal((600, 23))
+    ro = LinearReadout(400)
+    cv = ro.fit_cv(X, Y)
+    assert cv["alpha"] > 0.1 and 0.3 < cv["val_r2"] < 0.95

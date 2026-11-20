@@ -63,11 +63,12 @@ class Encoder:
         z = self.normalizer(obs)
         centred = z - z.mean(0)
         _, s, vt = np.linalg.svd(centred, full_matrices=False)
-        k = len(self.channels)
-        m = (k + 1) // 2
-        sd = s[:m] / np.sqrt(len(z))  # each component's standard deviation
-        comps = vt[:m] / np.maximum(sd, 1e-6)[:, None]  # whitened: each projection has unit variance
-        self.W = np.concatenate([comps, -comps])[:k]  # push–pull pairs: one channel for each sign of a component
+        k = min(len(self.channels), vt.shape[0])
+        sd = s[:k] / np.sqrt(len(z))  # each component's standard deviation
+        comps = vt[:k] / np.maximum(sd, 1e-6)[:, None]  # whitened: each projection has unit variance
+        W = np.zeros((len(self.channels), z.shape[1]))
+        W[:k] = comps  # one component per channel; the sigmoid centres it on 0.5, so both signs are coded
+        self.W = W
         self.b = -self.W @ z.mean(0)
         self.projection = "pca"
 
