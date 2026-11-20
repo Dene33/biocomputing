@@ -63,7 +63,7 @@ def test_stimulation_reaches_only_nearby_neurons():
     dev.culture.w.zero_()  # no network: only the direct response
     ch = 27
     dev.stimulate([ch], [0.0], [1.0])
-    dev.step(5.0)
+    dev.step(10.0)
     fired = dev.last_raster.any(0).cpu()
     dist = (dev.culture.pos[:, :2] - torch.tensor(dev.mea.xy[ch])).norm(dim=1)
     assert fired.sum() > 0

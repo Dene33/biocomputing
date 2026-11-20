@@ -32,7 +32,7 @@ class CultureConfig:
     # Connectivity: p(i -> j) = p_max * exp(-distance / length_um)
     synapses_per_neuron: float = 60.0
     length_um: float = 150.0
-    w_exc: float = 2.0
+    w_exc: float = 2.2
     """Mean excitatory weight (pA-like units in Izhikevich's model)."""
     w_inh: float = -6.0
     w_spread: float = 0.5
@@ -47,12 +47,14 @@ class CultureConfig:
 
     # Short-term depression (Tsodyks–Markram)
     stp_u: float = 0.2
-    stp_tau_rec_ms: float = 800.0
+    stp_tau_rec_ms: float = 2000.0
 
     # Background
     background_rate_hz: float = 2.0
     background_w: float = 12.0
-    noise_std: float = 1.5
+    noise_std: float = 3.0
+    noise_inh_scale: float = 0.4
+    """Inhibitory neurons get this fraction of the noise (as in Izhikevich 2003), else they fire tonically."""
 
     seed: int = 0
     device: str = "cpu"
@@ -113,6 +115,7 @@ class OrganoidCulture:
         self.w0 = self.w.clone()
         """Baseline weights, towards which plasticity decays (forgetting)."""
         self.syn_exc = self.excitatory[self.pre]
+        self.noise_scale = torch.where(self.excitatory, 1.0, cfg.noise_inh_scale).float() * cfg.noise_std
         self.alive = torch.ones(n, dtype=torch.bool, device=dev)
         self.excitability = torch.zeros(n, device=dev)
         """Extra constant current per neuron (drift, set by aging)."""
@@ -195,7 +198,7 @@ class OrganoidCulture:
             self.i_exc
             - self.i_inh
             + cfg.background_w * bg
-            + cfg.noise_std * torch.randn(self.n, generator=g, device=self.device)
+            + self.noise_scale * torch.randn(self.n, generator=g, device=self.device)
             + self.excitability
         )
         if i_ext is not None:

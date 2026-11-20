@@ -36,7 +36,7 @@ class MEAConfig:
     blank_ms: float = 2.0
 
     # Stimulation
-    stim_current: float = 40.0
+    stim_current: float = 100.0
     """Current (model units) injected for one substep into a neuron at the electrode, at amplitude 1."""
     stim_length_um: float = 60.0
     max_amplitude: float = 1.0
