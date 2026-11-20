@@ -33,7 +33,32 @@ for path in sorted((root / "feedback").glob("*/summary.json")):
         "after_rest_s": mean(s["after_rest"]),
     })
 
-lines = ["# Results", "", "## Reservoir (DAgger + ridge readout)", "",
+dg_rows = []
+for path in sorted((root / "dagger").glob("*/summary.json")):
+    s = json.loads(path.read_text())
+    a, st = s["args"], s["setup"]
+    best = max(s["history"], key=lambda h: h["eval_survived_s"]) if s["history"] else {}
+    evals = {}
+    for ev in sorted(path.parent.glob("eval_*.json")):
+        e = json.loads(ev.read_text())
+        evals[e["control"]] = f"{e['survived_s_mean']:.1f} s, {e['full']}"
+    dg_rows.append({
+        "run": path.parent.name, "source": st["source"], "wells": st.get("wells", 1), "encoding": st["projection"],
+        "decoder": a.get("readout", "ridge") + (" + efference" if st.get("efference") else ""),
+        "rounds": len(s["history"]), "best_round_s": round(best.get("eval_survived_s", float("nan")), 1),
+        "final": f"{s['final_survived_s_mean']:.1f} s, {s['final_full']}", "evals": evals,
+    })
+
+lines = ["# Results", "", "## Parallel DAgger (scripts/train_dagger.py)", "",
+         "Final: 10 fresh push seeds. Ablations (scripts/eval_readout.py, 20 fresh seeds): `none` = as trained, "
+         "`silent` = no sensory stimulation reaches the culture, `dead` = culture without recurrent synapses, "
+         "`zero` = default pose.", "",
+         "| run | source | wells | encoding | decoder | rounds | best round (s) | final | ablations |",
+         "|---|---|---|---|---|---|---|---|---|"]
+lines += [f"| {r['run']} | {r['source']} | {r['wells']} | {r['encoding']} | {r['decoder']} | {r['rounds']} | "
+          f"{r['best_round_s']} | {r['final']} | {'; '.join(f'{k}: {v}' for k, v in r['evals'].items())} |"
+          for r in dg_rows]
+lines += ["", "## Reservoir (DAgger + ridge readout)", "",
          "| task | readout source | MEA | seed | train R² | validation R² | survived (s) | full episodes | distance (m) |",
          "|---|---|---|---|---|---|---|---|---|"]
 lines += [f"| {r['task']} | {r['source']} | {r['mea']} | {r['seed']} | {r['train_r2']} | {r['val_r2']} | {r['survived_s']} | "
@@ -44,5 +69,5 @@ lines += ["", "## DishBrain feedback sessions", "",
 lines += [f"| {r['protocol']} | {r['task']} | {r['perturb']} | {r['condition']} | {r['seed']} | {r['before_s']} | "
           f"{r['first_block_s']} | {r['last_block_s']} | {r['after_s']} | {r['after_rest_s']} |" for r in fb_rows]
 (root / "report.md").write_text("\n".join(lines) + "\n")
-(root / "report.json").write_text(json.dumps({"reservoir": rows, "feedback": fb_rows}, indent=2))
+(root / "report.json").write_text(json.dumps({"dagger": dg_rows, "reservoir": rows, "feedback": fb_rows}, indent=2))
 print("\n".join(lines))

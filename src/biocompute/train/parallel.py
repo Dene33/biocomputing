@@ -73,14 +73,31 @@ class Pool:
 def train(pool: Pool, feature_dim: int, task: str, rounds: int = 10, episodes_per_round: int = 8,
           beta0: float = 0.5, beta_decay: float = 0.6, seconds: float = 20.0, latency: int = 1,
           eval_seeds: int = 4, log=print, seed: int = 0, recovery_weight: float = 4.0, readout_kind: str = "ridge",
-          skip_dim: int = 0) -> dict:
+          skip_dim: int = 0, ckpt_dir=None) -> dict:
     """``recovery_weight``: extra weight on samples in the top 20 % of pelvis angular speed (push recoveries).
-    They are a small share of the data but decide whether the robot falls."""
-    X, Y, O, history = [], [], [], []
+    They are a small share of the data but decide whether the robot falls.
+
+    ``ckpt_dir``: after every round, the aggregated data, the decoders and the trainer's state are saved there, and
+    a run started on a folder holding a checkpoint resumes after its last round (the dish itself restarts: a new
+    worker culture is the same seed, freshly warmed up)."""
+    import pickle
+    from pathlib import Path
+
+    X, Y, O, history, readouts = [], [], [], [], []
     readout = None
     rng = np.random.default_rng(seed)
     best = (-1.0, None)
-    for r in range(rounds):
+    start = 0
+    ckpt = Path(ckpt_dir) if ckpt_dir else None
+    if ckpt is not None and (ckpt / "ckpt_state.pkl").exists():
+        with open(ckpt / "ckpt_state.pkl", "rb") as f:
+            st = pickle.load(f)
+        d = np.load(ckpt / "ckpt_data.npz")
+        X, Y, O = [d["X"].astype(np.float32)], [d["Y"]], [d["O"]]
+        history, readouts, best, rng = st["history"], st["readouts"], st["best"], st["rng"]
+        readout, start = readouts[-1], st["round"] + 1
+        log({"resumed_after_round": st["round"], "samples": len(X[0])})
+    for r in range(start, rounds):
         t0 = time.time()
         beta = 1.0 if r == 0 else beta0 * beta_decay ** (r - 1)
         jobs = [dict(readout=readout, task=task, seconds=seconds, seed=int(rng.integers(1, 10**6)), beta=beta,
@@ -109,7 +126,17 @@ def train(pool: Pool, feature_dim: int, task: str, rounds: int = 10, episodes_pe
                "eval_survived_s": float(np.mean(surv)), "eval_full": int(sum(s >= seconds for s in surv)),
                "seconds": time.time() - t0}
         history.append(row)
+        readouts.append(ro)
         log(row)
         if row["eval_survived_s"] >= best[0]:
             best = (row["eval_survived_s"], ro)
-    return {"readout": readout, "best_readout": best[1], "history": history}
+        if ckpt is not None:
+            ckpt.mkdir(parents=True, exist_ok=True)
+            np.savez(ckpt / "ckpt_data.tmp.npz", X=Xa.astype(np.float16), Y=Ya, O=Oa)
+            with open(ckpt / "ckpt_state.tmp.pkl", "wb") as f:
+                pickle.dump({"round": r, "history": history, "readouts": readouts, "best": best, "rng": rng}, f)
+            (ckpt / "ckpt_data.tmp.npz").replace(ckpt / "ckpt_data.npz")
+            (ckpt / "ckpt_state.tmp.pkl").replace(ckpt / "ckpt_state.pkl")
+            X, Y, O = [Xa], [Ya], [Oa]  # keep one concatenated copy, not the list and the copy
+    return {"readout": readout, "best_readout": best[1], "history": history, "readouts": readouts,
+            "data": (np.concatenate(X), np.concatenate(Y), np.concatenate(O))}

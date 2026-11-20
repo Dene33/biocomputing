@@ -316,3 +316,16 @@ class MLPReadout:
 
     def __call__(self, x: np.ndarray) -> np.ndarray:
         return self.predict(x[None])[0]
+
+
+class EnsembleReadout:
+    """Average of several decoders (e.g. the last DAgger rounds'): smooths the round-to-round variance."""
+
+    def __init__(self, members: list):
+        self.members = list(members)
+
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        return np.mean([m.predict(X) for m in self.members], axis=0).astype(np.float32)
+
+    def __call__(self, x: np.ndarray) -> np.ndarray:
+        return self.predict(x[None])[0]

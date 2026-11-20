@@ -92,13 +92,27 @@ def main():
     res = parallel.train(pool, dim, a.task, rounds=a.rounds, episodes_per_round=a.episodes, beta0=a.beta0,
                          seconds=a.seconds, latency=a.latency, eval_seeds=a.eval_seeds, seed=a.seed,
                          recovery_weight=a.recovery_weight, readout_kind=a.readout, skip_dim=23 if a.efference else 0,
+                         ckpt_dir=out,
                          log=lambda r: (rows.append(r), print(json.dumps(r), flush=True)))
-    ro = res["best_readout"]
+    # Candidates: the best single round, and the ensemble of the last 4 rounds; keep whichever evaluates better.
+    from biocompute.interface.decoders import EnsembleReadout
+
+    candidates = {"best_round": res["best_readout"], "ensemble_last4": EnsembleReadout(res["readouts"][-4:])}
+    scores = {}
+    for name_c, cand in candidates.items():
+        ev_c = pool.map([dict(readout=cand, task=a.task, seconds=a.seconds, seed=500 + s, beta=0.0,
+                              latency=a.latency, label=False) for s in range(8)])
+        scores[name_c] = float(np.mean([e["survived_s"] for e in ev_c]))
+    print(json.dumps({"selection": scores}), flush=True)
+    ro = candidates[max(scores, key=scores.get)]
+    with open(out / "readouts_all.pkl", "wb") as f:
+        pickle.dump(res["readouts"], f)
     ev = pool.map([dict(readout=ro, task=a.task, seconds=a.seconds, seed=1000 + s, beta=0.0, latency=a.latency,
                         label=False) for s in range(10)])
     pool.close()
     surv = [e["survived_s"] for e in ev]
     summary = {"name": name, "setup": setup.to_dict(), "args": vars(a), "train_seconds": time.time() - t0,
+               "selection": scores, "selected": max(scores, key=scores.get),
                "history": rows, "final_eval": ev, "final_survived_s_mean": float(np.mean(surv)),
                "final_full": f"{sum(s >= a.seconds for s in surv)}/{len(surv)}"}
     (out / "summary.json").write_text(json.dumps(summary, indent=2))
