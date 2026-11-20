@@ -1,0 +1,58 @@
+[
+  {
+    "task": "stand",
+    "policy": "teacher",
+    "survived_s": 20.0,
+    "full": "5/5",
+    "distance_m": -0.015482266828368974
+  },
+  {
+    "task": "stand",
+    "policy": "zero",
+    "survived_s": 20.0,
+    "full": "5/5",
+    "distance_m": 0.025269209923932768
+  },
+  {
+    "task": "stand_push",
+    "policy": "teacher",
+    "survived_s": 20.0,
+    "full": "5/5",
+    "distance_m": -0.014389208820719996
+  },
+  {
+    "task": "stand_push",
+    "policy": "zero",
+    "survived_s": 4.587999999999999,
+    "full": "0/5",
+    "distance_m": 0.12051554825235218
+  },
+  {
+    "task": "walk",
+    "policy": "teacher",
+    "survived_s": 20.0,
+    "full": "5/5",
+    "distance_m": 6.089618245079544
+  },
+  {
+    "task": "walk",
+    "policy": "zero",
+    "survived_s": 20.0,
+    "full": "5/5",
+    "distance_m": 0.025269209923932768
+  },
+  {
+    "task": "walk_schedule",
+    "policy": "teacher",
+    "survived_s": 20.0,
+    "full": "5/5",
+    "distance_m": 3.2584163838974662
+  },
+  {
+    "task": "walk_schedule",
+    "policy": "zero",
+    "survived_s": 20.0,
+    "full": "5/5",
+    "distance_m": 0.025269209923932768
+  }
+]

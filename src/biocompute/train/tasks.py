@@ -16,7 +16,7 @@ class Task:
     push_fn: Callable[[float], np.ndarray | None] | None = None
 
 
-def _pushes(seed: int, every_s: float = 3.0, force_n: tuple[float, float] = (30.0, 60.0), dt: float = 0.02):
+def _pushes(seed: int, every_s: float = 3.0, force_n: tuple[float, float] = (120.0, 200.0), dt: float = 0.02):
     rng = np.random.default_rng(seed)
 
     def push(t: float):
