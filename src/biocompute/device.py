@@ -100,16 +100,11 @@ class SimulatedBiocomputer:
         pulsed = set(pulse_steps.tolist())
         for s in range(steps):
             i_ext = self.mea.stim_current(amps_t[s]) if s in pulsed else None
-            spikes = self.culture.substep(i_ext)
-            raster[s] = spikes
-            if blank[s]:
-                continue
-            hits = self.mea.record(spikes, self.dt)
-            nz = hits.nonzero(as_tuple=True)[0]
-            if len(nz):
-                counts = hits[nz].cpu().numpy()
-                channels.append(np.repeat(nz.cpu().numpy(), counts))
-                times.append(np.full(int(counts.sum()), s * self.dt))
+            raster[s] = self.culture.substep(i_ext)
+        ch, st = self.mea.record_step(raster, torch.from_numpy(blank).to(self.device), self.dt)
+        order = np.argsort(st, kind="stable")
+        channels.append(ch[order])
+        times.append(st[order] * self.dt)
         self.oracle_counts = raster.sum(0).float().cpu().numpy()
         if self.keep_raster:
             self.last_raster = raster

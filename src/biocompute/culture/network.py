@@ -115,6 +115,8 @@ class OrganoidCulture:
         self.w0 = self.w.clone()
         """Baseline weights, towards which plasticity decays (forgetting)."""
         self.syn_exc = self.excitatory[self.pre]
+        self.syn_exc_f = self.syn_exc.float()
+        self.syn_inh_f = 1.0 - self.syn_exc_f
         self.noise_scale = torch.where(self.excitatory, 1.0, cfg.noise_inh_scale).float() * cfg.noise_std
         self.alive = torch.ones(n, dtype=torch.bool, device=dev)
         self.excitability = torch.zeros(n, device=dev)
@@ -184,8 +186,15 @@ class OrganoidCulture:
         k = self.cfg.delay_buckets + 1
         slot = (self.head - self.delay + 1) % k  # delay 1 = the spikes of the previous substep, at head
         released = self.history[slot, self.pre]  # efficacy × spike, per synapse
-        active = released > 0
-        if bool(active.any()):
+        if self.device.type != "cpu":
+            # On the GPU, deliver densely: no host sync to find the active synapses (zeros add nothing).
+            contrib = self.w * released
+            self.i_exc.index_add_(0, self.post, contrib * self.syn_exc_f)
+            self.i_inh.index_add_(0, self.post, contrib * self.syn_inh_f)
+            active = None
+        else:
+            active = released > 0
+        if active is not None and bool(active.any()):
             contrib = self.w[active] * released[active]
             target = self.post[active]
             exc = self.syn_exc[active]

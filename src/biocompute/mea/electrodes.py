@@ -109,6 +109,28 @@ class MEA:
         hits[torch.from_numpy(self.dead).to(self.device)] = 0
         return hits
 
+    def record_step(self, raster: torch.Tensor, blank: torch.Tensor, dt_ms: float) -> tuple[np.ndarray, np.ndarray]:
+        """Detections for a whole control step at once: ``raster`` (substeps, neurons) bool, ``blank`` (substeps,)
+        bool. Same statistics as calling ``record`` per unblanked substep, with one host sync instead of one per
+        substep. Returns (channel, substep) per detection."""
+        live = raster & ~blank[:, None]
+        s_idx, n_idx = live.nonzero(as_tuple=True)
+        ch_out, st_out = [], []
+        if len(n_idx):
+            p = self.detect[:, n_idx]  # (channels, spikes)
+            hit_c, hit_k = (torch.rand(p.shape, generator=self.gen, device=self.device) < p).nonzero(as_tuple=True)
+            ch_out.append(hit_c)
+            st_out.append(s_idx[hit_k])
+        fp = torch.rand((raster.shape[0], self.n_channels), generator=self.gen, device=self.device)
+        fp = (fp < self.cfg.false_positive_hz * dt_ms * 1e-3) & ~blank[:, None]
+        fp_s, fp_c = fp.nonzero(as_tuple=True)
+        ch_out.append(fp_c)
+        st_out.append(fp_s)
+        ch = torch.cat(ch_out).cpu().numpy()
+        st = torch.cat(st_out).cpu().numpy()
+        keep = ~self.dead[ch]
+        return ch[keep], st[keep]
+
     def neurons_near(self, channel: int, radius_um: float) -> torch.Tensor:
         """Indices of neurons that a channel's stimulation reaches above ``exp(-radius/length)``."""
         threshold = self.cfg.stim_current * math.exp(-radius_um / self.cfg.stim_length_um)
