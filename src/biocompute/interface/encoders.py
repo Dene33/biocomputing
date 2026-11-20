@@ -73,6 +73,18 @@ class Encoder:
         self.b = -self.W @ z.mean(0)
         self.projection = "pca"
 
+    def fit_identity(self, obs: np.ndarray, skip=(6, 7, 8)) -> None:
+        """One channel per observation dimension, z-scored (the normalizer's job), centred on the data mean. No
+        whitening: PCA whitening blows near-constant directions up to unit variance, and any random mixing of the
+        channels (by neurons, or by the next wells' rotations) is then dominated by them. ``skip``: dimensions not to
+        encode (default: the velocity command, constant when standing)."""
+        dims = [i for i in range(obs.shape[1]) if i not in set(skip)]
+        if len(dims) != len(self.channels):
+            raise ValueError(f"identity encoding needs {len(dims)} channels, got {len(self.channels)}")
+        self.W = np.eye(obs.shape[1])[dims]
+        self.b = -self.W @ self.normalizer(obs).mean(0)
+        self.projection = "identity"
+
     def fit_supervised(self, obs: np.ndarray, actions: np.ndarray, ridge: float = 1.0) -> None:
         """Project onto the observation directions that predict the actions (reduced-rank regression), one per
         channel, whitened. PCA spends electrodes on whatever varies most; this spends them on what the task needs."""

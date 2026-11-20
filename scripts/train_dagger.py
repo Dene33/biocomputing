@@ -23,7 +23,7 @@ def main():
     p.add_argument("--mea", default="hd1024")
     p.add_argument("--n-stim", type=int, default=32)
     p.add_argument("--slots", type=float, nargs="+", default=[0.0])
-    p.add_argument("--projection", default="supervised", choices=["pca", "random", "supervised"])
+    p.add_argument("--projection", default="supervised", choices=["pca", "random", "supervised", "identity"])
     p.add_argument("--culture-set", nargs="*", default=[], help="Culture overrides, key=value")
     p.add_argument("--mea-set", nargs="*", default=[], help="MEA overrides, key=value")
     p.add_argument("--bins", type=int, default=2)
@@ -54,7 +54,8 @@ def main():
     out = Path(a.out) / name
     out.mkdir(parents=True, exist_ok=True)
     env, teacher = AsimovEnv(), Teacher()
-    obs = dagger.teacher_observations(env, teacher, [make_task(a.task, a.seconds, seed=a.seed)], seconds=a.seconds)
+    obs = dagger.teacher_observations(env, teacher, [make_task(a.task, a.seconds, seed=a.seed)], seconds=a.seconds,
+                                      episodes=6, noise=0.3, seed=a.seed)
     kv = lambda items: {k: float(v) for k, v in (i.split("=") for i in items)}
     setup = Setup(culture=a.culture, mea=a.mea, n_stim=a.n_stim, source=a.source, seed=a.seed,
                   slots_ms=tuple(a.slots), projection=a.projection, bins=a.bins, wells=a.wells,

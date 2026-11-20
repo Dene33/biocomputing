@@ -67,6 +67,8 @@ def build(setup: Setup, obs_samples: np.ndarray, action_samples: np.ndarray | No
                       gain=setup.encoder_gain, seed=setup.seed)
     if setup.projection == "pca":
         encoder.fit_pca(obs_samples)
+    elif setup.projection == "identity":
+        encoder.fit_identity(obs_samples)
     elif setup.projection == "supervised":
         if action_samples is None:
             raise ValueError("projection='supervised' needs action_samples.")

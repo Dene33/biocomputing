@@ -18,20 +18,29 @@ from biocompute.robot.asimov import AsimovEnv
 from biocompute.train.tasks import Task
 
 
-def teacher_observations(env: AsimovEnv, teacher, tasks: list[Task], seconds: float = 10.0) -> np.ndarray:
-    """Observations the teacher sees on the tasks, to fit the encoder's normalization and projection."""
-    obs = []
-    for task in tasks:
-        env.reset(task.command_fn(0.0))
-        for step in range(int(seconds / env.dt)):
-            t = step * env.dt
-            env.set_command(task.command_fn(t))
-            if task.push_fn is not None and (f := task.push_fn(t)) is not None:
-                env.push(f)
-            o = env.observe()
-            obs.append(o)
-            if env.step(teacher(o)).fell:
-                break
+def teacher_observations(env: AsimovEnv, teacher, tasks: list[Task], seconds: float = 10.0, episodes: int = 1,
+                         noise: float = 0.0, seed: int = 0) -> np.ndarray:
+    """Observations the teacher sees on the tasks, to fit the encoder's normalization and projection. With
+    ``noise`` > 0, every episode after the first adds that fraction of each joint's spread to the executed actions
+    (DART), so the samples also cover states off the teacher's own path, where a student will be."""
+    obs, acts = [], []
+    rng = np.random.default_rng(seed)
+    for ep in range(episodes):
+        for task in tasks:
+            sd = np.array(acts).std(0) if acts else np.zeros(23)
+            env.reset(task.command_fn(0.0))
+            for step in range(int(seconds / env.dt)):
+                t = step * env.dt
+                env.set_command(task.command_fn(t))
+                if task.push_fn is not None and (f := task.push_fn(t)) is not None:
+                    env.push(f)
+                o = env.observe()
+                a = teacher(o)
+                obs.append(o)
+                acts.append(a)
+                executed = a + (noise * np.minimum(sd, 1.0) * rng.standard_normal(23) if ep > 0 else 0.0)
+                if env.step(executed.astype(np.float32)).fell:
+                    break
     return np.array(obs)
 
 

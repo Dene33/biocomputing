@@ -20,7 +20,34 @@ from biocompute.interface.decoders import LinearReadout
 import os
 GAIN = float(os.environ.get("GAIN", 1.5)); WEIGHT = float(os.environ.get("WEIGHT", 0)); MEM = int(os.environ.get("MEM", 0))
 TAG = os.environ.get("TAG", "")
-IN = 78 * (2 if MEM else 1)
+DRIVES = int(os.environ.get("DRIVES", 0))  # >0: features see only the culture's input: DRIVES diverse wells × 32
+ENC = None
+if DRIVES:
+    from biocompute.interface.encoders import Encoder, ObsNormalizer
+    from biocompute.train import dagger as _dg
+    from biocompute.train.tasks import make_task as _mt
+    NS = int(os.environ.get("NSTIM", 32))
+    if os.environ.get("ENC_FIT", "teacher") == "dart":
+        import pickle as _pk
+        _d = _pk.load(open("outputs/probe/teacher_data_20k.pkl", "rb")); _O, _A = _d["obs"], _d["y"]
+    else:
+        _O = _dg.teacher_observations(env, teacher, [_mt("stand_push", 20.0, seed=0)], seconds=20.0)
+        _A = np.clip(np.array([teacher(o) for o in _O]), lo, hi)
+    ENC = Encoder(np.arange(NS), normalizer=ObsNormalizer.fit(_O), gain=float(os.environ.get("EGAIN", 1.5)))
+    if os.environ.get("PROJ", "supervised") == "pca":
+        ENC.fit_pca(_O)
+    elif os.environ.get("PROJ") == "identity":  # one channel per z-scored obs dim (skip the constant command)
+        dims = [i for i in range(78) if i not in (6, 7, 8)]
+        ENC.W = np.eye(78)[dims]; ENC.b = -ENC.W @ ENC.normalizer(_O).mean(0)
+    else:
+        ENC.fit_supervised(_O, _A)
+    _W, _b = [ENC.W], [ENC.b]
+    for k in range(1, DRIVES):
+        R, _ = np.linalg.qr(np.random.default_rng(100 + k).standard_normal((NS, NS)))
+        _W.append(R @ ENC.W); _b.append(-(R @ ENC.W) @ ENC.normalizer(_O).mean(0))
+    ENC.W, ENC.b = np.concatenate(_W), np.concatenate(_b)
+    ENC.channels = np.arange(NS * DRIVES)
+IN = (NS * DRIVES) if DRIVES else 78 * (2 if MEM else 1)
 Wrf = np.random.default_rng(1).standard_normal((hidden, IN)) / np.sqrt(IN) * GAIN
 brf = np.random.default_rng(2).standard_normal(hidden) * 0.5
 
@@ -51,7 +78,7 @@ X, Y = [], []
 policy = None
 for r in range(10):
     beta = 1.0 if r == 0 else 0.5 * 0.6**r
-    for e in range(6):
+    for e in range(int(os.environ.get("EPIS", 6))):
         O, L, _ = run(policy, 1000 * r + e, beta)
         X.append(O)
         Y.append(L)
@@ -65,7 +92,12 @@ for r in range(10):
             if MEM:
                 Z = np.c_[Z, np.r_[np.zeros((1, Z.shape[1])), np.diff(Z, axis=0)] * 3]
             return np.c_[Z, np.tanh(Z @ Wrf.T + brf)]
-        F = np.concatenate([lift(np.clip((x - mu) / sd, -5, 5)) for x in X])
+        if DRIVES:
+            Dall = [np.array([ENC.drive(o) for o in x]) for x in X]
+            dmu = np.concatenate(Dall).mean(0); dsd = np.concatenate(Dall).std(0) + 1e-6
+            F = np.concatenate([lift((dd - dmu) / dsd) for dd in Dall])
+        else:
+            F = np.concatenate([lift(np.clip((x - mu) / sd, -5, 5)) for x in X])
         w = None
         if WEIGHT:
             gyro = np.abs(Xa[:, 0:2]).sum(1)
@@ -76,8 +108,8 @@ for r in range(10):
         else:
             cv = ro.fit_cv(F, (Ya - ym) / ys, alphas=np.logspace(-3, 3, 7)); ro.fit(F, (Ya - ym) / ys, alpha=cv["alpha"], weights=w)
         state = {"prev": None}
-        def policy(o, ro=ro, mu=mu, sd=sd, ym=ym, ys=ys):
-            z = np.clip((o - mu) / sd, -5, 5)
+        def policy(o, ro=ro, mu=mu, sd=sd, ym=ym, ys=ys, dmu=(dmu if DRIVES else None), dsd=(dsd if DRIVES else None)):
+            z = (ENC.drive(o) - dmu) / dsd if DRIVES else np.clip((o - mu) / sd, -5, 5)
             if MEM:
                 d = np.zeros_like(z) if state["prev"] is None else (z - state["prev"]) * 3
                 state["prev"] = z
