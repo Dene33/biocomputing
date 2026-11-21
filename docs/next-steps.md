@@ -1,0 +1,155 @@
+# Next steps: from a sensory relay to an organoid that matters
+
+21 November 2026. Context: [README, Status and findings](../README.md#status-and-findings-21-november-2026) and
+[organoid-control-ideas.md](organoid-control-ideas.md).
+
+## Where we are
+
+**Task.** Asimov 1 stands for 20 s while 120–200 N pushes hit the pelvis every 3 s (`stand_push`).
+
+**Current best design.**
+- Six simulated organoids (wells) are the robot's only sensory path: 52 signals in, as stimulation.
+- A trained MLP decoder reads their spikes, plus its own last command (efference copy), and drives all 23 joints.
+
+**Result.**
+
+| Configuration | Survival | Full 20 s |
+|---|---|---|
+| Culture + decoder | 18.5 s | **17/20** |
+| Same decoder, no culture | 17.5 s | 15/20 |
+| Dish silenced | 1.6 s | 0/10 |
+
+**What's wrong with it.**
+1. **It needs too much hardware:** 312 stimulation electrodes at 200 Hz, more than CL1 or MaxTwo offer.
+2. **Fidelity is low:** 52 signals carried at R² ≈ 0.7.
+3. **The dish computes nothing:** no culture does as well. The decoder does the work.
+
+## Aim
+
+A design where the dish:
+1. carries **few signals at high fidelity**;
+2. fits **real hardware** (≤ 32 stimulation channels per well);
+3. is **necessary**: silence it and the robot falls;
+4. eventually **computes** something a linear filter of its inputs can't.
+
+**Lead candidate: the organoid as vestibular organ.**
+- Only balance signals go through the dish: the 6 IMU values (gyro and gravity direction), or a derived estimate such as the capture point (where to step to stop a fall).
+- Joint encoders and the efference copy go straight to a robot-side controller.
+- That controller is **written with weight-space programming (WSP)**: an agent writes its weights in code, guided by one validation score. The method is from [csinva/weight-space-programming-autoresearch](https://github.com/csinva/weight-space-programming-autoresearch).
+
+## Phase 1: write the spec for the dish (CPU, ~1–2 h)
+
+### 1.1 Blind-teacher sweep
+
+Run the teacher on `stand_push` (20+ seeds) while degrading **only its IMU inputs**: observation indices 0–5, gyro and gravity. Joint positions, joint velocities and the last action stay exact.
+
+| Degradation | Levels |
+|---|---|
+| Removed | gyro and/or gravity set to their standing values |
+| Noise | 0.1, 0.2, 0.3, 0.5, 0.7, 1.0 × each signal's spread; independent and temporally correlated |
+| Delay | 1–5 control steps (20–100 ms) |
+| Reduced rate | held for 2, 3, 5 steps (25, 17, 10 Hz) |
+| Quantisation | 2, 4, 8 levels per signal |
+
+For comparison, run the reverse: joints degraded, IMU exact.
+
+**Output:** `outputs/blind_teacher/results.json` and a tolerance table: the accuracy, latency and rate the dish must deliver.
+
+### Gate G1
+
+- **The teacher falls without IMU, but tolerates a usable degradation** (e.g. ≥ 0.3 × noise, or ≥ 2 steps of delay): go to the vestibular design.
+- **Joint encoders alone suffice:** the IMU isn't privileged. Either hide more from the robot side (e.g. joint velocities) until the dish's signal is necessary, or switch to the trigger or integrator designs in [organoid-control-ideas.md](organoid-control-ideas.md).
+
+## Phase 2: weight-space programming on the robot side (CPU + agent loop)
+
+### 2.1 Harness
+
+Borrow csinva's *method*, not their transformer code.
+
+| File | Role |
+|---|---|
+| `wsp/controller/program.md` | Task, rules, the loop (edit → run → read score → log → repeat, ≥ 20 iterations) |
+| `wsp/controller/controller.py` | `write_weights()`: a small numpy controller, [joint positions, joint velocities, last action, vestibular signal] → 23 actions |
+| `wsp/controller/eval_controller.py` | Runs `stand_push` in MuJoCo with the vestibular signal corrupted by the dish's noise model (from 1.1, later from Phase 3). Prints **one score**: mean survival on validation seeds |
+| `wsp/controller/results.csv` | One row per attempt |
+
+**Evaluation.**
+- Validation seeds visible to the agent; a separate **hidden test set**, scored only at the end.
+- ~30–60 s per evaluation on 8 CPU workers.
+
+**Rule.** No gradient training inside the agent loop, so the controllers stay readable. DAgger-trained students are the baselines, not part of the search.
+
+### 2.2 Two search tracks
+
+- **(a) Edit the teacher's weights.** This is WSP in the original sense. Adapt the 208k-parameter teacher (78 → 512 → 256 → 128 → 23) so it works when its IMU inputs come from the dish (noisy, delayed or slower).
+- **(b) Write a transparent controller from scratch.** Slower, but it shows *which features of the state* balance needs. We couldn't answer that by analysis: additive per-signal features explain 0.49 of the hard part of the action, random nonlinear features 0.64.
+
+### 2.3 Baselines
+
+- The teacher with the same IMU degradation (from 1.1).
+- A DAgger MLP student trained with the same IMU noise.
+
+**Cost:** API credits, roughly 30–50 agent iterations per track.
+
+## Phase 3: the vestibular organoid (GPU, ~1–2 days)
+
+### 3.1 Open-loop probe
+
+Uses the existing pipeline (`outputs/probe/encoding.py`).
+- Encode only the 6 IMU values, each spread over several electrodes: staggered thresholds, or a moving "bump" across the grid.
+- Measure decoding R² for 1, 2 and 6 wells.
+- Budget: **≤ 32 stimulation channels per well** (MaxTwo-compatible); also a CL1-sized variant with ~12.
+- Compare against the Phase 1 spec.
+
+### 3.2 Weight-space programming on the dish side
+
+- **Interpretable decoder:** spikes → IMU estimate.
+- **Encoding model:** stimulation pattern → electrode responses. This is our first readable digital twin of the dish, the same kind of model the WSP paper builds for fMRI and ECoG.
+- Score: held-out R². Ridge regression is the baseline.
+
+### 3.3 Closed loop
+
+The dish plus the Phase 2 controller, on 20+ fresh seeds. Ablations:
+- dish silenced;
+- ideal IMU (no culture);
+- dead culture **with its own retrained decoder** (fixes the confound in today's dead-culture result).
+
+**Success:** ≥ 17/20 survive, silenced dish 0/N, ≤ 32 stimulation channels per well.
+
+## Phase 4: make the dish compute (the real claim)
+
+### 4.1 Vestibular integrator
+
+Decode what the robot's sensors lack: **linear velocity** or the **capture point**. Both need memory over time. The robot side then uses it, e.g. through a capture-point stepping controller.
+
+It counts as computation only if:
+- the dish beats a linear filter of the same inputs; and
+- the live culture beats the dead one, each with its own decoder.
+
+### 4.2 Adaptation (the DishBrain arm)
+
+- Weaken a knee or add a payload.
+- Freeze the decoder; let feedback stimulation drive plasticity.
+- Compare plasticity on vs off.
+- Needs homeostatic synaptic scaling first: plain STDP runs away.
+
+## Phase 5: hardware readiness (in parallel, when access exists)
+
+1. **Channel test on a real dish.** Replay recorded IMU sequences open-loop, record, fit the decoder offline, compare against the Phase 1 spec. It needs no real-time loop, so it could even run remotely on FinalSpark.
+2. **Calibrate the simulator** to the real dish with the Phase 3.2 encoding model: stimulation reach, gain, noise.
+3. **Device adapter** (CL API or MaxLab) implementing the `Biocomputer` protocol in `src/biocompute/device.py`.
+
+## Rules throughout
+
+- **Evaluation.** 20+ fresh seeds per claim; fixed validation seeds, plus hidden test seeds for anything an agent optimises.
+- **Baselines.** Every result is reported against the teacher, zero action (default pose), no-culture and silenced-dish.
+- **Claims.** "Computation" only when the dish beats the no-culture control.
+- **Runs.** Long runs are detached (`setsid nohup …`) and checkpoint every round.
+
+## Order and decision points
+
+1. **Phase 1.1**, then Gate G1. Short, CPU.
+2. **Phase 2** (CPU and agent) **and Phase 3.1** (GPU) in parallel.
+3. **Phase 3.2–3.3** once both deliver.
+4. **Phase 4** after the vestibular closed loop works.
+5. **Phase 5** whenever hardware access appears. The channel test can start at once.
