@@ -1,0 +1,23 @@
+time,controller,seeds,score,full,silenced_s,params,dish,note
+2026-11-21 21:49,track_a.py,val,17.789,16/20,1.0,207639,"{""delay"": 2, ""hold"": 2, ""noise"": 1.0, ""tau"": 10, ""quant"": 0, ""silenced"": false}",iter 0: teacher unchanged (baseline)
+2026-11-21 21:50,track_b.py,val,4.337,0/20,4.26,23,"{""delay"": 2, ""hold"": 2, ""noise"": 1.0, ""tau"": 10, ""quant"": 0, ""silenced"": false}",iter 0: zero action (baseline)
+2026-11-21 21:51,track_a.py,val,9.225,0/20,1.0,207640,"{""delay"": 2, ""hold"": 2, ""noise"": 1.0, ""tau"": 10, ""quant"": 0, ""silenced"": false}",iter 1: gyro input gain 0.5
+2026-11-21 21:51,track_a.py,val,16.421,10/20,1.0,207640,"{""delay"": 2, ""hold"": 2, ""noise"": 1.0, ""tau"": 10, ""quant"": 0, ""silenced"": false}",iter 2: gyro input gain 0.75
+2026-11-21 21:51,track_a.py,val,13.763,7/20,1.0,207640,"{""delay"": 2, ""hold"": 2, ""noise"": 1.0, ""tau"": 10, ""quant"": 0, ""silenced"": false}","iter 3: gyro 1.0, gravity input gain 0.7"
+2026-11-21 21:51,track_a.py,val,18.4,15/20,1.0,207640,"{""delay"": 2, ""hold"": 2, ""noise"": 1.0, ""tau"": 10, ""quant"": 0, ""silenced"": false}",iter 4: gyro input gain 1.25
+2026-11-21 21:51,track_a.py,val,18.685,17/20,1.0,207640,"{""delay"": 2, ""hold"": 2, ""noise"": 1.0, ""tau"": 10, ""quant"": 0, ""silenced"": false}",iter 5: gyro input gain 1.5
+2026-11-21 21:51,track_a.py,val,14.292,9/20,1.0,207640,"{""delay"": 2, ""hold"": 2, ""noise"": 1.0, ""tau"": 10, ""quant"": 0, ""silenced"": false}",iter 6: gyro input gain 2.0
+2026-11-21 21:52,track_a.py,val,17.904,14/20,1.0,207640,"{""delay"": 2, ""hold"": 2, ""noise"": 1.0, ""tau"": 10, ""quant"": 0, ""silenced"": false}","iter 7: gyro 1.5, gravity gain 1.25"
+2026-11-21 21:52,track_a.py,val,16.642,11/20,1.0,207640,"{""delay"": 2, ""hold"": 2, ""noise"": 1.0, ""tau"": 10, ""quant"": 0, ""silenced"": false}",iter 8: gravity predicted 3 steps ahead with gyro (g x w)
+2026-11-21 21:52,track_a.py,val,9.324,2/20,1.0,207640,"{""delay"": 2, ""hold"": 2, ""noise"": 1.0, ""tau"": 10, ""quant"": 0, ""silenced"": false}",iter 9: gravity prediction 6 steps
+2026-11-21 21:52,track_a.py,val,17.943,17/20,1.0,207640,"{""delay"": 2, ""hold"": 2, ""noise"": 1.0, ""tau"": 10, ""quant"": 0, ""silenced"": false}","iter 10: sign check, prediction -3 steps"
+2026-11-21 21:54,track_a.py,val,18.484,16/20,1.0,207640,"{""delay"": 2, ""hold"": 2, ""noise"": 1.0, ""tau"": 10, ""quant"": 0, ""silenced"": false}","iter 11: gyro gain 1.5 on x,y only (z 1.0)"
+2026-11-21 21:54,track_a.py,val,17.685,15/20,1.0,207640,"{""delay"": 2, ""hold"": 2, ""noise"": 1.0, ""tau"": 10, ""quant"": 0, ""silenced"": false}",iter 12: gravity lead 0.5 (extrapolate between dish samples)
+2026-11-21 21:55,track_a.py,val,19.313,18/20,1.0,207640,"{""delay"": 2, ""hold"": 2, ""noise"": 1.0, ""tau"": 10, ""quant"": 0, ""silenced"": false}",iter 13: gravity lead 1.0
+2026-11-21 21:55,a_base.py,val,17.768,46/60,1.0,207640,"{""delay"": 2, ""hold"": 2, ""noise"": 1.0, ""tau"": 10, ""quant"": 0, ""silenced"": false}",rescore@60: teacher unchanged
+2026-11-21 21:55,a_g15.py,val,18.762,50/60,1.0,207640,"{""delay"": 2, ""hold"": 2, ""noise"": 1.0, ""tau"": 10, ""quant"": 0, ""silenced"": false}",rescore@60: gyro 1.5
+2026-11-21 21:55,a_lead.py,val,18.192,46/60,1.0,207640,"{""delay"": 2, ""hold"": 2, ""noise"": 1.0, ""tau"": 10, ""quant"": 0, ""silenced"": false}",rescore@60: gravity lead 1.0 only
+2026-11-21 21:55,track_a.py,val,18.408,47/60,1.0,207640,"{""delay"": 2, ""hold"": 2, ""noise"": 1.0, ""tau"": 10, ""quant"": 0, ""silenced"": false}",rescore@60: gyro 1.5 + gravity lead 1.0
+2026-11-21 21:56,track_b.py,val,3.83,0/60,4.26,144,"{""delay"": 2, ""hold"": 2, ""noise"": 1.0, ""tau"": 10, ""quant"": 0, ""silenced"": false}","iter 1: ankle pitch P on grav_x, K=+8"
+2026-11-21 21:56,track_b.py,val,4.07,0/60,4.26,144,"{""delay"": 2, ""hold"": 2, ""noise"": 1.0, ""tau"": 10, ""quant"": 0, ""silenced"": false}","iter 2: ankle pitch P, K=-8"
+2026-11-21 21:57,zero.py,val,4.738,0/60,4.26,23,"{""delay"": 2, ""hold"": 2, ""noise"": 1.0, ""tau"": 10, ""quant"": 0, ""silenced"": false}",rescore@60: zero action

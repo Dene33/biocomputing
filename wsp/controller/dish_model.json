@@ -1,0 +1,8 @@
+{
+ "_comment": "Pessimistic placeholder until the Phase 3.1 probe measures the simulated dish: 40 ms + 25 Hz + noise 1.0x spread (tau 200 ms). The teacher gets 29/40 under it (scripts/blind_teacher.py).",
+ "delay": 2,
+ "hold": 2,
+ "noise": 1.0,
+ "tau": 10,
+ "quant": 0
+}
