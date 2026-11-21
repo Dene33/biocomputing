@@ -158,6 +158,11 @@ What it took (each step was necessary):
   falls made validation R² negative. **DishBrain sessions** run end to end, but plain STDP runs away (mean excitatory
   weight 2.2 → 3.8 in 2 simulated minutes); synaptic scaling is needed first.
 
+**Phase 1.1, the blind-teacher sweep** (`scripts/blind_teacher.py`, 40 seeds). Remove the teacher's IMU and it falls
+in 1.0 s (zero action: 4.8 s). It tolerates IMU noise up to 1.0 × spread, 60 ms of added delay, 10 Hz updates and 8 levels,
+each alone. Combined, the spec for a vestibular dish is ≤ 40 ms, ≥ 25 Hz and error ≤ 0.5 × spread (39/40). Gate G1 passes.
+The table is in [docs/next-steps.md](docs/next-steps.md#11-blind-teacher-sweep).
+
 **Next:** [docs/next-steps.md](docs/next-steps.md). Ideas behind it: [docs/organoid-control-ideas.md](docs/organoid-control-ideas.md).
 
 ## Limits of the simulation

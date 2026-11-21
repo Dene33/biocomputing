@@ -55,10 +55,48 @@ For comparison, run the reverse: joints degraded, IMU exact.
 
 **Output:** `outputs/blind_teacher/results.json` and a tolerance table: the accuracy, latency and rate the dish must deliver.
 
+**Result** (`scripts/blind_teacher.py`, 40 fresh seeds, 20 s, on top of the loop's 1-step action latency; "tolerated"
+means ≥ 34/40 full runs, the 17/20 bar of Phase 3.3). Teacher 20.0 s, 40/40; zero action 4.8 s, 0/40.
+
+The spread over teacher `stand_push` rollouts is small: gyro 0.11–0.15 rad/s (6–8 °/s), gravity x/y 0.019–0.026
+(1.1–1.5° of tilt).
+
+| The dish must deliver | IMU (dish) | Breaks at | Joints (reverse test) |
+|---|---|---|---|
+| Presence | removed: 1.0 s, 0/40 (gravity alone 1.6 s, gyro alone 10.7 s) | — | removed: 6.5 s, 0/40 (positions alone 9.7 s; velocities alone 36/40) |
+| Accuracy, white noise | ≤ 1.0 × spread (37/40) | 1.5 × (32/40) | ≤ 1.5 × (36/40) |
+| Accuracy, noise with τ = 200 ms / 1 s | ≤ 1.0 × (38/40, 36/40) | 1.5 × (33, 31/40); 2.0 × (16, 10/40) | ≤ 1.0 × (36, 36/40) |
+| Latency added | ≤ 3 steps, 60 ms (39/40) | 4 (28/40), 5 (1/40) | ≤ 2 steps (38/40); 3 (30/40) |
+| Rate (sample and hold) | ≥ 10 Hz (38/40) | 5 Hz (11/40) | ≥ 10 Hz (39/40) |
+| Quantisation | ≥ 8 levels (35/40) | 4 (25/40) | ≥ 4 levels (38/40) |
+
+- **The gyro sets the latency limit.** 100 ms of delay: gyro alone 20/40, gravity alone 35/40. Gravity tolerates 200 ms
+  (35/40).
+- **Combined degradations compound.** A dish delivers all of them together:
+
+| IMU: delay + rate + noise (τ = 200 ms) + quantisation | Full 20 s |
+|---|---|
+| 40 ms + noise 0.5 × | 40/40 |
+| 40 ms + 25 Hz + noise 0.5 × | **39/40** |
+| 40 ms + 25 Hz + noise 1.0 × | 29/40 |
+| 60 ms + 25 Hz + noise 0.5 × | 30/40 |
+| 40 ms + 25 Hz + noise 0.5 × + 8 levels | 14/40 |
+| 20 ms + 17 Hz + noise 0.7 × + 8 levels | 6/40 |
+
+**Spec for the vestibular channel:** ≤ 40 ms added latency, ≥ 25 Hz, error ≤ 0.5 × spread (decoding R² ≥ 0.75 if the error
+is unbiased), graded output. Latency costs more than noise, so the decoder must not smooth over long windows.
+
 ### Gate G1
 
 - **The teacher falls without IMU, but tolerates a usable degradation** (e.g. ≥ 0.3 × noise, or ≥ 2 steps of delay): go to the vestibular design.
 - **Joint encoders alone suffice:** the IMU isn't privileged. Either hide more from the robot side (e.g. joint velocities) until the dish's signal is necessary, or switch to the trigger or integrator designs in [organoid-control-ideas.md](organoid-control-ideas.md).
+
+**Verdict: pass, with one caveat.**
+- Without the IMU the teacher falls faster than zero action (1.0 s against 4.8 s).
+- It tolerates usable degradation: 1.0 × noise, 60 ms of delay, 10 Hz, each alone.
+- **Caveat:** this shows the fixed teacher *uses* the IMU, not that a controller retrained without it would fall. With
+  both feet flat, leg kinematics give the pelvis tilt.
+- The joints aren't dispensable either (removed: 6.5 s), but joint velocities are (36/40 without them).
 
 ## Phase 2: weight-space programming on the robot side (CPU + agent loop)
 
