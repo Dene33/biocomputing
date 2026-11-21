@@ -1,0 +1,15 @@
+# Environments and caches
+.venv/
+.pytest_cache/
+__pycache__/
+*.pyc
+
+# Experiment outputs: keep result summaries, the report and the probe scripts;
+# not checkpoints, feature dumps, trained decoders, logs or videos (they are large and regenerable).
+outputs/**
+!outputs/**/
+!outputs/**/*.json
+!outputs/**/*.md
+!outputs/probe/*.py
+!outputs/probe/*.sh
+!outputs/probe/*.jsonl

@@ -54,7 +54,20 @@ uv run scripts/train_feedback.py --protocol adapt --readout outputs/reservoir/<r
 uv run scripts/evaluate.py                                      # outputs/report.md
 uv run scripts/view.py outputs/reservoir/<run>                  # live MuJoCo viewer
 uv run scripts/view.py outputs/reservoir/<run> --video run.mp4  # robot + MEA heatmap + raster
+
+# The current best design (17/20 on stand_push): 6 wells as the sensory path, MLP decoder with efference copy
+uv run scripts/train_dagger.py --culture gpu_20k --mea grid256 --wells 6 --diverse-wells \
+    --projection identity --n-stim 52 --encoder-gain 0.5 --efference --readout mlp \
+    --mea-set stim_length_um=120 --slots 0 5 10 15 --workers 4 --threads 1 --rounds 16 --episodes 12
+uv run scripts/train_dagger.py --source none --projection identity --n-stim 52 --encoder-gain 0.5 \
+    --efference --readout mlp --workers 6 --rounds 14 --episodes 12           # control: no culture
+uv run scripts/eval_readout.py outputs/dagger/<run> --seeds 20                # fresh push seeds
+uv run scripts/eval_readout.py outputs/dagger/<run> --control silent          # ablations: silent | dead | zero
+uv run scripts/reflex_oracle.py                                               # stance + recovery primitives, oracle choice
 ```
+
+Long runs: start them detached (`setsid nohup … &`) so an editor crash can't kill them. `train_dagger.py` checkpoints
+every round and resumes from the last one when restarted on the same output folder.
 
 Tasks (`src/biocompute/train/tasks.py`):
 
@@ -77,9 +90,9 @@ The `cpu_2k` preset is tuned so that spontaneous activity looks like a cortical 
 
 It also responds to single-electrode stimulation. Bursts end because short-term depression uses up synaptic resources, as in culture models. These are plausible ranges, not a fit to one dataset: reports for organoids (e.g. Trujillo et al., *Cell Stem Cell* 2019) and dissociated cultures (Wagenaar et al., *BMC Neuroscience* 2006) vary with age and protocol. The realism dials are neuron count, electrode count and pitch, detection radius, noise, dead channels, stimulation limits, latency, forgetting time constant and aging.
 
-## Status and findings so far (20 November 2026)
+## Status and findings (21 November 2026)
 
-Built: everything in the layout above, with 11 passing tests. Teacher parity with cyclotron is exact.
+Built: everything in the layout above, with 13 passing tests. Teacher parity with cyclotron is exact.
 
 **Baselines** (`scripts/baselines.py`, 5 seeds, 20 s, 1-step latency):
 
@@ -89,35 +102,72 @@ Built: everything in the layout above, with 11 passing tests. Teacher parity wit
 | `stand_push` | 20 s, 5/5 | 4.6 s, 0/5 |
 | `walk` | 6.1 m | 0 m |
 
-**Reservoir on `stand_push`** (one seed, `outputs/report.md`): no readout beats the zero-action floor.
+### Result: the culture keeps Asimov 1 standing under pushes, as its only sensory path
 
-| Readout | Survived |
-| --- | --- |
-| 60-ch MEA | 3.0 s |
-| 256-ch | 1.9 s |
-| 1024-ch | 2.3 s |
-| Every neuron (oracle) | 2.4 s |
-| Dead culture | 2.0 s |
-| No culture | 2.3 s |
+Six independent organoids (wells; 20k neurons and 256 electrodes each) receive the robot's 52 sensory signals as
+stimulation. A trained decoder reads their spikes, plus its own last command (efference copy), and drives all 23
+joints. `stand_push`, fresh push seeds (`outputs/report.md`):
+
+| Controller | Survived | Full 20 s |
+| --- | --- | --- |
+| Teacher (ceiling) | 20.0 s | 20/20 |
+| **Culture + MLP decoder + efference copy** | **18.5 s** | **17/20** |
+| Same decoder, no culture (the encoded signals fed in directly) | 17.5 s | 15/20 |
+| Culture with no sensory stimulation | 1.6 s | 0/10 |
+| Culture without recurrent synapses (decoder not retrained) | 14.5 s | 6/10 |
+| Zero action (floor) | 4.3 s | 0/10 |
 
 What this says:
 
-1. **Electrode bandwidth is real but not the only limit.** 60 electrodes detect ~8 spikes per 20 ms step, at a realistic rate. More channels raise train R² from 0.73 to 0.95, but closed-loop control does not improve, even when the readout sees every neuron.
-2. **A linear readout cannot imitate this policy where it matters.** Even a linear policy on the raw 78 observations stands, but it falls after a 120–200 N push, and with one step of latency it cannot walk. The reservoir must supply the missing nonlinearity, and this 2000-neuron culture with a ridge readout does not.
-3. **DAgger data from falls hurts.** Validation R² turns negative as rounds add the states the student visits while falling.
+1. **The dish is necessary as a channel.** Silence it and the robot falls faster than standing still.
+2. **The dish computes nothing extra.** No culture does as well as the culture. The decoder does the computing; the
+   culture carries the state (decodable at R² ≈ 0.7). This is a biological sensory interface with a BCI-style
+   decoder, not reservoir computing.
+3. **The dead-culture drop is not evidence of computation.** The decoder was trained on the living culture's responses;
+   a fair test retrains it on the dead one.
 
-**DishBrain sessions:** both protocols run end to end (2-minute smoke tests only). Plain STDP runs away: mean excitatory weight goes from 2.2 to 3.8 in 2 simulated minutes. Synaptic scaling is needed before any M3 result means anything.
+What it took (each step was necessary):
 
-**Next steps, most promising first:**
+- **Labels.** The teacher pins the shoulder-roll joints far past their limits (actions of −15 and +10), which
+  dominated the fits and R². Labels are clipped to the joint range and standardised per joint.
+- **Encoding.** One stimulation channel per z-scored observation dimension (`identity`), sigmoid gain 0.5. The
+  command (constant) and the last action (the decoder knows it) are not stimulated. PCA whitening, the old default,
+  inflates near-constant directions and broke even an ideal reservoir; gain 1.5 saturated on pushes.
+- **Culture.** Strong distributed stimulation keeps it input-driven rather than bursting. Stimulation reach is 120 µm
+  (axonal activation; the preset is 60). Wells average independent noise (decodable R² 0.38 → 0.58 from 1 → 6
+  wells), each well getting a different random mix of the inputs.
+- **Decoder.** The efference copy matters most: the teacher tolerates state noise of 0.5–0.7 × its spread when its
+  last action is exact, and only ~0.2 × otherwise. An MLP (2 × 256); push recoveries weighted × 5; 16 DAgger rounds;
+  the final decoder averages the last 4.
+- **Speed.** Synaptic delivery as one sparse matrix–vector product per substep on the GPU, one host sync per control
+  step, ridge on the GPU: 4 wells went from 182 to 26 ms per step.
 
-- **Residual control:** the culture adds a bounded correction to the teacher, or to a simple PD/balance controller, rather than producing all 23 targets. This is honest about what a real culture can carry, and it fits the "small adaptive layer" view.
-- **A smaller action space:** a few gait synergies (PCA of the teacher's actions), rather than 23 independent joints.
-- **Stronger reservoir conditions:** the `gpu_20k` preset, input-driven rather than burst-dominated regimes (stimulation quiets bursting), and longer feature memory.
-- **Homeostatic scaling for STDP**, then the full M3 comparison over ≥5 seeds.
+### Negative results
+
+- **A linear readout of the culture cannot do it.** The part of the action not explained by the last action needs
+  nonlinear features of the state: R² 0.64 with random nonlinear features of the observation, 0.25 linear, 0.21–0.23
+  from the culture, 0.17 even reading every neuron of a well. More wells, filters, bins and encodings did not close it.
+- **Standing still cannot pass `stand_push`.** Zero action falls from a single 160 N push in every direction. Linear
+  balance controllers found by random search (`train_expert.py`) or written by hand (`program_expert.py`) plateau at
+  ~5 s. Recovery needs steps.
+- **Recorded recovery steps don't work open loop** (`reflex_oracle.py`), even when an oracle picks the right one:
+  4.7 s. A closed-loop recovery triggered within 200 ms of each push survives 20/20, so a 1-bit trigger suffices if
+  the recovery itself sees the state.
+- **Few synergies are not enough.** The teacher's leg actions projected onto their top 3–8 principal components fall.
+- **Earlier reservoir runs** (single culture, ridge readout, PCA encoding) fell before the first push; DAgger data from
+  falls made validation R² negative. **DishBrain sessions** run end to end, but plain STDP runs away (mean excitatory
+  weight 2.2 → 3.8 in 2 simulated minutes); synaptic scaling is needed first.
+
+**Next:** [docs/next-steps.md](docs/next-steps.md). Ideas behind it: [docs/organoid-control-ideas.md](docs/organoid-control-ideas.md).
 
 ## Limits of the simulation
 
 - A point-neuron network is not an organoid. It has no glia, no 3D layered structure, no neuromodulators, no metabolic limits, and no variability between organoids beyond the seed.
 - Stimulation is modelled as a direct current into nearby neurons for one substep; real biphasic pulses mostly recruit axons.
 - Rest is fast-forwarded: only weight decay acts, with no spontaneous activity.
+- Training ran 4 identical copies of one dish in parallel, and the culture is stationary while it controls (no
+  plasticity, no drift). A real dish is unique and changes over hours.
+- The current design stimulates 52 electrodes per well at 200 Hz in 6 wells, more than today's platforms offer
+  (CL1 has ~59 electrodes in all; MaxTwo has 32 stimulation units per well).
+- The 120 µm stimulation reach and graded recruitment are assumptions. The model is not fitted to any real dish.
 - Findings here are statements about this model. Each one is a hypothesis to test on a real culture, not a prediction.
