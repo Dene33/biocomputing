@@ -98,6 +98,27 @@ is unbiased), graded output. Latency costs more than noise, so the decoder must 
   both feet flat, leg kinematics give the pelvis tilt.
 - The joints aren't dispensable either (removed: 6.5 s), but joint velocities are (36/40 without them).
 
+**Caveat checked: students retrained without the IMU** (`scripts/no_imu_student.py`).
+- Recipe: the 17/20 decoder's, fed the robot state directly with no culture. MLP 2 × 256 plus a linear path from the
+  last action, clipped labels, recoveries weighted × 5, 16 DAgger rounds × 16 episodes, ensemble of the last 4.
+- Test: 40 fresh seeds (the sweep's).
+
+| Student inputs (always + last action) | Survived | Full 20 s | IMU removed at test |
+|---|---|---|---|
+| IMU + joint pos + joint vel (control) | 20.0 s | **40/40** | 1.4 s, 0/40 |
+| IMU + joint pos (the vestibular design) | 19.1 s | **35/40** | 1.4 s, 0/40 |
+| Joint pos + joint vel | 2.3 s | 0/40 | — |
+| Joint pos | 1.5 s | 0/40 | — |
+| Joint pos + vel + their last 4 steps (memory) | 2.1 s | 0/40 | — |
+
+- **Without the IMU no student learns to stand**, even with memory. None survived past 4.9 s in any round, worse than
+  zero action (4.8 s).
+- **With it, the recipe matches the teacher.** Joint velocities can go: IMU plus joint positions reaches 35/40.
+- So for imitation-trained controllers **the IMU is necessary**. A silenced vestibular dish should be fatal, as Phase
+  3.3 requires.
+- **Not ruled out:** a controller built some other way (RL, or written by hand) that balances on kinematics alone.
+  Phase 2 track (b) should check that its controllers still fall without the dish signal.
+
 ## Phase 2: weight-space programming on the robot side (CPU + agent loop)
 
 ### 2.1 Harness
