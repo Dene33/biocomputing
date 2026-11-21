@@ -101,3 +101,40 @@
 2. **Idea 2, test (a):** a capture-point stepping controller with true velocity. MuJoCo only.
 3. If either passes, run its open-loop culture test (b) on the existing probe pipeline, then a closed-loop run.
 4. Keep idea 4 as the DishBrain-arm experiment, and idea 5 as the baseline every result is compared against.
+
+## Result: reflex-arc oracle test (21 November 2026, `scripts/reflex_oracle.py`)
+
+20 seeds of `stand_push`, 20 s each. The library holds 16 primitives: 8 directions × 140/180 N, each the teacher's 1.5 s recovery from stance.
+
+| Controller | Survival | Full 20 s |
+|---|---|---|
+| Stance only | 4.5 s | 0/20 |
+| Teacher always on | 20.0 s | 20/20 |
+| Gated teacher (stance; closed-loop recovery for 1.5 s after each detected push) | 20.0 s | 20/20 |
+| Gated teacher, 200 ms detection delay | 19.3 s | 19/20 |
+| Open-loop replay, perfect oracle choice, 0–300 ms delay | 4.6–4.7 s | 0/20 |
+| Open-loop replay, 10 / 25 / 100 % wrong picks | 4.5 / 4.5 / 4.2 s | 0/20 |
+
+- **A 1-bit trigger with a 200 ms deadline is enough, if the recovery is closed-loop.** Open-loop step replay fails even with perfect choices: a recovery step has to react to the state, it can't be recorded once.
+- **But then the trigger is trivial** (a gyro threshold would do), and the closed-loop recovery does the work. To make the dish *necessary*, the robot-side controller must lack information that only the dish provides (principle 4).
+- **Next cheap test: the "blind teacher".** Zero, degrade, delay or down-sample the teacher's IMU inputs (gyro, gravity) while its joint encoders stay exact. If it needs the IMU but tolerates a noisy or low-rate version, the cleanest design is **the organoid as vestibular organ**:
+  - only the 6 IMU dimensions go through the dish, instead of 52 sensory dimensions;
+  - the joint encoders go straight to the controller;
+  - that's ~9× more electrodes per dimension, so much higher fidelity;
+  - the dish stays necessary, because no IMU means no balance.
+
+## Weight-space programming (csinva/weight-space-programming-autoresearch)
+
+**What it is.** An agent (Claude Code) *writes* a model's weights in code, with no training. It loops: edit, run, read a single validation score, log, repeat for at least 20 iterations. It has built interpretable transformers and brain **encoding models** (fMRI, ECoG). Paper: arXiv 2611.18114.
+
+Where it could help here, best first:
+
+1. **An interpretable digital twin of the dish.** Write an encoding model from stimulation pattern to per-electrode response. This is the same kind of model the paper builds for fMRI/ECoG. Validation: held-out R² of evoked responses. It works on our simulated culture now (probe data exists), and on a real dish's channel-test recordings later. Bonus: the twin is readable (which electrodes respond to what, and through which nonlinearity), which SBI-fitted biophysical models don't give.
+2. **Understanding the teacher.** Have the agent write a transparent approximation of the teacher's balance policy. That would identify *which* nonlinear features of the state the policy needs: the features we found the culture can't supply (additive per-dimension codes reach 0.49 innovation R², random features 0.64). This tells us exactly what to ask the organoid to compute, or what to give the robot side.
+3. **Robot-side controllers that consume organoid signals.** For example, a closed-loop recovery controller conditioned on a dish-provided push direction or vestibular estimate, written rather than trained by RL. Validation: closed-loop survival, cheap in MuJoCo.
+4. **Interpretable decoders.** Spikes to trigger, capture point or actions. Low value: plain training already works.
+
+Limits:
+- It can't add information the dish doesn't carry.
+- The repo's scaffolding is transformer- and sequence-oriented, so borrow the *method* (program.md loop, `write_weights`, single score) rather than the code.
+- Each search costs API credits and agent time.

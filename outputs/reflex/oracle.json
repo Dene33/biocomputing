@@ -1,0 +1,79 @@
+[
+ {
+  "mode": "stance",
+  "delay_steps": 0,
+  "error_rate": 0.0,
+  "survived_s": 4.53,
+  "full": "0/20"
+ },
+ {
+  "mode": "teacher",
+  "delay_steps": 0,
+  "error_rate": 0.0,
+  "survived_s": 20.0,
+  "full": "20/20"
+ },
+ {
+  "mode": "gated_teacher",
+  "delay_steps": 0,
+  "error_rate": 0.0,
+  "survived_s": 20.0,
+  "full": "20/20"
+ },
+ {
+  "mode": "gated_teacher",
+  "delay_steps": 10,
+  "error_rate": 0.0,
+  "survived_s": 19.345,
+  "full": "19/20"
+ },
+ {
+  "mode": "replay",
+  "delay_steps": 0,
+  "error_rate": 0.0,
+  "survived_s": 4.706,
+  "full": "0/20"
+ },
+ {
+  "mode": "replay",
+  "delay_steps": 5,
+  "error_rate": 0.0,
+  "survived_s": 4.632,
+  "full": "0/20"
+ },
+ {
+  "mode": "replay",
+  "delay_steps": 10,
+  "error_rate": 0.0,
+  "survived_s": 4.726,
+  "full": "0/20"
+ },
+ {
+  "mode": "replay",
+  "delay_steps": 15,
+  "error_rate": 0.0,
+  "survived_s": 4.680999999999999,
+  "full": "0/20"
+ },
+ {
+  "mode": "replay",
+  "delay_steps": 5,
+  "error_rate": 0.1,
+  "survived_s": 4.547,
+  "full": "0/20"
+ },
+ {
+  "mode": "replay",
+  "delay_steps": 5,
+  "error_rate": 0.25,
+  "survived_s": 4.497999999999999,
+  "full": "0/20"
+ },
+ {
+  "mode": "replay",
+  "delay_steps": 5,
+  "error_rate": 1.0,
+  "survived_s": 4.164,
+  "full": "0/20"
+ }
+]
