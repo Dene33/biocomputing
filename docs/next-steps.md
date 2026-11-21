@@ -201,6 +201,30 @@ Zero action on the hidden test: 4.4 s, 0/40. With the dish silenced, every teach
 - **Caveat:** these channels are statistical summaries of open-loop replays, with a decoder fitted afterwards. The
   real test is Phase 3.3: the culture in the loop, the decoder fixed in advance.
 
+**Add-on: can the dish detect a push?** (`scripts/trigger_probe.py`). This is a first look at Phase 4: does the dish
+*compute* anything?
+- **Data.** 24 new teacher episodes with DART noise; 133 pushes at known times.
+- **Label.** The 200 ms after each push onset.
+- **Readout.** Cross-validated ridge on each feature set.
+- **Detection threshold.** Set at 1 false alarm per 10 s.
+
+| Readout of | AUC | Pushes caught within 200 ms |
+|---|---|---|
+| IMU now | 0.53 | 11% |
+| IMU, linear filter over 160 ms | 0.57 | 17% |
+| IMU filter + squares and \|values\| | 0.86 | 75% |
+| Stimulation pattern, linear filter (32 electrodes) | 0.87 | 63% |
+| **Live dish**, 6 wells × 32 | **0.71** | **22%** |
+| Dead dish, recurrent synapses removed | 0.73 | 37% |
+
+- **Pushes come from random directions,** so detecting one needs a nonlinearity (magnitude). A linear filter of the
+  IMU can't do it. The encoder's thresholds already provide that nonlinearity.
+- **The dish makes the trigger harder to read than its own input,** and the live culture is no better than the dead
+  one. So the simulated culture computes nothing useful for this task. It loses information, as in the IMU channel
+  above.
+- **Implication for Phase 4:** this culture model won't give computation for free. Phase 4 needs cultures whose
+  dynamics help (slower time constants, plasticity), or a task where they do.
+
 ### 3.2 Weight-space programming on the dish side
 
 - **Interpretable decoder:** spikes → IMU estimate.
