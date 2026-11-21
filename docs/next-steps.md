@@ -160,6 +160,47 @@ Uses the existing pipeline (`outputs/probe/encoding.py`).
 - Budget: **≤ 32 stimulation channels per well** (MaxTwo-compatible); also a CL1-sized variant with ~12.
 - Compare against the Phase 1 spec.
 
+**Result** (`scripts/vestibular_probe.py`; `outputs/vestibular_probe/`).
+- **Setup.** 19k steps of teacher `stand_push` observations, with DART action noise, replayed open loop. Only
+  `obs[0:6]` is stimulated (4 pulse slots per 20 ms step, 120 µm reach, gain 0.5).
+- **Decoder.** Ridge from spikes to the IMU, 5-fold contiguous cross-validation.
+- **Encodings.** `axis`: each electrode tuned to one IMU dimension, sign alternating, thresholds staggered.
+  `select`: random directions, random thresholds.
+- **Scoring.** Errors in units of the teacher's spread, on in-range steps: every IMU value within 3 spreads of
+  standing, 35% of the replay. `grav_z` barely moves, so it is rebuilt from x and y.
+
+| `axis`, decoder with 40 ms trace | Gyro error (× spread) | Gravity x, y error | Gain (shrinkage) |
+|---|---|---|---|
+| 1 well × 12 electrodes (CL1-sized) | 0.56–0.70 | 0.53–0.80 | 0.61–0.70 |
+| 1 well × 32 (MaxTwo-sized) | 0.46–0.63 | 0.47–0.71 | 0.84–0.94 |
+| 6 wells × 12 | 0.37–0.55 | 0.41–0.67 | 0.79–0.99 |
+| 6 wells × 32 | 0.27–0.45 | 0.33–0.58 | 0.95–1.09 |
+
+- **Decoder memory.** Spike counts of the current step alone are about 1.5 × worse. The 160 ms trace adds nothing.
+  The gyro decodes best at lag 0, so the 40 ms trace costs no measurable delay.
+- **Encoding.** `select` is within ±0.05 of `axis`.
+- **Ceiling.** Decoding the stimulation pattern itself gives 0.05–0.2 × spread, so most of the error comes from the
+  culture, not the encoding.
+- **Noise correlation time:** 2–3 steps for the gyro, 4–8 for gravity.
+
+**The measured channels in closed loop** (`wsp/controller/dish_models/`). Each configuration becomes a dish model
+(per-dimension gain plus correlated noise, no added delay), and the teacher runs through it. Validation: 60 seeds.
+
+| Dish | Teacher unchanged | Track (a): IMU inputs × 1/gain |
+|---|---|---|
+| 6 wells × 32 | 20.0 s, 60/60 | — |
+| 6 wells × 12 | 19.9 s, 59/60 | — |
+| 1 well × 32 | 19.6 s, 58/60 | — |
+| 1 well × 12 (CL1) | 12.7 s, 20/60 | **19.8 s, 58/60** |
+| 1 well × 12, **hidden test** (40 seeds) | 13.7 s, 16/40 | **20.0 s, 40/40** |
+
+Zero action on the hidden test: 4.4 s, 0/40. With the dish silenced, every teacher variant falls in 1.0 s.
+
+- A single CL1-sized well shrinks the IMU to ~63% of its size. One weight edit undoes it: scale the teacher's
+  first-layer IMU columns by 1/gain.
+- **Caveat:** these channels are statistical summaries of open-loop replays, with a decoder fitted afterwards. The
+  real test is Phase 3.3: the culture in the loop, the decoder fixed in advance.
+
 ### 3.2 Weight-space programming on the dish side
 
 - **Interpretable decoder:** spikes → IMU estimate.

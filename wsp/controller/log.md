@@ -35,6 +35,19 @@ Re-scored on 60 seeds:
 | Gravity lead 1.0 only | 18.19 | 46/60 |
 | Gyro 1.5 + gravity lead 1.0 | 18.41 | 47/60 |
 
+### Measured dish (Phase 3.1), from here on
+
+`dish_model.json` is now the measured CL1-sized channel (1 well × 12 electrodes: gain ~0.63, noise 0.53–0.80 ×
+spread, correlation 30–70 ms). The placeholder is kept as `dish_models/placeholder_spec.json`.
+
+| Iter | Hypothesis / change | Score | Full | Kept |
+|---|---|---|---|---|
+| 14 | Teacher unchanged on the CL1 dish | 12.75 | 20/60 | baseline |
+| 15 | Gyro 1.5 (from the placeholder) on the CL1 dish | 15.41 | 32/60 | — |
+| 16 | IMU columns × 1/gain (gyro 1.5–1.65, gravity 1.43–1.59) | **19.82** | 58/60 | yes |
+| 17 | Same, gyro × 1.5 more on top | 19.63 | 58/60 | no |
+| test | Iteration 16, **hidden test** seeds | **20.00** | **40/40** | teacher unchanged: 13.68, 16/40 |
+
 Notes. Observation joints are in slot order `[0,1,6,7,12,13,14,18,19, 2,3,8,9,15,16,20,21, 4,5,10,11,17,22]`
 (MuJoCo order indices); joint velocities are ×0.1, gyro ×0.25.
 

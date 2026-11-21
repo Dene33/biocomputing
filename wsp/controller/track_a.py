@@ -8,8 +8,8 @@ import numpy as np
 _T = dict(np.load(Path(__file__).parent / "teacher_weights.npz"))
 
 # Input gains on the first layer's IMU columns (1 = the teacher's own weights).
-GYRO_GAIN = np.array([1.5, 1.5, 1.5])
-GRAV_GAIN = 1.0
+GYRO_GAIN = np.array([1.5, 1.6, 1.65])  # 1 / the CL1 dish's measured gain
+GRAV_GAIN = np.array([1.59, 1.43, 1.0])  # 1 / gain; grav_z is rebuilt from x, y
 # Front end: rotate the (late) gravity estimate forward by PRED_STEPS control steps with the gyro, dg/dt = g x w.
 PRED_STEPS = 0
 # Lead on gravity: g + GRAV_LEAD * (g - previous distinct sample), extrapolating the dish's late value.
@@ -22,9 +22,9 @@ def write_weights():
          for k, v in _T.items()}
     # Keep the standing operating point: gravity (0, 0, -1) feeds the first layer through column 5, so rescaling it
     # moves the bias by (1 - gain) * column * (-1).
-    W["l0_b"] += (1.0 - GRAV_GAIN) * W["l0_w"][:, 5] * -1.0
+    W["l0_b"] += (1.0 - GRAV_GAIN[2]) * W["l0_w"][:, 5] * -1.0
     W["l0_w"][:, 0:3] *= GYRO_GAIN[None, :]
-    W["l0_w"][:, 3:6] *= GRAV_GAIN
+    W["l0_w"][:, 3:6] *= GRAV_GAIN[None, :]
     W["state"] = {}
     return W
 

@@ -166,6 +166,15 @@ same recipe gets 40/40, and IMU plus joint positions alone 35/40 (`scripts/no_im
 is necessary.
 The table is in [docs/next-steps.md](docs/next-steps.md#11-blind-teacher-sweep).
 
+**Phase 3.1, the vestibular probe** (`scripts/vestibular_probe.py`). Only the 6 IMU values are stimulated, open loop.
+One well with 12 electrodes (CL1-sized) carries them with errors of 0.53–0.80 × spread and shrinks them to ~63%. Six
+wells with 32 electrodes each: 0.27–0.58 × spread. As dish models in closed loop, 1 × 32, 6 × 12 and 6 × 32 keep the
+unchanged teacher up in 58–60/60 runs; 1 × 12 in 20/60.
+
+**Phase 2, weight-space programming** (`wsp/controller/`). Scaling the teacher's first-layer IMU weights by 1/gain
+brings the CL1-sized channel to 58/60 (validation) and 40/40 (hidden test; unchanged teacher 16/40). These are
+statistical channel models; the closed loop with the culture itself is Phase 3.3.
+
 **Next:** [docs/next-steps.md](docs/next-steps.md). Ideas behind it: [docs/organoid-control-ideas.md](docs/organoid-control-ideas.md).
 
 ## Limits of the simulation

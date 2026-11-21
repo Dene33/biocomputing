@@ -125,6 +125,26 @@ class Encoder:
         self.projection = "select"
         self.dims = dims
 
+    def fit_axis(self, obs: np.ndarray, dims, spread: float = 1.5) -> None:
+        """Population code with each channel tuned to one of ``dims``: channel i codes dimension ``dims[i % n]``,
+        alternating sign, with thresholds staggered evenly over +-``spread`` (normalized units) among the channels of
+        that dimension. Unlike ``fit_select``, a dimension can be read from its own electrodes without unmixing."""
+        dims = np.asarray(dims, int)
+        z = self.normalizer(obs)[:, dims]
+        mean = z.mean(0)
+        k, n = len(self.channels), len(dims)
+        W = np.zeros((k, self.W.shape[1]))
+        b = np.zeros(k)
+        for j in range(n):
+            mine = np.arange(j, k, n)
+            sign = np.where(np.arange(len(mine)) % 2 == 0, 1.0, -1.0)
+            thr = np.linspace(-spread, spread, len(mine)) if len(mine) > 1 else np.zeros(1)
+            W[mine, dims[j]] = sign
+            b[mine] = -sign * (mean[j] + thr)
+        self.W, self.b = W, b
+        self.projection = "axis"
+        self.dims = dims
+
     def reset(self) -> None:
         self.phase[:] = 0.0
 

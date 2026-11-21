@@ -37,6 +37,9 @@ class Setup:
     """The decoder also gets its own last command (the robot's last action, obs[55:78]) directly, as an efference
     copy, instead of the culture having to carry it; with ``identity`` encoding the culture then gets only the
     52 sensory dimensions."""
+    select_dims: tuple = ()
+    """Observation dimensions coded by the ``select`` and ``axis`` projections (e.g. 0-5, the IMU)."""
+    select_spread: float = 1.0
     silent_inputs: bool = False
     """Control: no sensory stimulation reaches the culture."""
     source: str = "mea"
@@ -76,6 +79,10 @@ def build(setup: Setup, obs_samples: np.ndarray, action_samples: np.ndarray | No
     elif setup.projection == "identity":
         skip = (6, 7, 8) + (tuple(range(55, 78)) if setup.efference else ())
         encoder.fit_identity(obs_samples, skip=skip)
+    elif setup.projection == "select":
+        encoder.fit_select(obs_samples, setup.select_dims, spread=setup.select_spread)
+    elif setup.projection == "axis":
+        encoder.fit_axis(obs_samples, setup.select_dims, spread=setup.select_spread)
     elif setup.projection == "supervised":
         if action_samples is None:
             raise ValueError("projection='supervised' needs action_samples.")

@@ -1,0 +1,31 @@
+{
+ "_comment": "Measured from scripts/vestibular_probe.py, config select_s32_w6, 40 ms-trace decoder, in-range steps. grav_z rebuilt from x, y.",
+ "delay": 0,
+ "hold": 1,
+ "gain": [
+  0.993,
+  1.04,
+  1.116,
+  1.013,
+  1.058,
+  1.0
+ ],
+ "noise": [
+  0.333,
+  0.378,
+  0.417,
+  0.572,
+  0.325,
+  0.0
+ ],
+ "tau": [
+  2.6,
+  3.7,
+  2.3,
+  7.6,
+  8.2,
+  0.0
+ ],
+ "quant": 0,
+ "renorm_gravity": true
+}

@@ -1,8 +1,31 @@
 {
- "_comment": "Pessimistic placeholder until the Phase 3.1 probe measures the simulated dish: 40 ms + 25 Hz + noise 1.0x spread (tau 200 ms). The teacher gets 29/40 under it (scripts/blind_teacher.py).",
- "delay": 2,
- "hold": 2,
- "noise": 1.0,
- "tau": 10,
- "quant": 0
+ "_comment": "Measured from scripts/vestibular_probe.py, config axis_s12_w1, 40 ms-trace decoder, in-range steps. grav_z rebuilt from x, y.",
+ "delay": 0,
+ "hold": 1,
+ "gain": [
+  0.666,
+  0.628,
+  0.606,
+  0.629,
+  0.697,
+  1.0
+ ],
+ "noise": [
+  0.562,
+  0.699,
+  0.702,
+  0.795,
+  0.531,
+  0.0
+ ],
+ "tau": [
+  1.6,
+  1.9,
+  1.6,
+  3.6,
+  3.5,
+  0.0
+ ],
+ "quant": 0,
+ "renorm_gravity": true
 }
