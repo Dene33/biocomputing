@@ -1,0 +1,121 @@
+{
+  "dagger": [
+    {
+      "run": "stand_push_mea_gpu_20k_grid256_w6_s0_mlp_eff",
+      "source": "mea",
+      "wells": 6,
+      "encoding": "identity",
+      "decoder": "mlp + efference",
+      "rounds": 16,
+      "best_round_s": 20.0,
+      "final": "18.8 s, 9/10",
+      "evals": {
+        "dead": "14.5 s, 6/10",
+        "none": "18.5 s, 17/20",
+        "silent": "1.6 s, 0/10",
+        "zero": "4.3 s, 0/10"
+      }
+    },
+    {
+      "run": "stand_push_none_gpu_20k_hd1024_w1_s0_mlp_eff",
+      "source": "none",
+      "wells": 1,
+      "encoding": "identity",
+      "decoder": "mlp + efference",
+      "rounds": 14,
+      "best_round_s": 20.0,
+      "final": "18.9 s, 9/10",
+      "evals": {
+        "none": "17.5 s, 15/20"
+      }
+    }
+  ],
+  "reservoir": [
+    {
+      "kind": "reservoir",
+      "task": "stand_push",
+      "source": "dead",
+      "mea": "mcs60",
+      "seed": 0,
+      "train_r2": 0.773,
+      "val_r2": -0.673,
+      "survived_s": 1.96,
+      "full": "0/5",
+      "distance_m": -0.6
+    },
+    {
+      "kind": "reservoir",
+      "task": "stand_push",
+      "source": "mea",
+      "mea": "grid256",
+      "seed": 0,
+      "train_r2": 0.94,
+      "val_r2": -0.075,
+      "survived_s": 1.89,
+      "full": "0/5",
+      "distance_m": 0.1
+    },
+    {
+      "kind": "reservoir",
+      "task": "stand_push",
+      "source": "mea",
+      "mea": "hd1024",
+      "seed": 0,
+      "train_r2": 0.95,
+      "val_r2": -0.409,
+      "survived_s": 2.34,
+      "full": "0/5",
+      "distance_m": -0.57
+    },
+    {
+      "kind": "reservoir",
+      "task": "stand_push",
+      "source": "mea",
+      "mea": "mcs60",
+      "seed": 0,
+      "train_r2": 0.734,
+      "val_r2": -0.969,
+      "survived_s": 2.96,
+      "full": "0/5",
+      "distance_m": -0.38
+    },
+    {
+      "kind": "reservoir",
+      "task": "stand_push",
+      "source": "none",
+      "mea": "mcs60",
+      "seed": 0,
+      "train_r2": 0.738,
+      "val_r2": -0.522,
+      "survived_s": 2.26,
+      "full": "0/5",
+      "distance_m": -0.12
+    },
+    {
+      "kind": "reservoir",
+      "task": "stand_push",
+      "source": "oracle",
+      "mea": "mcs60",
+      "seed": 0,
+      "train_r2": 0.96,
+      "val_r2": -0.306,
+      "survived_s": 2.4,
+      "full": "0/5",
+      "distance_m": -0.35
+    }
+  ],
+  "feedback": [
+    {
+      "protocol": "scratch",
+      "task": "stand_push",
+      "perturb": "none",
+      "condition": "dishbrain",
+      "seed": 0,
+      "before_s": 5.91,
+      "first_block_s": 5.07,
+      "last_block_s": 4.77,
+      "after_s": 3.62,
+      "after_rest_s": 7.32
+    }
+  ]
+}
