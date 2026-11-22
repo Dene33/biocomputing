@@ -242,6 +242,10 @@ The dish plus the Phase 2 controller, on 20+ fresh seeds. Ablations:
 
 ## Phase 4: make the dish compute (the real claim)
 
+Tested in simulation and ranked against real hardware in [route-to-computation.md](route-to-computation.md). No
+memory beyond the input in any stimulation regime (4.1). For 4.2, the job exists (`adaptation_slot.py`), but the
+model culture can't be coached.
+
 ### 4.1 Vestibular integrator
 
 Decode what the robot's sensors lack: **linear velocity** or the **capture point**. Both need memory over time. The robot side then uses it, e.g. through a capture-point stepping controller.

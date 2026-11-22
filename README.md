@@ -175,6 +175,14 @@ unchanged teacher up in 58–60/60 runs; 1 × 12 in 20/60.
 brings the CL1-sized channel to 58/60 (validation) and 40/40 (hidden test; unchanged teacher 16/40). These are
 statistical channel models; the closed loop with the culture itself is Phase 3.3.
 
+**Route finding** ([docs/route-to-computation.md](docs/route-to-computation.md)). Phase 4 tested in simulation and
+the routes ranked against real hardware. No stimulation regime makes the dish compute. It keeps less of the recent IMU
+than its own stimulation pattern and detects pushes worse than a filter (AUC ≤ 0.75 vs 0.86). Slow NMDA excitation
+doesn't change that. There is a job for a dish: weak knees and a 20 kg payload each need their own fix (0/20 → 19/20),
+and each fix is fatal for the other change. But our model culture can't be coached to choose (chance), because every
+probe sets off the same network burst. Ranked routes: coached adaptation first (fits every platform, cart-pole
+precedent; a real dish decides), push detection tested open loop alongside it, the inner-ear relay as hardware testbed.
+
 **Next:** [docs/next-steps.md](docs/next-steps.md). Ideas behind it: [docs/organoid-control-ideas.md](docs/organoid-control-ideas.md).
 
 ## Limits of the simulation
