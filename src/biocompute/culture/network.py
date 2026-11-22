@@ -6,6 +6,10 @@
   electrode array at z = 0.
 - Sparse, distance-dependent connectivity, with axonal delays that grow with distance (in ``delay_buckets`` of 0.5 ms).
 - Exponentially decaying synaptic currents.
+- Optional slow NMDA-type excitation (``nmda_ratio`` > 0): a share of every excitatory input also enters a current
+  that decays over ``tau_nmda_ms`` (~100 ms) and is gated by the magnesium block (Jahr & Stevens 1990), so it
+  mostly acts on already depolarized neurons. Real cultures' deviance responses depend on NMDA receptors; it is also
+  the usual biological source of memory over hundreds of milliseconds. Off by default.
 - Tsodyks–Markram short-term depression at every presynaptic neuron: a burst uses up resources and ends, so
   spontaneous activity comes as network bursts separated by seconds of quiet, as recorded from organoids on MEAs.
 - Background drive: Poisson input plus a small noise current.
@@ -44,6 +48,10 @@ class CultureConfig:
 
     tau_exc_ms: float = 5.0
     tau_inh_ms: float = 10.0
+    nmda_ratio: float = 0.0
+    """Share of each excitatory input that also enters the slow NMDA-type current (0: none)."""
+    tau_nmda_ms: float = 100.0
+    mg_mM: float = 1.0
 
     # Short-term depression (Tsodyks–Markram)
     stp_u: float = 0.2
@@ -184,6 +192,7 @@ class OrganoidCulture:
         self.u = self.b * self.v
         self.i_exc = torch.zeros(n, device=dev)
         self.i_inh = torch.zeros(n, device=dev)
+        self.i_nmda = torch.zeros(n, device=dev)
         self.stp_x = torch.ones(n, device=dev)
         self.history = torch.zeros(self.cfg.delay_buckets + 1, n, device=dev)
         """Ring of the last spikes × release efficacy, newest at ``self.head``."""
@@ -242,6 +251,8 @@ class OrganoidCulture:
             out = (A @ x).squeeze(1)
             self.i_exc += out[: self.n]
             self.i_inh += out[self.n :]
+            if cfg.nmda_ratio:
+                self.i_nmda += cfg.nmda_ratio * out[: self.n]
         else:
             slot = (self.head - self.delay + 1) % k  # delay 1 = the spikes of the previous substep, at head
             released = self.history[slot, self.pre]  # efficacy × spike, per synapse
@@ -252,6 +263,8 @@ class OrganoidCulture:
                 exc = self.syn_exc[active]
                 self.i_exc.index_add_(0, target[exc], contrib[exc])
                 self.i_inh.index_add_(0, target[~exc], contrib[~exc])
+                if cfg.nmda_ratio:
+                    self.i_nmda.index_add_(0, target[exc], cfg.nmda_ratio * contrib[exc])
 
         # Background Poisson drive and noise.
         bg = torch.rand(self.n, generator=g, device=self.device) < cfg.background_rate_hz * dt * 1e-3
@@ -262,6 +275,9 @@ class OrganoidCulture:
             + self.noise_scale * torch.randn(self.n, generator=g, device=self.device)
             + self.excitability
         )
+        if cfg.nmda_ratio:
+            mg_block = 1.0 / (1.0 + (cfg.mg_mM / 3.57) * torch.exp(-0.062 * self.v))
+            current = current + mg_block * self.i_nmda
         if i_ext is not None:
             current = current + i_ext
 
@@ -279,6 +295,8 @@ class OrganoidCulture:
         # Synaptic decay.
         self.i_exc *= math.exp(-dt / cfg.tau_exc_ms)
         self.i_inh *= math.exp(-dt / cfg.tau_inh_ms)
+        if cfg.nmda_ratio:
+            self.i_nmda *= math.exp(-dt / cfg.tau_nmda_ms)
 
         # Short-term depression: release U * x on a spike, recover towards 1.
         efficacy = cfg.stp_u * self.stp_x * spikes

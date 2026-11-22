@@ -57,6 +57,8 @@ class Encoder:
         self.W = rng.standard_normal((k, obs_dim)) / np.sqrt(obs_dim)
         self.b = np.zeros(k)
         self.phase = np.zeros(k)
+        self.rate_scale = 1.0
+        """``rate`` coding: pulses per slot at full drive (1: one per slot; 0.4 with one 20 ms slot: up to 20 Hz)."""
 
     def fit_pca(self, obs: np.ndarray) -> None:
         """Project onto the observation's principal components (each channel one signed component), instead of a
@@ -164,7 +166,7 @@ class Encoder:
                 times.append(np.full(len(self.channels), t))
                 amps.append(a)
         elif self.mode == "rate":
-            per_slot = x  # probability-like: at x = 1, a pulse in every slot
+            per_slot = x * self.rate_scale  # at x = 1, ``rate_scale`` pulses per slot
             for t in self.slots_ms:
                 self.phase += per_slot
                 fire = self.phase >= 1.0
