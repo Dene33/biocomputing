@@ -51,6 +51,8 @@ The robot's balance loop runs at 50 Hz. A dish in that loop may add at most ~40 
 | A job the frozen robot can't do | weak knees: knee bias −0.6 rescues 0/20 → 19/20; 20 kg payload: IMU gain 1.5 rescues 0/20 → 19/20; each fix is fatal for the other change; no single setting works for both | `adaptation_slot.py` c34be6c |
 | Can the robot sense which change happened? | payload: yes, at once (knee tracking error 0.113 vs 0.048); weak knees: no, until pushes near the failure point | `struggle_signal.py` 7cc4a57 |
 | Can a culture be coached to choose the fix? | not our model culture. Correct choices in the last 50 of 150 trials: adaptive coaching 0.51, random 0.43, none 0.50 (3 cultures each; chance 0.5). Each context's score drifts by ±10–25 spikes on its own. Dose-response: 400 pairings move the probe response by 20–25 spikes (~20× its standard error), but both contexts move together, in a direction that depends on the culture. The trained pathway's own share is ±3–6 spikes, with either sign. The model culture answers every probe with the same network burst, so it can't hold a context-specific mapping. Without homeostasis its weights double in 100 s of activity | `coach_probe.py`, `--dose` |
+| Does suppressing bursts make pairing specific? | no. Background stimulation, stronger inhibition, sparser wiring or more noise cut burstiness, but the trained pathway's own share stays inconsistent: −3.2 / −9.2 in the base culture, from +3.2 / −2.8 to −0.1 / −10.3 in the others (2 cultures; target negative). The site of the probe was already decodable at 75–99% | `burst_probe.py` fb08bf9 |
+| The cart-pole organoid protocol, step by step | can't be tested on this model. Electrode selection by first-order connectivity works: specific pairs (own 0.80–1.00, crossed 0–0.04). Once the decoder is calibrated under stimulation, one of three cultures balances the pole with no training at all (90th percentile 34.6 s, bar 20.85 s): the selected pairs act as a reflex. Training never beat no training. With plasticity on, the culture runs away under the task's stimulation: rates rise 2–7× (6 → 13–45 Hz per electrode) within 20 s to 10 min, and the input with the slightly stronger response takes over both outputs (cross gain up to 24.6 spikes per pulse vs 2–3 for its own). That holds for every strength tried (×1 to ×0.03) and also for weight-dependent STDP. Scaling total input doesn't stop it: weights shift onto inputs that fire together | `cartpole_replication.py` a51c67a |
 
 ## The routes
 
@@ -82,7 +84,8 @@ the cart-pole organoids were coached.
 **Against.**
 - Our simulated culture cannot be coached: chance in every mode. Training moves its responses a lot, but to both
   contexts alike, because every probe sets off the same network burst. This is a limit of the model: the cart-pole
-  organoids did learn a specific mapping. So the simulation neither supports nor refutes the route, and a real dish
+  organoids did learn a specific mapping, and on our model their protocol fails too. Its plasticity turns any
+  repeated input into a trigger for the whole network within minutes. So the simulation neither supports nor refutes the route, and a real dish
   has to decide it.
 - Memory is short in real cultures: the cart-pole learning was gone after 45 minutes of rest. Expect to re-coach
   each session.
@@ -97,6 +100,11 @@ the cart-pole organoids were coached.
   measured success table (`coach_probe.py` protocol). Pass: adaptive coaching beats random and no feedback in correct
   choices over the last 50 trials by ≥ 20 points, in ≥ 4 cultures. Fail: try the cart-pole training rule (an
   algorithm choosing which electrodes get bursts); fail again: stop the route.
+  Take two things from the cart-pole protocol from the start (`cartpole_replication.py`):
+  - Choose the context and output electrodes by first-order connectivity (spike within 10 ms of a pulse), not by a
+    fixed layout.
+  - Calibrate the decoder on its rates under the task's stimulation. Raw counts from electrodes firing tens of Hz
+    pin the choice to one side, and so do resting rates.
 - **B2, real dish.** No context signal; the condition flips unannounced every 30 trials. Pass: ≥ 70% correct in the
   last 15 trials of each block, controls at chance.
 - **B3, real Asimov in a harness.** Weak knees emulated by limiting knee torque to 45% in the motor drivers
@@ -162,7 +170,10 @@ On 32–59 electrodes no reservoir carries a 23-joint policy.
    CL API. Run no more simulated learning experiments until the culture model reproduces a published learning effect
    (the cart-pole gap of 46% vs 2–4%). Until then, its negative learning results say nothing about real dishes. First
    it must answer two electrode groups with different responses, keep a change in one pathway specific to that
-   pathway, and hold its weights steady without an added scaling step.
+   pathway, and hold its weights steady without an added scaling step. The cart-pole replication names the missing
+   piece: the model has nothing that holds firing *rates* in place under stimulation. It would need firing-rate
+   homeostasis or inhibitory plasticity, then has to pass the drift test (`cartpole_replication.py --drift`: rates
+   and pathway specificity steady for 10 minutes of task stimulation) before a replication run.
 2. **First real-dish session**, one culture: A1 (channel, ~20 min), C1 (open-loop pushes, ~20 min, then blockers at
    the end), B1 (coaching, ~1 hour, before the blockers). Each decides its route on its own.
 3. **If B1 passes:** B2 on the dish; build the harness, torque limit and payload mount; B3.

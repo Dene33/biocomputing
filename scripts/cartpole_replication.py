@@ -38,6 +38,8 @@ step, on the simulated culture (20,000 neurons, 256-electrode grid at 100 um, fo
    textbook unstable form (Song, Miller & Abbott 2000; van Rossum, Bi & Turrigiano 2000 for the stable,
    weight-dependent form).
 
+   ``--stdp-rule multiplicative``: the weight-dependent form, in the drift test and the replication.
+
 Logs: run_raw_decoder.log (round 1), run_rest.log (round 1), run_task.log (calibration + round 1 null); the runs
 were stopped there because the decoders pinned. drift.json: the drift test.
    After each episode, if the mean of the last 5 episodes is not above that of the last 20: a 400 ms training
@@ -211,10 +213,11 @@ def calibrate(dev, cfg, rng, seconds=120.0):
 def drift(job):
     import torch
 
-    scale, seconds = job
+    scale, seconds, rule = job
     enc, dec = [136, 155], [137, 139]  # seed 0's configuration (characterise/configure, see run_task.log)
     dev, stdp, w_in0 = build(0)
     c = dev.culture
+    stdp.multiplicative = rule == "multiplicative"
     stdp.a_plus *= scale
     stdp.a_minus *= scale
     c.plasticity = stdp if scale > 0 else None
@@ -235,7 +238,7 @@ def drift(job):
     for k in range(0, len(X) - 299, 300):
         A = np.column_stack([np.ones(300), X[k:k + 300]])
         gains.append(np.round(np.linalg.lstsq(A, Y[k:k + 300], rcond=None)[0][1:].T, 2).tolist())
-    row = {"stdp_scale": scale, "seconds": seconds,
+    row = {"stdp_scale": scale, "stdp_rule": rule, "seconds": seconds,
            "hz_per_electrode_10s": np.round(N.reshape(-1, 50).mean(1) / 0.2 / dev.n_channels, 1).tolist(),
            "dec_hz_10s": np.round(Y.reshape(-1, 50, 2).mean(1) / 0.2, 1).tolist(),
            "gain_60s": gains, "w_exc_mean": round(float(c.w[c.syn_exc].mean()), 3)}
@@ -311,10 +314,11 @@ def run(job):
 
     from biocompute.culture.plasticity import rest
 
-    seed, order, repeats, minutes, decoder, stdp_scale = job
+    seed, order, repeats, minutes, decoder, stdp_scale, rule = job
     t0 = time.time()
     rng = np.random.default_rng(seed + 900)
     dev, stdp, w_in0 = build(seed)
+    stdp.multiplicative = rule == "multiplicative"
     stdp.a_plus *= stdp_scale
     stdp.a_minus *= stdp_scale
     cand, rate, first, burst, rest_stats = characterise(dev)
@@ -330,7 +334,7 @@ def run(job):
         for mode in order:
             res = cycle(dev, stdp, w_in0, cfg, mode, minutes, rng, frozen_agent if mode == "frozen" else agent,
                         decoder)
-            res |= {"seed": seed, "repeat": rep, "decoder": decoder, "stdp_scale": stdp_scale,
+            res |= {"seed": seed, "repeat": rep, "decoder": decoder, "stdp_scale": stdp_scale, "stdp_rule": rule,
                     "wall_s": round(time.time() - t0)}
             cycles.append(res)
             print(json.dumps({k: v for k, v in res.items() if k not in ("steps", "dec_hz_ep")}), flush=True)
@@ -348,6 +352,7 @@ def main():
     ap.add_argument("--cycle-min", type=float, default=15.0)
     ap.add_argument("--decoder", choices=["task", "rest", "raw"], default="task")
     ap.add_argument("--stdp-scale", type=float, default=1.0)
+    ap.add_argument("--stdp-rule", choices=["additive", "multiplicative"], default="additive")
     ap.add_argument("--drift", action="store_true", help="STDP drift test instead of the replication")
     ap.add_argument("--drift-scales", type=float, nargs="+", default=[0.1, 0.03, 0.3, 1.0, 0.0])
     ap.add_argument("--workers", type=int, default=3)
@@ -356,15 +361,20 @@ def main():
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
     if a.drift:
-        jobs = [(x, 120.0 if x in (0.0, 1.0) else 300.0 if x >= 0.3 else 600.0) for x in a.drift_scales]
+        if a.stdp_rule == "additive":
+            jobs = [(x, 120.0 if x in (0.0, 1.0) else 300.0 if x >= 0.3 else 600.0, "additive") for x in a.drift_scales]
+        else:
+            jobs = [(x, 600.0, a.stdp_rule) for x in a.drift_scales]
         with mp.get_context("spawn").Pool(a.workers) as pool:
             res = pool.map(drift, jobs, chunksize=1)
-        (out / "drift.json").write_text(json.dumps(res, indent=1))
+        name = "drift.json" if a.stdp_rule == "additive" else f"drift_{a.stdp_rule}.json"
+        (out / name).write_text(json.dumps(res, indent=1))
         return
-    jobs = [(s, a.order, a.repeats, a.cycle_min, a.decoder, a.stdp_scale) for s in a.seeds]
+    jobs = [(s, a.order, a.repeats, a.cycle_min, a.decoder, a.stdp_scale, a.stdp_rule) for s in a.seeds]
     with mp.get_context("spawn").Pool(a.workers) as pool:
         res = pool.map(run, jobs, chunksize=1)
-    tag = a.decoder + ("" if a.stdp_scale == 1.0 else f"_stdp{a.stdp_scale:g}")
+    tag = a.decoder + ("" if a.stdp_scale == 1.0 else f"_stdp{a.stdp_scale:g}") + (
+        "" if a.stdp_rule == "additive" else f"_{a.stdp_rule}")
     (out / f"results_{tag}.json").write_text(json.dumps(res))
     summ = {}
     for m in a.order:

@@ -9,6 +9,12 @@
 
 Both decay towards the culture's baseline weights with ``tau_forget_s``, the slow loss of what was learned during
 rest.
+
+``multiplicative=False`` (default) is additive STDP with hard bounds: every pairing moves a weight by the same
+amount. In this culture it is unstable under repeated stimulation: the input with the stronger response is
+potentiated until it fires the whole network (scripts/cartpole_replication.py --drift). ``multiplicative=True``
+scales depression with the weight, relative to the culture's mean initial excitatory weight (van Rossum, Bi &
+Turrigiano 2000): strong synapses depress harder, so weights settle around that mean instead of running to the bound.
 """
 
 from __future__ import annotations
@@ -27,8 +33,10 @@ class STDP:
         tau_minus_ms: float = 20.0,
         tau_forget_s: float = 2700.0,
         enabled: bool = True,
+        multiplicative: bool = False,
     ):
         self.a_plus, self.a_minus = a_plus, a_minus
+        self.multiplicative = multiplicative
         self.tau_plus_ms, self.tau_minus_ms = tau_plus_ms, tau_minus_ms
         self.tau_forget_s = tau_forget_s
         self.enabled = enabled
@@ -43,6 +51,7 @@ class STDP:
         self.dec_plus = math.exp(-dt / self.tau_plus_ms)
         self.dec_minus = math.exp(-dt / self.tau_minus_ms)
         self.forget = dt / (self.tau_forget_s * 1000.0)
+        self.w_ref = float(culture.w0[culture.syn_exc].mean())
         self._ready = True
 
     def timing_update(self, culture, spikes: torch.Tensor) -> torch.Tensor:
@@ -55,9 +64,10 @@ class STDP:
         if bool(spikes.any()):
             s = spikes.float()
             # Potentiation: post fires after pre (pre trace still up). Depression: pre fires after post.
-            dw = self.a_plus * self.x_pre[culture.pre] * s[culture.post] - self.a_minus * self.y_post[culture.post] * s[
-                culture.pre
-            ]
+            dep = self.a_minus * self.y_post[culture.post] * s[culture.pre]
+            if self.multiplicative:
+                dep = dep * (culture.w / self.w_ref)
+            dw = self.a_plus * self.x_pre[culture.pre] * s[culture.post] - dep
             dw = dw * self.plastic
             self.x_pre += s
             self.y_post += s
