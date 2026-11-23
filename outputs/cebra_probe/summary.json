@@ -1,0 +1,98 @@
+{
+ "input ridge": {
+  "lag0": 0.898,
+  "lag3": 0.417,
+  "lag6": 0.349,
+  "push": 0.808
+ },
+ "input cebra_time": {
+  "lag0": 0.407,
+  "lag3": 0.304,
+  "lag6": 0.264,
+  "push": 0.74
+ },
+ "input cebra_behavior": {
+  "lag0": 0.665,
+  "lag3": 0.354,
+  "lag6": 0.327,
+  "push": 0.814
+ },
+ "amp50_live ridge": {
+  "lag0": 0.356,
+  "lag3": 0.105,
+  "lag6": 0.091,
+  "push": 0.623
+ },
+ "amp50_live cebra_behavior": {
+  "lag0": 0.162,
+  "lag3": -0.047,
+  "lag6": -0.053,
+  "push": 0.52
+ },
+ "amp50_live cebra_shuffled": {
+  "lag0": -0.03,
+  "lag6": -0.04,
+  "lag3": -0.04,
+  "push": 0.502
+ },
+ "amp50_live cebra_time": {
+  "lag0": -0.044,
+  "lag3": -0.046,
+  "lag6": -0.047,
+  "push": 0.507
+ },
+ "amp50_dead ridge": {
+  "lag0": 0.408,
+  "lag3": 0.121,
+  "lag6": 0.104,
+  "push": 0.65
+ },
+ "amp50_dead cebra_time": {
+  "lag0": -0.031,
+  "lag3": -0.036,
+  "lag6": -0.038,
+  "push": 0.509
+ },
+ "amp50_dead cebra_behavior": {
+  "lag0": 0.205,
+  "lag3": -0.033,
+  "lag6": -0.069,
+  "push": 0.533
+ },
+ "amp200_live ridge": {
+  "lag0": 0.371,
+  "lag3": 0.144,
+  "lag6": 0.111,
+  "push": 0.58
+ },
+ "amp200_live cebra_time": {
+  "lag0": -0.031,
+  "lag3": -0.032,
+  "lag6": -0.037,
+  "push": 0.498
+ },
+ "amp200_live cebra_behavior": {
+  "lag0": 0.125,
+  "lag3": -0.055,
+  "lag6": -0.087,
+  "push": 0.515
+ },
+ "amp200_dead ridge": {
+  "lag0": 0.43,
+  "lag3": 0.156,
+  "lag6": 0.125,
+  "push": 0.583
+ },
+ "amp200_dead cebra_time": {
+  "lag0": -0.025,
+  "lag3": -0.028,
+  "lag6": -0.035,
+  "push": 0.495
+ },
+ "amp200_dead cebra_behavior": {
+  "lag0": 0.17,
+  "lag6": -0.097,
+  "lag3": -0.042,
+  "push": 0.522
+ }
+}
