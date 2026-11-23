@@ -70,7 +70,7 @@ def scale(culture, w_in0):
     w_in = torch.zeros(culture.n, device=culture.device).index_add_(0, culture.post[exc], culture.w[exc])
     f = torch.where(w_in > 0, w_in0 / w_in.clamp(min=1e-6), torch.ones_like(w_in))
     culture.w[exc] *= f[culture.post[exc]]
-    culture.w.clamp_(0.0, culture.cfg.w_max)
+    culture.w[exc] = culture.w[exc].clamp(0.0, culture.cfg.w_max)  # excitatory only: inhibitory plasticity has its own cap
 
 
 def probe(dev, k, repeats=3, both=False):

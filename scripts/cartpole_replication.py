@@ -45,6 +45,17 @@ step, on the simulated culture (20,000 neurons, 256-electrode grid at 100 um, fo
    sweep: rate per electrode in the last 60 s <= 1.5x the resting rate (20 s before any stimulation; a 60 s trial
    showed the runaway can happen inside the first minute, so "last vs first minute" would miss it), and in the
    last 60 s each decoder's own gain >= 2x its cross gain with the cross gain <= 1 spike per pulse.
+   First sweep (drift_istdp_clamped10.json, STDP x1, 10 min): no rate passes. The rate falls as eta rises but
+   levels off (last 60 s vs rest: eta 0.001 4.1x, 0.003 3.8x, 0.01 3.4x, 0.03 2.8x, 0.1 2.2x), and the mean
+   inhibitory weight ends at 9.7-9.9 in every arm: the synaptic scaling step (coach_probe.scale) clamped *all*
+   weights to w_max = 10, so inhibition was capped at 10, not ``--w-max-inh``, and saturated. Fixed (scaling now
+   bounds excitatory weights only; without inhibitory plasticity nothing changes, inhibitory weights start <= 10).
+   ``--drift-pairs ETA:CAP`` sweeps rate and cap together; the drift row now reports the share of inhibitory
+   synapses at the cap and at zero, and the share of neurons above 1.5x their target in the last 60 s.
+   Refinement round (drift_istdp.json; eta:cap 0.01:30 0.03:30 0.1:30 0.03:100 0.1:100), stopped at 397 of 600 s,
+   from the checkpoints: rate vs rest over the last 60 s 1.67 / 1.63 / 1.59 / 1.58 / 1.51, flat since ~4 min; not
+   specific in any arm. The stronger encoder still drives decoder 1 (own / cross gain 1.05 / 2.4 at 0.01:30, 0.42 /
+   0.39 at 0.1:100). Inhibitory plasticity holds rates, not pathways.
    After each episode, if the mean of the last 5 episodes is not above that of the last 20: a 400 ms training
    signal, then 3 s wait (null: the same time without stimulation).
    - ``random``: 5 training units in random order, 10 ms apart, repeated at 10 Hz
@@ -59,7 +70,8 @@ step, on the simulated culture (20,000 neurons, 256-electrode grid at 100 um, fo
    8.64 +- 4.00 s -> 20.64 s).
 
 Logs: run_raw_decoder.log (round 1), run_rest.log (round 1), run_task.log (calibration + round 1 null); the runs
-were stopped there because the decoders pinned. drift.json, drift_multiplicative.json: the drift tests.
+were stopped there because the decoders pinned. drift.json, drift_multiplicative.json, drift_istdp_clamped10.json,
+drift_istdp.json: the drift tests.
 
 Stop and resume: every job checkpoints (device, plasticity, script state) to <out>/ckpt every 5 minutes of wall
 time, and on SIGTERM at the next 200 ms read, then exits. Run the same command again to resume; finished jobs are
@@ -67,7 +79,7 @@ kept in <out>/jobs and skipped. A stop during a job's setup (characterisation, c
 job's setup.
 
     uv run scripts/cartpole_replication.py
-    uv run scripts/cartpole_replication.py --drift --drift-scales 1 --drift-etas 0.001 0.003 0.01 0.03 --drift-seconds 600
+    uv run scripts/cartpole_replication.py --drift --drift-scales 1 --drift-pairs 0.01:30 0.1:100 --drift-seconds 600
     systemctl --user stop <unit>   # graceful: saves, then exits; relaunch the same command to resume
 """
 
@@ -296,7 +308,8 @@ def make_stdp(spec):
 def spec_tag(spec):
     t = ("" if spec["scale"] == 1.0 else f"_stdp{spec['scale']:g}") + (
         "" if spec["rule"] == "additive" else f"_{spec['rule']}")
-    return t + (f"_istdp{spec['eta']:g}" if spec["eta"] else "")
+    return t + (f"_istdp{spec['eta']:g}" if spec["eta"] else "") + (
+        f"_cap{spec['w_max_inh']:g}" if spec["eta"] and spec["w_max_inh"] != 30.0 else "")
 
 
 def resting_rates(dev, seconds=20.0):
@@ -353,18 +366,29 @@ def drift(job):
         b = dev.step(200.0)
         S["Y"].append([int((b.channels == dec[0]).sum()), int((b.channels == dec[1]).sum())])
         S["N"].append(len(b.channels))
+        if i >= n_reads - 300:
+            S["neuron_end"] = S.get("neuron_end", 0) + dev.oracle_counts
         if (i + 1) % 25 == 0 and plastic:
             C.scale(c, w_in0)
         S["i"] += 1
     STOP["phase"] = "idle"
     X, Y, N = np.array(S["X"], float), np.array(S["Y"], float), np.array(S["N"], float)
-    g = [np.round(gains(X[k:k + 300], Y[k:k + 300]), 2).tolist() for k in range(0, len(X) - 299, 300)]
+    g = [np.round(gains(X[k:k + 300], Y[k:k + 300]), 2).tolist() for k in range(0, len(X) - 299, 300)] or [
+        np.round(gains(X, Y), 2).tolist()]  # runs under 60 s (smoke tests): the whole run
     hz = N / 0.2 / dev.n_channels
     ratio = float(hz[-300:].mean() / max(S["rest_hz_per_electrode"], 1e-9))
     end = np.array(g[-1])
     specific = all(end[k, k] >= 2 * abs(end[k, 1 - k]) and abs(end[k, 1 - k]) <= 1.0 for k in (0, 1))
     inh = ~c.syn_exc
-    row = {"arm": arm, **spec, "seconds": seconds,
+    w_inh = c.w[inh]
+    end_hz = S["neuron_end"] / (min(300, n_reads) * 0.2)
+    target = stdp._targets.cpu().numpy() if spec["eta"] else np.full(c.n, S["neuron_rest_hz"])
+    diag = {"inh_at_cap": round(float((w_inh >= (spec["w_max_inh"] if spec["eta"] else c.cfg.w_max) - 1e-3)
+                                      .float().mean()), 3),
+            "inh_at_zero": round(float((w_inh <= 1e-3).float().mean()), 3), "w_inh_max": round(float(w_inh.max()), 2),
+            "neuron_end_hz": round(float(end_hz.mean()), 3),
+            "neurons_over_1p5x_target": round(float((end_hz > 1.5 * target).mean()), 3)}
+    row = {"arm": arm, **spec, "seconds": seconds, **diag,
            "hz_per_electrode_10s": np.round(hz.reshape(-1, 50).mean(1), 1).tolist(),
            "dec_hz_10s": np.round(Y.reshape(-1, 50, 2).mean(1) / 0.2, 1).tolist(),
            "gain_60s": g, "rate_ratio": round(ratio, 2), "specific_end": bool(specific),
@@ -564,6 +588,8 @@ def main():
     ap.add_argument("--drift", action="store_true", help="STDP drift test instead of the replication")
     ap.add_argument("--drift-scales", type=float, nargs="+", default=[0.1, 0.03, 0.3, 1.0, 0.0])
     ap.add_argument("--drift-etas", type=float, nargs="+", default=[0.0])
+    ap.add_argument("--drift-pairs", nargs="+", default=None, metavar="ETA:CAP",
+                    help="inhibitory plasticity rate and cap per arm, instead of --drift-etas at --w-max-inh")
     ap.add_argument("--drift-seconds", type=float, default=None,
                     help="per arm (default: 120 s at x0 and x1, 300 s at x0.3, 600 s below)")
     ap.add_argument("--workers", type=int, default=3)
@@ -572,20 +598,22 @@ def main():
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
 
-    def spec(scale, eta):
-        return {"scale": scale, "rule": a.stdp_rule, "eta": eta, "w_max_inh": a.w_max_inh, "floor": a.target_floor}
+    def spec(scale, eta, cap=a.w_max_inh):
+        return {"scale": scale, "rule": a.stdp_rule, "eta": eta, "w_max_inh": cap, "floor": a.target_floor}
 
     if a.drift:
         arms = []
-        for x, eta in itertools.product(a.drift_scales, a.drift_etas):
-            sp = spec(x, eta)
+        pairs = [tuple(map(float, p.split(":"))) for p in a.drift_pairs] if a.drift_pairs else [
+            (eta, a.w_max_inh) for eta in a.drift_etas]
+        for x, (eta, cap) in itertools.product(a.drift_scales, pairs):
+            sp = spec(x, eta, cap)
             secs = a.drift_seconds or (120.0 if x in (0.0, 1.0) else 300.0 if x >= 0.3 else 600.0)
             arms.append((f"x{x:g}" + spec_tag({**sp, "scale": 1.0}), sp, secs, out))
         todo = [j for j in arms if not (out / "jobs" / f"drift_{j[0]}.json").exists()]
         pool_map(_drift_safe, todo, a.workers)
         res = [json.loads((out / "jobs" / f"drift_{j[0]}.json").read_text()) for j in arms]
         name = "drift" + ("" if a.stdp_rule == "additive" else f"_{a.stdp_rule}") + (
-            "_istdp" if any(a.drift_etas) else "")
+            "_istdp" if any(eta for eta, _ in pairs) else "")
         (out / f"{name}.json").write_text(json.dumps(res, indent=1))
         return
     sp = spec(a.stdp_scale, a.istdp_eta)
