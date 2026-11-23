@@ -43,6 +43,7 @@ def main():
     ap.add_argument("--log", required=True)
     ap.add_argument("--with", dest="with_", nargs="*", default=[], help="extra packages for uv run --with")
     ap.add_argument("--no-smoke", action="store_true", help="only for scripts without --smoke (say why)")
+    ap.add_argument("--smoke-only", action="store_true", help="run the smoke test and stop")
     ap.add_argument("--smoke-timeout-s", type=float, default=900.0)
     ap.add_argument("--verify-s", type=float, default=60.0)
     ap.add_argument("cmd", nargs=argparse.REMAINDER, help="-- script.py args...")
@@ -88,6 +89,8 @@ def main():
         if code != 0 or bad:
             print("SMOKE FAILED; last lines:\n" + "\n".join(text.splitlines()[-25:]), flush=True)
             sys.exit(1)
+        if a.smoke_only:
+            return
 
     inner = " ".join(shlex.quote(x) for x in uv + cmd) + f" >> {shlex.quote(str(log))} 2>&1"
     env = [f"--setenv={k}={os.environ[k]}" for k in ("PATH", "HOME") if k in os.environ]

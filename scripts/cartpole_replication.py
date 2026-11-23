@@ -87,6 +87,16 @@ job's setup.
     uv run scripts/cartpole_replication.py
     uv run scripts/cartpole_replication.py --drift --drift-scales 1 --drift-pairs 0.01:30 0.1:100 --drift-seconds 600
     systemctl --user stop <unit>   # graceful: saves, then exits; relaunch the same command to resume
+
+Long runs go through the launcher (smoke test, detached unit, start-up check) and the watchdog:
+
+    uv run scripts/launch.py --unit bio-cp --log outputs/cartpole_replication/run.log -- \
+        scripts/cartpole_replication.py --drift --drift-scales 1 --drift-pairs 0.01:30 --drift-seconds 600
+    uv run scripts/watch.py --unit bio-cp --log outputs/cartpole_replication/run.log
+
+Every job runs ``Guard`` checks every 30 s (finite state, weights within their caps and not piled up below them,
+plausible rate) and writes a heartbeat to <out>/heartbeat. After a GUARD FAIL caused by a bug, delete the job's
+checkpoint in <out>/ckpt before rerunning: it holds the state the bug produced.
 """
 
 import argparse
@@ -96,6 +106,7 @@ import json
 import math
 import multiprocessing as mp
 import os
+import shutil
 import signal
 import time
 from pathlib import Path
@@ -336,11 +347,20 @@ def gains(X, Y):
     return np.linalg.lstsq(A, Y, rcond=None)[0][1:].T  # [decoder, encoder]: spikes per pulse
 
 
+def per10(x):
+    """Means over 10 s windows (50 reads); a run shorter than 10 s (smoke tests) gives one window."""
+    k = max(len(x) // 50, 1) * 50 if len(x) >= 50 else len(x)
+    return x[:k].reshape(-1, min(50, k), *x.shape[1:]).mean(1)
+
+
 def drift(job):
     import torch
 
-    arm, spec, seconds, out = job
+    from biocompute.runguard import Guard
+
+    arm, spec, seconds, out, opts = job
     _start_job()
+    g = Guard(f"drift_{arm}", out)
     enc, dec = [136, 155], [137, 139]  # seed 0's configuration (characterise/configure, see run_task.log)
     ck = Checkpoint(out / "ckpt" / f"drift_{arm}.pt")
     rng = np.random.default_rng(1)
@@ -355,7 +375,7 @@ def drift(job):
         S = saved["script"]
         rng.bit_generator.state = S.pop("rng")
     else:
-        rates, rest_hz = resting_rates(dev)
+        rates, rest_hz = resting_rates(dev, seconds=opts["rest_s"])
         if spec["eta"]:
             stdp.set_targets(c, np.maximum(rates, spec["floor"]))
         S = {"i": 0, "X": [], "Y": [], "N": [], "last": {e: -1e9 for e in enc}, "th": 0.0,
@@ -377,6 +397,10 @@ def drift(job):
         if (i + 1) % 25 == 0 and plastic:
             C.scale(c, w_in0)
         S["i"] += 1
+        if g.due():
+            hz = float(np.mean(S["N"][-50:])) / 0.2 / dev.n_channels
+            g.culture(c, stdp if plastic else None, rate_hz=hz)
+            g.beat(S["i"], n_reads, hz=round(hz, 2), w_inh=round(float(c.w[~c.syn_exc].mean()), 3))
     STOP["phase"] = "idle"
     X, Y, N = np.array(S["X"], float), np.array(S["Y"], float), np.array(S["N"], float)
     g = [np.round(gains(X[k:k + 300], Y[k:k + 300]), 2).tolist() for k in range(0, len(X) - 299, 300)] or [
@@ -395,8 +419,8 @@ def drift(job):
             "neuron_end_hz": round(float(end_hz.mean()), 3),
             "neurons_over_1p5x_target": round(float((end_hz > 1.5 * target).mean()), 3)}
     row = {"arm": arm, **spec, "seconds": seconds, **diag,
-           "hz_per_electrode_10s": np.round(hz.reshape(-1, 50).mean(1), 1).tolist(),
-           "dec_hz_10s": np.round(Y.reshape(-1, 50, 2).mean(1) / 0.2, 1).tolist(),
+           "hz_per_electrode_10s": np.round(per10(hz), 1).tolist(),
+           "dec_hz_10s": np.round(per10(Y) / 0.2, 1).tolist(),
            "gain_60s": g, "rate_ratio": round(ratio, 2), "specific_end": bool(specific),
            "pass": bool(ratio <= 1.5 and specific), "neuron_rest_hz": S["neuron_rest_hz"],
            "rest_hz_per_electrode": S["rest_hz_per_electrode"],
@@ -491,6 +515,7 @@ def run(job):
     import torch
 
     from biocompute.culture.plasticity import rest
+    from biocompute.runguard import Guard
 
     seed, opt, out = job
     _start_job()
@@ -510,10 +535,10 @@ def run(job):
                           round(S["cs"]["t_ms"] / 1000)}), flush=True)
     else:
         t0 = time.time()
-        cand, rate, first, burst, rest_stats, neuron_hz = characterise(dev)
+        cand, rate, first, burst, rest_stats, neuron_hz = characterise(dev, reps=opt["char_reps"])
         cfg = configure(cand, rate, first, burst)
         cfg["dec_rest"] = [[round(float(x), 3) for x in rest_stats[ch]] for ch in cfg["dec"]]
-        cfg |= calibrate(dev, cfg, rng)
+        cfg |= calibrate(dev, cfg, rng, seconds=opt["cal_s"])
         if opt["spec"]["eta"]:
             stdp.set_targets(c, np.maximum(neuron_hz, opt["spec"]["floor"]))
         print(json.dumps({"seed": seed, "config": cfg, "wall_s": round(time.time() - t0)}), flush=True)
@@ -525,14 +550,23 @@ def run(job):
         ck.save(dev, stdp, S | {"rng": rng.bit_generator.state})
     plan = [(rep, mode) for rep in range(opt["repeats"]) for mode in opt["order"]]
     snapshot = lambda: S | {"rng": rng.bit_generator.state}  # noqa: E731
+    g = Guard(f"{tag}_seed{seed}", out)
+
+    def tick():
+        ck.tick(dev, stdp, snapshot)
+        if g.due():
+            cs = S["cs"]
+            g.culture(c, None if cs["mode"] == "frozen" else stdp)
+            g.beat(round(S["k"] + cs["t_ms"] / cs["limit"], 2), len(plan), mode=cs["mode"],
+                   episodes=len(cs["steps_all"]))
+
     STOP["phase"] = "resumable"
     while S["k"] < len(plan):
         rep, mode = plan[S["k"]]
         if S["cs"] is None:
             S["cs"] = new_cycle(mode, opt["minutes"])
         agent = S["frozen_agent"] if mode == "frozen" else S["agent"]
-        res = cycle(dev, stdp, w_in0, S["cfg"], S["cs"], rng, agent, opt["decoder"],
-                    lambda: ck.tick(dev, stdp, snapshot))
+        res = cycle(dev, stdp, w_in0, S["cfg"], S["cs"], rng, agent, opt["decoder"], tick)
         res |= {"seed": seed, "repeat": rep, "decoder": opt["decoder"], **opt["spec"]}
         S["cycles"].append(res)
         print(json.dumps({k: v for k, v in res.items() if k not in ("steps", "dec_hz_ep")}), flush=True)
@@ -600,8 +634,18 @@ def main():
                     help="per arm (default: 120 s at x0 and x1, 300 s at x0.3, 600 s below)")
     ap.add_argument("--workers", type=int, default=3)
     ap.add_argument("--out", default="outputs/cartpole_replication")
+    ap.add_argument("--smoke", action="store_true",
+                    help="whole pipeline at tiny scale into <out>/smoke: one arm 4 s (--drift), or one culture with "
+                         "a short setup and one 6 s null cycle")
     a = ap.parse_args()
     out = Path(a.out)
+    sizes = {"rest_s": 20.0, "char_reps": 25, "cal_s": 120.0}
+    if a.smoke:
+        out = out / "smoke"
+        shutil.rmtree(out, ignore_errors=True)
+        sizes = {"rest_s": 2.0, "char_reps": 2, "cal_s": 4.0}
+        a.drift_seconds, a.workers = 4.0, 1
+        a.seeds, a.order, a.repeats, a.cycle_min = a.seeds[:1], a.order[:1], 1, 0.1
     out.mkdir(parents=True, exist_ok=True)
 
     def spec(scale, eta, cap=a.w_max_inh):
@@ -614,7 +658,8 @@ def main():
         for x, (eta, cap) in itertools.product(a.drift_scales, pairs):
             sp = spec(x, eta, cap)
             secs = a.drift_seconds or (120.0 if x in (0.0, 1.0) else 300.0 if x >= 0.3 else 600.0)
-            arms.append((f"x{x:g}" + spec_tag({**sp, "scale": 1.0}), sp, secs, out))
+            arms.append((f"x{x:g}" + spec_tag({**sp, "scale": 1.0}), sp, secs, out, sizes))
+        arms = arms[:1] if a.smoke else arms
         todo = [j for j in arms if not (out / "jobs" / f"drift_{j[0]}.json").exists()]
         pool_map(_drift_safe, todo, a.workers)
         res = [json.loads((out / "jobs" / f"drift_{j[0]}.json").read_text()) for j in arms]
@@ -625,7 +670,7 @@ def main():
     sp = spec(a.stdp_scale, a.istdp_eta)
     tag = a.decoder + spec_tag(sp)
     opt = {"tag": tag, "spec": sp, "order": a.order, "repeats": a.repeats, "minutes": a.cycle_min,
-           "decoder": a.decoder}
+           "decoder": a.decoder} | sizes
     jobs = [(s, opt, out) for s in a.seeds]
     todo = [j for j in jobs if not (out / "jobs" / f"{tag}_seed{j[0]}.json").exists()]
     pool_map(_run_safe, todo, a.workers)
