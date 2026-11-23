@@ -13,3 +13,9 @@ outputs/**
 !outputs/probe/*.py
 !outputs/probe/*.sh
 !outputs/probe/*.jsonl
+
+# Run state, not results (the aggregates above hold every finished job): resume caches, smoke tests, heartbeats, checkpoints
+outputs/**/jobs/
+outputs/**/smoke/
+outputs/**/heartbeat/
+outputs/**/ckpt/

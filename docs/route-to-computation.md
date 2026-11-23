@@ -137,7 +137,7 @@ simply lack the mechanism, so a real dish should decide. Testing it is cheap: op
   (0.86) *and* above the same culture with NMDA receptors blocked (APV) and with fast excitation blocked (CNQX + APV).
   If the live culture beats the blocked one but not the filter, it computes but adds nothing: park the route.
   A nonlinear readout as a second check is fine (CEBRA's single-sample model with a shuffled-label control; it is
-  Apache-2.0, but EPFL holds a US patent on the method, so ask EPFL before commercial use), never instead of the
+  Apache-2.0, but EPFL holds a US patent on the method, US12499131B2, so ask EPFL before commercial use), never instead of the
   fixed linear one: in our model it found less, not more.
 - **C2, local loop.** Adds ≤ 40 ms. The dish's flag improves stand_push survival over the same controller fed the
   filter's flag.

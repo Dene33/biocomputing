@@ -1,0 +1,332 @@
+{"fold": 0, "source": "input", "method": "ridge", "target": "lag0", "score": 0.8999}
+{"fold": 0, "source": "input", "method": "ridge", "target": "lag3", "score": 0.4124}
+{"fold": 0, "source": "input", "method": "ridge", "target": "lag6", "score": 0.3378}
+{"fold": 0, "source": "input", "method": "ridge", "target": "push", "score": 0.8129}
+/home/dene/.cache/uv/archive-v0/NCBOpJ-mj0znwJgo/lib/python3.11/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/home/dene/.cache/uv/archive-v0/NCBOpJ-mj0znwJgo/lib/python3.11/site-packages/triton/knobs.py:504: UserWarning: TRITON_DEFAULT_FP_FUSION is unset: defaulting to FP fusion ENABLED for backward compatibility in Triton 3.9. The default will change to DISABLED in Triton 3.10; set TRITON_DEFAULT_FP_FUSION=1 to keep fusion enabled or =0 to adopt the new default early and silence this warning.
+  warn_once(FP_FUSION_DEFAULT_WARNING)
+{"fold": 0, "source": "input", "method": "cebra_time", "target": "lag0", "wall_s": 31, "score": 0.4079}
+{"fold": 0, "source": "input", "method": "cebra_time", "target": "lag3", "wall_s": 33, "score": 0.279}
+{"fold": 0, "source": "input", "method": "cebra_time", "target": "lag6", "wall_s": 34, "score": 0.2315}
+{"fold": 0, "source": "input", "method": "cebra_time", "target": "push", "wall_s": 35, "score": 0.7317}
+{"fold": 0, "source": "input", "method": "cebra_behavior", "target": "lag0", "wall_s": 27, "score": 0.6801}
+{"fold": 0, "source": "input", "method": "cebra_behavior", "target": "lag3", "wall_s": 26, "score": 0.3469}
+{"fold": 0, "source": "input", "method": "cebra_behavior", "target": "lag6", "wall_s": 27, "score": 0.3191}
+{"fold": 0, "source": "input", "method": "cebra_behavior", "target": "push", "wall_s": 24, "score": 0.8036}
+{"fold": 0, "source": "amp50_live", "method": "ridge", "target": "lag0", "score": 0.3379}
+{"fold": 0, "source": "amp50_live", "method": "ridge", "target": "lag3", "score": 0.1039}
+{"fold": 0, "source": "amp50_live", "method": "ridge", "target": "lag6", "score": 0.0899}
+{"fold": 0, "source": "amp50_live", "method": "ridge", "target": "push", "score": 0.6207}
+[beat] cebra_probe 7/102 (7%, 0.0 min, eta 0.0 min) 
+/home/dene/.cache/uv/archive-v0/NCBOpJ-mj0znwJgo/lib/python3.11/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/home/dene/.cache/uv/archive-v0/NCBOpJ-mj0znwJgo/lib/python3.11/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/home/dene/.cache/uv/archive-v0/NCBOpJ-mj0znwJgo/lib/python3.11/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/home/dene/.cache/uv/archive-v0/NCBOpJ-mj0znwJgo/lib/python3.11/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/home/dene/.cache/uv/archive-v0/NCBOpJ-mj0znwJgo/lib/python3.11/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/home/dene/.cache/uv/archive-v0/NCBOpJ-mj0znwJgo/lib/python3.11/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/home/dene/.cache/uv/archive-v0/NCBOpJ-mj0znwJgo/lib/python3.11/site-packages/triton/knobs.py:504: UserWarning: TRITON_DEFAULT_FP_FUSION is unset: defaulting to FP fusion ENABLED for backward compatibility in Triton 3.9. The default will change to DISABLED in Triton 3.10; set TRITON_DEFAULT_FP_FUSION=1 to keep fusion enabled or =0 to adopt the new default early and silence this warning.
+  warn_once(FP_FUSION_DEFAULT_WARNING)
+/home/dene/.cache/uv/archive-v0/NCBOpJ-mj0znwJgo/lib/python3.11/site-packages/triton/knobs.py:504: UserWarning: TRITON_DEFAULT_FP_FUSION is unset: defaulting to FP fusion ENABLED for backward compatibility in Triton 3.9. The default will change to DISABLED in Triton 3.10; set TRITON_DEFAULT_FP_FUSION=1 to keep fusion enabled or =0 to adopt the new default early and silence this warning.
+  warn_once(FP_FUSION_DEFAULT_WARNING)
+/home/dene/.cache/uv/archive-v0/NCBOpJ-mj0znwJgo/lib/python3.11/site-packages/triton/knobs.py:504: UserWarning: TRITON_DEFAULT_FP_FUSION is unset: defaulting to FP fusion ENABLED for backward compatibility in Triton 3.9. The default will change to DISABLED in Triton 3.10; set TRITON_DEFAULT_FP_FUSION=1 to keep fusion enabled or =0 to adopt the new default early and silence this warning.
+  warn_once(FP_FUSION_DEFAULT_WARNING)
+/home/dene/.cache/uv/archive-v0/NCBOpJ-mj0znwJgo/lib/python3.11/site-packages/triton/knobs.py:504: UserWarning: TRITON_DEFAULT_FP_FUSION is unset: defaulting to FP fusion ENABLED for backward compatibility in Triton 3.9. The default will change to DISABLED in Triton 3.10; set TRITON_DEFAULT_FP_FUSION=1 to keep fusion enabled or =0 to adopt the new default early and silence this warning.
+  warn_once(FP_FUSION_DEFAULT_WARNING)
+/home/dene/.cache/uv/archive-v0/NCBOpJ-mj0znwJgo/lib/python3.11/site-packages/triton/knobs.py:504: UserWarning: TRITON_DEFAULT_FP_FUSION is unset: defaulting to FP fusion ENABLED for backward compatibility in Triton 3.9. The default will change to DISABLED in Triton 3.10; set TRITON_DEFAULT_FP_FUSION=1 to keep fusion enabled or =0 to adopt the new default early and silence this warning.
+  warn_once(FP_FUSION_DEFAULT_WARNING)
+/home/dene/.cache/uv/archive-v0/NCBOpJ-mj0znwJgo/lib/python3.11/site-packages/triton/knobs.py:504: UserWarning: TRITON_DEFAULT_FP_FUSION is unset: defaulting to FP fusion ENABLED for backward compatibility in Triton 3.9. The default will change to DISABLED in Triton 3.10; set TRITON_DEFAULT_FP_FUSION=1 to keep fusion enabled or =0 to adopt the new default early and silence this warning.
+  warn_once(FP_FUSION_DEFAULT_WARNING)
+{"fold": 0, "source": "amp50_live", "method": "cebra_behavior", "target": "lag0", "wall_s": 74, "score": 0.0986}
+[beat] cebra_probe 8/102 (8%, 1.4 min, eta 16.2 min) last=amp50_live/behavior:lag0 last_wall_s=74
+{"fold": 0, "source": "amp50_live", "method": "cebra_shuffled", "target": "lag0", "wall_s": 75, "score": -0.0344}
+[beat] cebra_probe 9/102 (9%, 1.4 min, eta 14.2 min) last=amp50_live/shuffled:lag0 last_wall_s=75
+{"fold": 0, "source": "amp50_live", "method": "cebra_behavior", "target": "lag3", "wall_s": 74, "score": -0.0895}
+[beat] cebra_probe 10/102 (10%, 1.4 min, eta 12.7 min) last=amp50_live/behavior:lag3 last_wall_s=74
+{"fold": 0, "source": "amp50_live", "method": "cebra_behavior", "target": "lag6", "wall_s": 75, "score": -0.0723}
+[beat] cebra_probe 11/102 (11%, 1.4 min, eta 11.4 min) last=amp50_live/behavior:lag6 last_wall_s=75
+{"fold": 0, "source": "amp50_live", "method": "cebra_time", "target": "lag0", "wall_s": 74, "score": -0.0529}
+{"fold": 0, "source": "amp50_live", "method": "cebra_time", "target": "lag3", "wall_s": 80, "score": -0.0495}
+{"fold": 0, "source": "amp50_live", "method": "cebra_time", "target": "lag6", "wall_s": 82, "score": -0.0502}
+{"fold": 0, "source": "amp50_live", "method": "cebra_time", "target": "push", "wall_s": 84, "score": 0.5114}
+[beat] cebra_probe 12/102 (12%, 1.5 min, eta 11.0 min) last=amp50_live/time last_wall_s=84
+{"fold": 0, "source": "amp50_dead", "method": "ridge", "target": "lag0", "score": 0.3921}
+{"fold": 0, "source": "amp50_dead", "method": "ridge", "target": "lag3", "score": 0.1207}
+{"fold": 0, "source": "amp50_dead", "method": "ridge", "target": "lag6", "score": 0.1004}
+{"fold": 0, "source": "amp50_dead", "method": "ridge", "target": "push", "score": 0.64}
+[beat] cebra_probe 13/102 (13%, 1.6 min, eta 10.9 min) last=amp50_dead/ridge last_wall_s=0
+{"fold": 0, "source": "amp50_live", "method": "cebra_shuffled", "target": "lag6", "wall_s": 60, "score": -0.0491}
+[beat] cebra_probe 14/102 (14%, 2.4 min, eta 15.1 min) last=amp50_live/shuffled:lag6 last_wall_s=60
+{"fold": 0, "source": "amp50_live", "method": "cebra_shuffled", "target": "lag3", "wall_s": 60, "score": -0.05}
+[beat] cebra_probe 15/102 (15%, 2.4 min, eta 13.9 min) last=amp50_live/shuffled:lag3 last_wall_s=60
+{"fold": 0, "source": "amp50_dead", "method": "cebra_time", "target": "lag0", "wall_s": 59, "score": -0.0397}
+{"fold": 0, "source": "amp50_dead", "method": "cebra_time", "target": "lag3", "wall_s": 60, "score": -0.0442}
+{"fold": 0, "source": "amp50_dead", "method": "cebra_time", "target": "lag6", "wall_s": 62, "score": -0.0433}
+{"fold": 0, "source": "amp50_dead", "method": "cebra_time", "target": "push", "wall_s": 63, "score": 0.5032}
+[beat] cebra_probe 16/102 (16%, 2.6 min, eta 13.7 min) last=amp50_dead/time last_wall_s=63
+{"fold": 0, "source": "amp50_dead", "method": "cebra_behavior", "target": "lag0", "wall_s": 58, "score": 0.1672}
+[beat] cebra_probe 17/102 (17%, 2.6 min, eta 12.9 min) last=amp50_dead/behavior:lag0 last_wall_s=58
+{"fold": 0, "source": "amp200_live", "method": "ridge", "target": "lag0", "score": 0.3597}
+{"fold": 0, "source": "amp200_live", "method": "ridge", "target": "lag3", "score": 0.1422}
+{"fold": 0, "source": "amp200_live", "method": "ridge", "target": "lag6", "score": 0.1076}
+{"fold": 0, "source": "amp200_live", "method": "ridge", "target": "push", "score": 0.5876}
+[beat] cebra_probe 18/102 (18%, 2.9 min, eta 13.5 min) last=amp200_live/ridge last_wall_s=0
+{"fold": 0, "source": "amp50_live", "method": "cebra_behavior", "target": "push", "wall_s": 176, "score": 0.5108}
+[beat] cebra_probe 19/102 (19%, 3.0 min, eta 13.1 min) last=amp50_live/behavior:push last_wall_s=176
+{"fold": 0, "source": "amp50_dead", "method": "cebra_behavior", "target": "lag3", "wall_s": 61, "score": -0.0464}
+[beat] cebra_probe 20/102 (20%, 3.4 min, eta 14.1 min) last=amp50_dead/behavior:lag3 last_wall_s=61
+{"fold": 0, "source": "amp50_dead", "method": "cebra_behavior", "target": "lag6", "wall_s": 61, "score": -0.0797}
+[beat] cebra_probe 21/102 (21%, 3.4 min, eta 13.3 min) last=amp50_dead/behavior:lag6 last_wall_s=61
+{"fold": 0, "source": "amp200_live", "method": "cebra_time", "target": "lag0", "wall_s": 57, "score": -0.047}
+{"fold": 0, "source": "amp200_live", "method": "cebra_time", "target": "lag3", "wall_s": 59, "score": -0.0429}
+{"fold": 0, "source": "amp200_live", "method": "cebra_time", "target": "lag6", "wall_s": 60, "score": -0.0457}
+{"fold": 0, "source": "amp200_live", "method": "cebra_time", "target": "push", "wall_s": 61, "score": 0.4938}
+[beat] cebra_probe 22/102 (22%, 3.9 min, eta 14.3 min) last=amp200_live/time last_wall_s=61
+{"fold": 0, "source": "amp200_live", "method": "cebra_behavior", "target": "lag0", "wall_s": 59, "score": 0.0749}
+[beat] cebra_probe 23/102 (23%, 4.0 min, eta 13.7 min) last=amp200_live/behavior:lag0 last_wall_s=59
+{"fold": 0, "source": "amp50_live", "method": "cebra_shuffled", "target": "push", "wall_s": 165, "score": 0.5023}
+[beat] cebra_probe 24/102 (24%, 4.2 min, eta 13.6 min) last=amp50_live/shuffled:push last_wall_s=165
+{"fold": 0, "source": "amp200_dead", "method": "ridge", "target": "lag0", "score": 0.4202}
+{"fold": 0, "source": "amp200_dead", "method": "ridge", "target": "lag3", "score": 0.1555}
+{"fold": 0, "source": "amp200_dead", "method": "ridge", "target": "lag6", "score": 0.1232}
+{"fold": 0, "source": "amp200_dead", "method": "ridge", "target": "push", "score": 0.5784}
+[beat] cebra_probe 25/102 (25%, 4.3 min, eta 13.2 min) last=amp200_dead/ridge last_wall_s=0
+{"fold": 0, "source": "amp200_live", "method": "cebra_behavior", "target": "lag3", "wall_s": 61, "score": -0.0813}
+[beat] cebra_probe 26/102 (25%, 4.5 min, eta 13.1 min) last=amp200_live/behavior:lag3 last_wall_s=61
+{"fold": 0, "source": "amp200_live", "method": "cebra_behavior", "target": "lag6", "wall_s": 61, "score": -0.1203}
+[beat] cebra_probe 27/102 (26%, 4.5 min, eta 12.5 min) last=amp200_live/behavior:lag6 last_wall_s=61
+{"fold": 0, "source": "amp200_dead", "method": "cebra_time", "target": "lag0", "wall_s": 59, "score": -0.0285}
+{"fold": 0, "source": "amp200_dead", "method": "cebra_time", "target": "lag3", "wall_s": 60, "score": -0.0356}
+{"fold": 0, "source": "amp200_dead", "method": "cebra_time", "target": "lag6", "wall_s": 62, "score": -0.0407}
+{"fold": 0, "source": "amp200_dead", "method": "cebra_time", "target": "push", "wall_s": 63, "score": 0.5226}
+[beat] cebra_probe 28/102 (27%, 5.3 min, eta 13.9 min) last=amp200_dead/time last_wall_s=63
+{"fold": 0, "source": "amp200_dead", "method": "cebra_behavior", "target": "lag0", "wall_s": 59, "score": 0.1076}
+[beat] cebra_probe 29/102 (28%, 5.3 min, eta 13.3 min) last=amp200_dead/behavior:lag0 last_wall_s=59
+{"fold": 1, "source": "input", "method": "ridge", "target": "lag0", "score": 0.9123}
+{"fold": 1, "source": "input", "method": "ridge", "target": "lag3", "score": 0.4494}
+{"fold": 1, "source": "input", "method": "ridge", "target": "lag6", "score": 0.3949}
+{"fold": 1, "source": "input", "method": "ridge", "target": "push", "score": 0.814}
+[beat] cebra_probe 30/102 (29%, 5.3 min, eta 12.8 min) last=input/ridge last_wall_s=0
+{"fold": 0, "source": "amp50_dead", "method": "cebra_behavior", "target": "push", "wall_s": 168, "score": 0.5379}
+[beat] cebra_probe 31/102 (30%, 5.4 min, eta 12.3 min) last=amp50_dead/behavior:push last_wall_s=168
+{"fold": 0, "source": "amp200_dead", "method": "cebra_behavior", "target": "lag6", "wall_s": 59, "score": -0.1002}
+[beat] cebra_probe 32/102 (31%, 5.5 min, eta 12.0 min) last=amp200_dead/behavior:lag6 last_wall_s=59
+{"fold": 0, "source": "amp200_dead", "method": "cebra_behavior", "target": "lag3", "wall_s": 60, "score": -0.0398}
+[beat] cebra_probe 33/102 (32%, 5.5 min, eta 11.5 min) last=amp200_dead/behavior:lag3 last_wall_s=60
+{"fold": 1, "source": "input", "method": "cebra_time", "target": "lag0", "wall_s": 57, "score": 0.4257}
+{"fold": 1, "source": "input", "method": "cebra_time", "target": "lag3", "wall_s": 58, "score": 0.3287}
+{"fold": 1, "source": "input", "method": "cebra_time", "target": "lag6", "wall_s": 60, "score": 0.3024}
+{"fold": 1, "source": "input", "method": "cebra_time", "target": "push", "wall_s": 61, "score": 0.7487}
+[beat] cebra_probe 34/102 (33%, 6.4 min, eta 12.7 min) last=input/time last_wall_s=61
+{"fold": 1, "source": "input", "method": "cebra_behavior", "target": "lag0", "wall_s": 58, "score": 0.6791}
+[beat] cebra_probe 35/102 (34%, 6.4 min, eta 12.2 min) last=input/behavior:lag0 last_wall_s=58
+{"fold": 1, "source": "input", "method": "cebra_behavior", "target": "lag3", "wall_s": 59, "score": 0.3942}
+[beat] cebra_probe 36/102 (35%, 6.5 min, eta 11.9 min) last=input/behavior:lag3 last_wall_s=59
+{"fold": 1, "source": "input", "method": "cebra_behavior", "target": "lag6", "wall_s": 62, "score": 0.3894}
+[beat] cebra_probe 37/102 (36%, 6.6 min, eta 11.5 min) last=input/behavior:lag6 last_wall_s=62
+{"fold": 1, "source": "amp50_live", "method": "ridge", "target": "lag0", "score": 0.3705}
+{"fold": 1, "source": "amp50_live", "method": "ridge", "target": "lag3", "score": 0.1118}
+{"fold": 1, "source": "amp50_live", "method": "ridge", "target": "lag6", "score": 0.0997}
+{"fold": 1, "source": "amp50_live", "method": "ridge", "target": "push", "score": 0.6188}
+[beat] cebra_probe 38/102 (37%, 6.6 min, eta 11.2 min) last=amp50_live/ridge last_wall_s=0
+{"fold": 0, "source": "amp200_live", "method": "cebra_behavior", "target": "push", "wall_s": 165, "score": 0.5094}
+[beat] cebra_probe 39/102 (38%, 6.7 min, eta 10.9 min) last=amp200_live/behavior:push last_wall_s=165
+{"fold": 1, "source": "amp50_live", "method": "cebra_behavior", "target": "lag0", "wall_s": 59, "score": 0.1872}
+[beat] cebra_probe 40/102 (39%, 7.6 min, eta 11.8 min) last=amp50_live/behavior:lag0 last_wall_s=59
+{"fold": 1, "source": "amp50_live", "method": "cebra_time", "target": "lag0", "wall_s": 60, "score": -0.0455}
+{"fold": 1, "source": "amp50_live", "method": "cebra_time", "target": "lag3", "wall_s": 61, "score": -0.0506}
+{"fold": 1, "source": "amp50_live", "method": "cebra_time", "target": "lag6", "wall_s": 62, "score": -0.0497}
+{"fold": 1, "source": "amp50_live", "method": "cebra_time", "target": "push", "wall_s": 63, "score": 0.5244}
+[beat] cebra_probe 41/102 (40%, 7.6 min, eta 11.3 min) last=amp50_live/time last_wall_s=63
+{"fold": 1, "source": "amp50_live", "method": "cebra_behavior", "target": "lag3", "wall_s": 58, "score": -0.0033}
+[beat] cebra_probe 42/102 (41%, 7.6 min, eta 10.9 min) last=amp50_live/behavior:lag3 last_wall_s=58
+{"fold": 1, "source": "amp50_live", "method": "cebra_behavior", "target": "lag6", "wall_s": 59, "score": -0.0524}
+[beat] cebra_probe 43/102 (42%, 7.7 min, eta 10.6 min) last=amp50_live/behavior:lag6 last_wall_s=59
+{"fold": 0, "source": "amp200_dead", "method": "cebra_behavior", "target": "push", "wall_s": 188, "score": 0.5218}
+[beat] cebra_probe 44/102 (43%, 8.4 min, eta 11.1 min) last=amp200_dead/behavior:push last_wall_s=188
+{"fold": 1, "source": "amp50_live", "method": "cebra_shuffled", "target": "lag0", "wall_s": 56, "score": -0.0281}
+[beat] cebra_probe 45/102 (44%, 8.5 min, eta 10.8 min) last=amp50_live/shuffled:lag0 last_wall_s=56
+{"fold": 1, "source": "amp50_live", "method": "cebra_shuffled", "target": "lag3", "wall_s": 56, "score": -0.0338}
+[beat] cebra_probe 46/102 (45%, 8.6 min, eta 10.5 min) last=amp50_live/shuffled:lag3 last_wall_s=56
+{"fold": 1, "source": "amp50_live", "method": "cebra_shuffled", "target": "lag6", "wall_s": 56, "score": -0.0358}
+[beat] cebra_probe 47/102 (46%, 8.7 min, eta 10.2 min) last=amp50_live/shuffled:lag6 last_wall_s=56
+{"fold": 1, "source": "amp50_dead", "method": "ridge", "target": "lag0", "score": 0.4208}
+{"fold": 1, "source": "amp50_dead", "method": "ridge", "target": "lag3", "score": 0.1274}
+{"fold": 1, "source": "amp50_dead", "method": "ridge", "target": "lag6", "score": 0.1121}
+{"fold": 1, "source": "amp50_dead", "method": "ridge", "target": "push", "score": 0.6663}
+[beat] cebra_probe 48/102 (47%, 8.8 min, eta 9.9 min) last=amp50_dead/ridge last_wall_s=0
+{"fold": 1, "source": "input", "method": "cebra_behavior", "target": "push", "wall_s": 170, "score": 0.8308}
+[beat] cebra_probe 49/102 (48%, 9.2 min, eta 10.0 min) last=input/behavior:push last_wall_s=170
+{"fold": 1, "source": "amp50_dead", "method": "cebra_time", "target": "lag0", "wall_s": 51, "score": -0.0294}
+{"fold": 1, "source": "amp50_dead", "method": "cebra_time", "target": "lag3", "wall_s": 52, "score": -0.0301}
+{"fold": 1, "source": "amp50_dead", "method": "cebra_time", "target": "lag6", "wall_s": 53, "score": -0.0341}
+{"fold": 1, "source": "amp50_dead", "method": "cebra_time", "target": "push", "wall_s": 55, "score": 0.5113}
+[beat] cebra_probe 50/102 (49%, 9.5 min, eta 9.9 min) last=amp50_dead/time last_wall_s=55
+{"fold": 1, "source": "amp50_dead", "method": "cebra_behavior", "target": "lag0", "wall_s": 52, "score": 0.2278}
+[beat] cebra_probe 51/102 (50%, 9.6 min, eta 9.6 min) last=amp50_dead/behavior:lag0 last_wall_s=52
+{"fold": 1, "source": "amp50_dead", "method": "cebra_behavior", "target": "lag3", "wall_s": 52, "score": -0.0203}
+[beat] cebra_probe 52/102 (51%, 9.7 min, eta 9.3 min) last=amp50_dead/behavior:lag3 last_wall_s=52
+{"fold": 1, "source": "amp200_live", "method": "ridge", "target": "lag0", "score": 0.3719}
+{"fold": 1, "source": "amp200_live", "method": "ridge", "target": "lag3", "score": 0.1433}
+{"fold": 1, "source": "amp200_live", "method": "ridge", "target": "lag6", "score": 0.1147}
+{"fold": 1, "source": "amp200_live", "method": "ridge", "target": "push", "score": 0.579}
+[beat] cebra_probe 53/102 (52%, 9.8 min, eta 9.1 min) last=amp200_live/ridge last_wall_s=0
+{"fold": 1, "source": "amp50_dead", "method": "cebra_behavior", "target": "lag6", "wall_s": 53, "score": -0.0587}
+[beat] cebra_probe 54/102 (53%, 10.1 min, eta 9.0 min) last=amp50_dead/behavior:lag6 last_wall_s=53
+{"fold": 1, "source": "amp50_live", "method": "cebra_behavior", "target": "push", "wall_s": 167, "score": 0.5285}
+[beat] cebra_probe 55/102 (54%, 10.4 min, eta 8.9 min) last=amp50_live/behavior:push last_wall_s=167
+{"fold": 1, "source": "amp200_live", "method": "cebra_time", "target": "lag0", "wall_s": 49, "score": -0.029}
+{"fold": 1, "source": "amp200_live", "method": "cebra_time", "target": "lag3", "wall_s": 50, "score": -0.0317}
+{"fold": 1, "source": "amp200_live", "method": "cebra_time", "target": "lag6", "wall_s": 52, "score": -0.0366}
+{"fold": 1, "source": "amp200_live", "method": "cebra_time", "target": "push", "wall_s": 53, "score": 0.4935}
+[beat] cebra_probe 56/102 (55%, 10.6 min, eta 8.7 min) last=amp200_live/time last_wall_s=53
+{"fold": 1, "source": "amp200_live", "method": "cebra_behavior", "target": "lag0", "wall_s": 50, "score": 0.1611}
+[beat] cebra_probe 57/102 (56%, 10.6 min, eta 8.4 min) last=amp200_live/behavior:lag0 last_wall_s=50
+{"fold": 1, "source": "amp200_dead", "method": "ridge", "target": "lag0", "score": 0.4322}
+{"fold": 1, "source": "amp200_dead", "method": "ridge", "target": "lag3", "score": 0.1535}
+{"fold": 1, "source": "amp200_dead", "method": "ridge", "target": "lag6", "score": 0.1294}
+{"fold": 1, "source": "amp200_dead", "method": "ridge", "target": "push", "score": 0.5761}
+[beat] cebra_probe 58/102 (57%, 10.9 min, eta 8.3 min) last=amp200_dead/ridge last_wall_s=0
+{"fold": 1, "source": "amp200_live", "method": "cebra_behavior", "target": "lag3", "wall_s": 51, "score": -0.0245}
+[beat] cebra_probe 59/102 (58%, 11.0 min, eta 8.0 min) last=amp200_live/behavior:lag3 last_wall_s=51
+{"fold": 1, "source": "amp50_live", "method": "cebra_shuffled", "target": "push", "wall_s": 160, "score": 0.4986}
+[beat] cebra_probe 60/102 (59%, 11.1 min, eta 7.8 min) last=amp50_live/shuffled:push last_wall_s=160
+{"fold": 1, "source": "amp200_live", "method": "cebra_behavior", "target": "lag6", "wall_s": 57, "score": -0.0671}
+[beat] cebra_probe 61/102 (60%, 11.4 min, eta 7.6 min) last=amp200_live/behavior:lag6 last_wall_s=57
+{"fold": 1, "source": "amp200_dead", "method": "cebra_time", "target": "lag0", "wall_s": 57, "score": -0.0258}
+{"fold": 1, "source": "amp200_dead", "method": "cebra_time", "target": "lag3", "wall_s": 58, "score": -0.0293}
+{"fold": 1, "source": "amp200_dead", "method": "cebra_time", "target": "lag6", "wall_s": 59, "score": -0.0393}
+{"fold": 1, "source": "amp200_dead", "method": "cebra_time", "target": "push", "wall_s": 61, "score": 0.4829}
+[beat] cebra_probe 62/102 (61%, 12.0 min, eta 7.7 min) last=amp200_dead/time last_wall_s=61
+{"fold": 1, "source": "amp200_dead", "method": "cebra_behavior", "target": "lag0", "wall_s": 58, "score": 0.207}
+[beat] cebra_probe 63/102 (62%, 12.0 min, eta 7.4 min) last=amp200_dead/behavior:lag0 last_wall_s=58
+{"fold": 2, "source": "input", "method": "ridge", "target": "lag0", "score": 0.8824}
+{"fold": 2, "source": "input", "method": "ridge", "target": "lag3", "score": 0.3892}
+{"fold": 2, "source": "input", "method": "ridge", "target": "lag6", "score": 0.3153}
+{"fold": 2, "source": "input", "method": "ridge", "target": "push", "score": 0.7975}
+[beat] cebra_probe 64/102 (63%, 12.0 min, eta 7.1 min) last=input/ridge last_wall_s=0
+{"fold": 1, "source": "amp200_dead", "method": "cebra_behavior", "target": "lag3", "wall_s": 58, "score": -0.0257}
+[beat] cebra_probe 65/102 (64%, 12.1 min, eta 6.9 min) last=amp200_dead/behavior:lag3 last_wall_s=58
+{"fold": 1, "source": "amp200_dead", "method": "cebra_behavior", "target": "lag6", "wall_s": 55, "score": -0.0802}
+[beat] cebra_probe 66/102 (65%, 12.3 min, eta 6.7 min) last=amp200_dead/behavior:lag6 last_wall_s=55
+{"fold": 1, "source": "amp50_dead", "method": "cebra_behavior", "target": "push", "wall_s": 170, "score": 0.5369}
+[beat] cebra_probe 67/102 (66%, 12.4 min, eta 6.5 min) last=amp50_dead/behavior:push last_wall_s=170
+{"fold": 2, "source": "input", "method": "cebra_time", "target": "lag0", "wall_s": 53, "score": 0.3863}
+{"fold": 2, "source": "input", "method": "cebra_time", "target": "lag3", "wall_s": 54, "score": 0.3057}
+{"fold": 2, "source": "input", "method": "cebra_time", "target": "lag6", "wall_s": 55, "score": 0.2575}
+{"fold": 2, "source": "input", "method": "cebra_time", "target": "push", "wall_s": 57, "score": 0.7399}
+[beat] cebra_probe 68/102 (67%, 12.9 min, eta 6.5 min) last=input/time last_wall_s=57
+{"fold": 2, "source": "input", "method": "cebra_behavior", "target": "lag0", "wall_s": 55, "score": 0.6353}
+[beat] cebra_probe 69/102 (68%, 13.0 min, eta 6.2 min) last=input/behavior:lag0 last_wall_s=55
+{"fold": 2, "source": "input", "method": "cebra_behavior", "target": "lag3", "wall_s": 55, "score": 0.3197}
+[beat] cebra_probe 70/102 (69%, 13.3 min, eta 6.1 min) last=input/behavior:lag3 last_wall_s=55
+{"fold": 2, "source": "amp50_live", "method": "ridge", "target": "lag0", "score": 0.3599}
+{"fold": 2, "source": "amp50_live", "method": "ridge", "target": "lag3", "score": 0.0985}
+{"fold": 2, "source": "amp50_live", "method": "ridge", "target": "lag6", "score": 0.0841}
+{"fold": 2, "source": "amp50_live", "method": "ridge", "target": "push", "score": 0.6284}
+[beat] cebra_probe 71/102 (70%, 13.3 min, eta 5.8 min) last=amp50_live/ridge last_wall_s=0
+{"fold": 2, "source": "input", "method": "cebra_behavior", "target": "lag6", "wall_s": 57, "score": 0.2731}
+[beat] cebra_probe 72/102 (71%, 13.3 min, eta 5.6 min) last=input/behavior:lag6 last_wall_s=57
+{"fold": 1, "source": "amp200_live", "method": "cebra_behavior", "target": "push", "wall_s": 175, "score": 0.5154}
+[beat] cebra_probe 73/102 (72%, 13.5 min, eta 5.4 min) last=amp200_live/behavior:push last_wall_s=175
+{"fold": 2, "source": "amp50_live", "method": "cebra_behavior", "target": "lag0", "wall_s": 56, "score": 0.2012}
+[beat] cebra_probe 74/102 (73%, 14.2 min, eta 5.4 min) last=amp50_live/behavior:lag0 last_wall_s=56
+{"fold": 2, "source": "amp50_live", "method": "cebra_time", "target": "lag0", "wall_s": 56, "score": -0.0348}
+{"fold": 2, "source": "amp50_live", "method": "cebra_time", "target": "lag3", "wall_s": 57, "score": -0.0365}
+{"fold": 2, "source": "amp50_live", "method": "cebra_time", "target": "lag6", "wall_s": 58, "score": -0.0421}
+{"fold": 2, "source": "amp50_live", "method": "cebra_time", "target": "push", "wall_s": 59, "score": 0.4859}
+[beat] cebra_probe 75/102 (74%, 14.3 min, eta 5.1 min) last=amp50_live/time last_wall_s=59
+{"fold": 2, "source": "amp50_live", "method": "cebra_behavior", "target": "lag3", "wall_s": 56, "score": -0.0468}
+[beat] cebra_probe 76/102 (75%, 14.3 min, eta 4.9 min) last=amp50_live/behavior:lag3 last_wall_s=56
+{"fold": 2, "source": "amp50_live", "method": "cebra_behavior", "target": "lag6", "wall_s": 58, "score": -0.035}
+[beat] cebra_probe 77/102 (75%, 14.5 min, eta 4.7 min) last=amp50_live/behavior:lag6 last_wall_s=58
+{"fold": 1, "source": "amp200_dead", "method": "cebra_behavior", "target": "push", "wall_s": 191, "score": 0.5095}
+[beat] cebra_probe 78/102 (76%, 15.2 min, eta 4.7 min) last=amp200_dead/behavior:push last_wall_s=191
+{"fold": 2, "source": "amp50_live", "method": "cebra_shuffled", "target": "lag0", "wall_s": 55, "score": -0.0284}
+[beat] cebra_probe 79/102 (77%, 15.2 min, eta 4.4 min) last=amp50_live/shuffled:lag0 last_wall_s=55
+{"fold": 2, "source": "amp50_live", "method": "cebra_shuffled", "target": "lag3", "wall_s": 55, "score": -0.0376}
+[beat] cebra_probe 80/102 (78%, 15.2 min, eta 4.2 min) last=amp50_live/shuffled:lag3 last_wall_s=55
+{"fold": 2, "source": "amp50_live", "method": "cebra_shuffled", "target": "lag6", "wall_s": 54, "score": -0.0355}
+[beat] cebra_probe 81/102 (79%, 15.4 min, eta 4.0 min) last=amp50_live/shuffled:lag6 last_wall_s=54
+{"fold": 2, "source": "amp50_dead", "method": "ridge", "target": "lag0", "score": 0.4098}
+{"fold": 2, "source": "amp50_dead", "method": "ridge", "target": "lag3", "score": 0.1154}
+{"fold": 2, "source": "amp50_dead", "method": "ridge", "target": "lag6", "score": 0.0987}
+{"fold": 2, "source": "amp50_dead", "method": "ridge", "target": "push", "score": 0.6445}
+[beat] cebra_probe 82/102 (80%, 15.5 min, eta 3.8 min) last=amp50_dead/ridge last_wall_s=0
+{"fold": 2, "source": "input", "method": "cebra_behavior", "target": "push", "wall_s": 167, "score": 0.8085}
+[beat] cebra_probe 83/102 (81%, 15.8 min, eta 3.6 min) last=input/behavior:push last_wall_s=167
+{"fold": 2, "source": "amp50_dead", "method": "cebra_time", "target": "lag0", "wall_s": 53, "score": -0.0234}
+{"fold": 2, "source": "amp50_dead", "method": "cebra_time", "target": "lag3", "wall_s": 54, "score": -0.033}
+{"fold": 2, "source": "amp50_dead", "method": "cebra_time", "target": "lag6", "wall_s": 55, "score": -0.0352}
+{"fold": 2, "source": "amp50_dead", "method": "cebra_time", "target": "push", "wall_s": 56, "score": 0.5115}
+[beat] cebra_probe 84/102 (82%, 16.2 min, eta 3.5 min) last=amp50_dead/time last_wall_s=56
+{"fold": 2, "source": "amp50_dead", "method": "cebra_behavior", "target": "lag0", "wall_s": 55, "score": 0.2209}
+[beat] cebra_probe 85/102 (83%, 16.4 min, eta 3.3 min) last=amp50_dead/behavior:lag0 last_wall_s=55
+{"fold": 2, "source": "amp50_dead", "method": "cebra_behavior", "target": "lag3", "wall_s": 54, "score": -0.0314}
+[beat] cebra_probe 86/102 (84%, 16.4 min, eta 3.1 min) last=amp50_dead/behavior:lag3 last_wall_s=54
+{"fold": 2, "source": "amp200_live", "method": "ridge", "target": "lag0", "score": 0.3823}
+{"fold": 2, "source": "amp200_live", "method": "ridge", "target": "lag3", "score": 0.1464}
+{"fold": 2, "source": "amp200_live", "method": "ridge", "target": "lag6", "score": 0.1103}
+{"fold": 2, "source": "amp200_live", "method": "ridge", "target": "push", "score": 0.5742}
+[beat] cebra_probe 87/102 (85%, 16.6 min, eta 2.9 min) last=amp200_live/ridge last_wall_s=0
+{"fold": 2, "source": "amp50_dead", "method": "cebra_behavior", "target": "lag6", "wall_s": 56, "score": -0.0686}
+[beat] cebra_probe 88/102 (86%, 16.7 min, eta 2.7 min) last=amp50_dead/behavior:lag6 last_wall_s=56
+{"fold": 2, "source": "amp50_live", "method": "cebra_behavior", "target": "push", "wall_s": 155, "score": 0.5219}
+[beat] cebra_probe 89/102 (87%, 16.8 min, eta 2.5 min) last=amp50_live/behavior:push last_wall_s=155
+{"fold": 2, "source": "amp200_live", "method": "cebra_time", "target": "lag0", "wall_s": 52, "score": -0.0175}
+{"fold": 2, "source": "amp200_live", "method": "cebra_time", "target": "lag3", "wall_s": 53, "score": -0.0199}
+{"fold": 2, "source": "amp200_live", "method": "cebra_time", "target": "lag6", "wall_s": 54, "score": -0.03}
+{"fold": 2, "source": "amp200_live", "method": "cebra_time", "target": "push", "wall_s": 55, "score": 0.5053}
+[beat] cebra_probe 90/102 (88%, 17.4 min, eta 2.3 min) last=amp200_live/time last_wall_s=55
+{"fold": 2, "source": "amp200_live", "method": "cebra_behavior", "target": "lag0", "wall_s": 54, "score": 0.1403}
+[beat] cebra_probe 91/102 (89%, 17.5 min, eta 2.1 min) last=amp200_live/behavior:lag0 last_wall_s=54
+{"fold": 2, "source": "amp50_live", "method": "cebra_shuffled", "target": "push", "wall_s": 145, "score": 0.5049}
+[beat] cebra_probe 92/102 (90%, 17.6 min, eta 1.9 min) last=amp50_live/shuffled:push last_wall_s=145
+{"fold": 2, "source": "amp200_live", "method": "cebra_behavior", "target": "lag3", "wall_s": 54, "score": -0.0586}
+[beat] cebra_probe 93/102 (91%, 17.7 min, eta 1.7 min) last=amp200_live/behavior:lag3 last_wall_s=54
+{"fold": 2, "source": "amp200_dead", "method": "ridge", "target": "lag0", "score": 0.4369}
+{"fold": 2, "source": "amp200_dead", "method": "ridge", "target": "lag3", "score": 0.1583}
+{"fold": 2, "source": "amp200_dead", "method": "ridge", "target": "lag6", "score": 0.1238}
+{"fold": 2, "source": "amp200_dead", "method": "ridge", "target": "push", "score": 0.5948}
+[beat] cebra_probe 94/102 (92%, 17.8 min, eta 1.5 min) last=amp200_dead/ridge last_wall_s=0
+{"fold": 2, "source": "amp200_live", "method": "cebra_behavior", "target": "lag6", "wall_s": 56, "score": -0.0749}
+[beat] cebra_probe 95/102 (93%, 17.8 min, eta 1.3 min) last=amp200_live/behavior:lag6 last_wall_s=56
+{"fold": 2, "source": "amp200_dead", "method": "cebra_time", "target": "lag0", "wall_s": 57, "score": -0.0202}
+{"fold": 2, "source": "amp200_dead", "method": "cebra_time", "target": "lag3", "wall_s": 58, "score": -0.0197}
+{"fold": 2, "source": "amp200_dead", "method": "cebra_time", "target": "lag6", "wall_s": 59, "score": -0.0248}
+{"fold": 2, "source": "amp200_dead", "method": "cebra_time", "target": "push", "wall_s": 60, "score": 0.4805}
+[beat] cebra_probe 96/102 (94%, 18.6 min, eta 1.2 min) last=amp200_dead/time last_wall_s=60
+{"fold": 2, "source": "amp200_dead", "method": "cebra_behavior", "target": "lag0", "wall_s": 58, "score": 0.1946}
+[beat] cebra_probe 97/102 (95%, 18.6 min, eta 1.0 min) last=amp200_dead/behavior:lag0 last_wall_s=58
+{"fold": 2, "source": "amp200_dead", "method": "cebra_behavior", "target": "lag3", "wall_s": 56, "score": -0.0595}
+[beat] cebra_probe 98/102 (96%, 18.7 min, eta 0.8 min) last=amp200_dead/behavior:lag3 last_wall_s=56
+{"fold": 2, "source": "amp200_dead", "method": "cebra_behavior", "target": "lag6", "wall_s": 55, "score": -0.1119}
+[beat] cebra_probe 99/102 (97%, 18.7 min, eta 0.6 min) last=amp200_dead/behavior:lag6 last_wall_s=55
+{"fold": 2, "source": "amp50_dead", "method": "cebra_behavior", "target": "push", "wall_s": 154, "score": 0.5243}
+[beat] cebra_probe 100/102 (98%, 18.8 min, eta 0.4 min) last=amp50_dead/behavior:push last_wall_s=154
+{"fold": 2, "source": "amp200_live", "method": "cebra_behavior", "target": "push", "wall_s": 100, "score": 0.5214}
+[beat] cebra_probe 101/102 (99%, 19.0 min, eta 0.2 min) last=amp200_live/behavior:push last_wall_s=100
+{"fold": 2, "source": "amp200_dead", "method": "cebra_behavior", "target": "push", "wall_s": 33, "score": 0.5353}
+[beat] cebra_probe 102/102 (100%, 19.2 min, eta 0.0 min) last=amp200_dead/behavior:push last_wall_s=33
+input ridge {'lag0': 0.898, 'lag3': 0.417, 'lag6': 0.349, 'push': 0.808}
+input cebra_time {'lag0': 0.407, 'lag3': 0.304, 'lag6': 0.264, 'push': 0.74}
+input cebra_behavior {'lag0': 0.665, 'lag3': 0.354, 'lag6': 0.327, 'push': 0.814}
+amp50_live ridge {'lag0': 0.356, 'lag3': 0.105, 'lag6': 0.091, 'push': 0.623}
+amp50_live cebra_behavior {'lag0': 0.162, 'lag3': -0.047, 'lag6': -0.053, 'push': 0.52}
+amp50_live cebra_shuffled {'lag0': -0.03, 'lag6': -0.04, 'lag3': -0.04, 'push': 0.502}
+amp50_live cebra_time {'lag0': -0.044, 'lag3': -0.046, 'lag6': -0.047, 'push': 0.507}
+amp50_dead ridge {'lag0': 0.408, 'lag3': 0.121, 'lag6': 0.104, 'push': 0.65}
+amp50_dead cebra_time {'lag0': -0.031, 'lag3': -0.036, 'lag6': -0.038, 'push': 0.509}
+amp50_dead cebra_behavior {'lag0': 0.205, 'lag3': -0.033, 'lag6': -0.069, 'push': 0.533}
+amp200_live ridge {'lag0': 0.371, 'lag3': 0.144, 'lag6': 0.111, 'push': 0.58}
+amp200_live cebra_time {'lag0': -0.031, 'lag3': -0.032, 'lag6': -0.037, 'push': 0.498}
+amp200_live cebra_behavior {'lag0': 0.125, 'lag3': -0.055, 'lag6': -0.087, 'push': 0.515}
+amp200_dead ridge {'lag0': 0.43, 'lag3': 0.156, 'lag6': 0.125, 'push': 0.583}
+amp200_dead cebra_time {'lag0': -0.025, 'lag3': -0.028, 'lag6': -0.035, 'push': 0.495}
+amp200_dead cebra_behavior {'lag0': 0.17, 'lag6': -0.097, 'lag3': -0.042, 'push': 0.522}

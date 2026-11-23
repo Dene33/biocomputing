@@ -4,7 +4,15 @@ CEBRA (Schneider, Lee & Mathis, Nature 2023; cebra.ai; Apache-2.0 since v0.4.0, 
 low-dimensional embedding of neural data by contrastive learning: self-supervised (CEBRA-Time: samples close in time
 are positives) or guided by a label (CEBRA-Behavior: samples with similar labels are positives); the embedding is
 then decoded, e.g. with kNN. Unified CEBRA (Benquet, Mirzaei, Schneider & Mathis, bioRxiv 2026.11.18.767506) pools
-recordings with different neurons into one model; its transform needs every session's labels, also at inference.
+recordings with different neurons into one model; its transform needs every session's labels, also at inference
+(read in the v0.6.0 code), so it is an analysis tool, not a live decoder. Its abstract: in mouse visual cortex the
+neurons that matter most are strongly tuned, reliable and less coupled to their neighbours (bioRxiv blocked the full
+text: abstract via api.biorxiv.org only). MOPED (Roos et al., bioRxiv 2025.03.02.641081) uses CEBRA to characterise
+organoid MEA recordings. Patent: US12499131B2 (EPFL, granted Dec 2025); commercial use: ask EPFL's TTO.
+
+Inputs (gitignored, ~100 MB, on disk only; regenerate with the scripts named, GPU reruns are not bit-identical):
+outputs/trigger_probe/data.pkl (trigger_probe.py: 24 teacher episodes, IMU, push onsets) and
+outputs/dish_regimes/feats_{amp50,amp200}_{live,dead}_s32_w1.npz (dish_regimes.py).
 
 dish_regimes.py found, with ridge readouts, that the live dish holds less of the recent IMU than its own stimulation
 pattern and no more than a dead culture (recurrent synapses removed). Here CEBRA reads the same saved features:
