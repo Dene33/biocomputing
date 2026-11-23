@@ -215,11 +215,13 @@ class OrganoidCulture:
             order = torch.argsort(rows * (self.cfg.delay_buckets * self.n) + cols)
             crow = torch.zeros(2 * self.n + 1, dtype=torch.long)
             crow[1:] = torch.cumsum(torch.bincount(rows, minlength=2 * self.n), 0)
-            structure = (order.to(self.device), crow.to(self.device), cols[order].to(self.device))
+            pos = torch.empty_like(order)
+            pos[order] = torch.arange(len(order))  # synapse -> its slot in the CSR values (write_weights)
+            structure = (order.to(self.device), crow.to(self.device), cols[order].to(self.device), pos.to(self.device))
             del rows, cols
         else:
             structure = cache[2]
-        order, crow, col = structure
+        order, crow, col, _ = structure
         import warnings
 
         with warnings.catch_warnings():
@@ -230,6 +232,37 @@ class OrganoidCulture:
         if cache is None and self.device.type == "cuda":
             torch.cuda.empty_cache()  # release the sort's temporaries
         return A
+
+    def write_weights(self, idx: torch.Tensor, values: torch.Tensor) -> None:
+        """``w[idx] = values``, patching the GPU delivery matrix in place instead of rebuilding it (a rebuild gathers
+        every synapse). Duplicate indices must carry equal values."""
+        cache = getattr(self, "_A_cache", None)
+        valid = cache is not None and cache[0] == (self.w._version, self.w.data_ptr())
+        self.w[idx] = values
+        if valid:
+            _, A, structure = cache
+            A.values()[structure[3][idx]] = values.to(A.dtype)
+            self._A_cache = ((self.w._version, self.w.data_ptr()), A, structure)
+
+    def synapses_of(self, neurons: torch.Tensor) -> torch.Tensor:
+        """Indices of every synapse leaving or entering ``neurons`` (may repeat a synapse)."""
+        if getattr(self, "_syn_lookup", None) is None:
+            look = []
+            for side in (self.pre, self.post):
+                order = torch.argsort(side, stable=True)
+                ptr = torch.zeros(self.n + 1, dtype=torch.long, device=self.device)
+                ptr[1:] = torch.cumsum(torch.bincount(side, minlength=self.n), 0)
+                look.append((order, ptr))
+            self._syn_lookup = look
+        out = []
+        for order, ptr in self._syn_lookup:
+            start = ptr[neurons]
+            cnt = ptr[neurons + 1] - start
+            total = int(cnt.sum())
+            if total:
+                first = torch.repeat_interleave(start - (torch.cumsum(cnt, 0) - cnt), cnt, output_size=total)
+                out.append(order[first + torch.arange(total, device=self.device)])
+        return torch.cat(out) if out else torch.zeros(0, dtype=torch.long, device=self.device)
 
     @property
     def n_synapses(self) -> int:

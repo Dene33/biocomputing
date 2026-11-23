@@ -45,7 +45,10 @@ class STDP:
         istdp_eta: float = 0.0,
         target_hz: float = 5.0,
         w_max_inh: float | None = None,
+        sparse: bool = True,
+        forget_every: int = 20,
     ):
+        self.sparse, self.forget_every = sparse, forget_every
         self.a_plus, self.a_minus = a_plus, a_minus
         self.multiplicative = multiplicative
         self.istdp_eta, self.target_hz, self.w_max_inh = istdp_eta, target_hz, w_max_inh
@@ -133,9 +136,44 @@ class STDP:
     def on_substep(self, culture, spikes: torch.Tensor) -> None:
         if not self.enabled:
             return
-        dw = self.timing_update(culture, spikes)
-        culture.w += dw * culture.cfg.w_max  # a_plus/a_minus are fractions of the maximum weight
-        self._finish(culture)
+        if not self.sparse:
+            dw = self.timing_update(culture, spikes)
+            culture.w += dw * culture.cfg.w_max  # a_plus/a_minus are fractions of the maximum weight
+            self._finish(culture)
+            return
+        self._sparse_update(culture, spikes)
+
+    def _sparse_update(self, culture, spikes: torch.Tensor) -> None:
+        """The dense rule restricted to the synapses of neurons that spiked (every other synapse's change is exactly
+        zero), with the same arithmetic, so the weights match the dense rule bit for bit when nothing is forgotten.
+        Forgetting, a 45-minute decay, is applied every ``forget_every`` substeps with the matching factor."""
+        if not self._ready:
+            self._setup(culture)
+        self.x_pre *= self.dec_plus
+        self.y_post *= self.dec_minus
+        fired = spikes.nonzero(as_tuple=True)[0]
+        if fired.numel():
+            syn = culture.synapses_of(fired)
+            s = spikes.float()
+            pre, post = culture.pre[syn], culture.post[syn]
+            w = culture.w[syn]
+            dep = self.a_minus * self.y_post[post] * s[pre]
+            if self.multiplicative:
+                dep = dep * (w / self.w_ref)
+            dw = (self.a_plus * self.x_pre[pre] * s[post] - dep) * self.plastic[syn]
+            if self.istdp_eta:
+                dw_i = s[pre] * (self.y_post[post] - self.alpha[post]) + s[post] * self.x_pre[pre]
+                dw = torch.where(culture.syn_exc[syn], dw, dw + self.istdp_eta * dw_i)
+            w = w + dw * culture.cfg.w_max
+            w = w.clamp(min=0.0)
+            w = torch.minimum(w, self.w_cap[syn]) if self.w_max_inh is not None else w.clamp(max=culture.cfg.w_max)
+            culture.write_weights(syn, w)
+            self.x_pre += s
+            self.y_post += s
+        k = self.forget_every
+        if self.forget and int(round(culture.t_ms / culture.cfg.dt_ms)) % k == k - 1:
+            # Towards baseline, which lies within the bounds, so no clamp is needed.
+            culture.w += (culture.w0 - culture.w) * (1.0 - (1.0 - self.forget) ** k)
 
 
 class RewardSTDP(STDP):

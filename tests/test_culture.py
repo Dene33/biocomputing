@@ -145,3 +145,78 @@ def test_inhibitory_plasticity_adds_inhibition_to_neurons_above_target():
     busy = target_rate > 5 * 0.1
     assert busy.any() and dw[busy].mean() > 0  # neurons above target gain inhibition
     assert torch.equal(c.w[c.syn_exc], c.w0[c.syn_exc]) or (c.w - c.w0)[c.syn_exc].abs().max() < 1e-3
+
+
+def _plastic_device(device="cpu", **stdp):
+    from biocompute.culture.plasticity import STDP
+
+    dev = SimulatedBiocomputer(make_config("cpu_2k", n_neurons=400, synapses_per_neuron=30, radius_um=500, seed=5,
+                                           device=device), make_mea_config("mcs60", seed=5))
+    dev.culture.plasticity = STDP(**stdp)
+    return dev
+
+
+def test_sparse_stdp_matches_dense_bit_for_bit():
+    """The sparse rule touches only synapses of neurons that spiked; without forgetting it equals the dense rule."""
+    for kw in ({"istdp_eta": 0.01, "w_max_inh": 30.0}, {"multiplicative": True}, {}):
+        runs = []
+        for sparse in (False, True):
+            dev = _plastic_device(sparse=sparse, tau_forget_s=float("inf"), **kw)
+            ch, n = [], 0.0
+            for _ in range(20):  # a pulse train on 10 electrodes, every 20 ms
+                dev.stimulate(list(range(10, 60, 5)), [0.0] * 10, [1.0] * 10)
+                b = dev.step(20.0)
+                ch.append(b.channels)
+                n += dev.oracle_counts
+            runs.append((np.concatenate(ch), None, n, dev.culture.w.clone()))
+        (c0, _, n0, w0), (c1, _, n1, w1) = runs
+        assert n0.sum() > 100 and (w0 != dev.culture.w0).sum() > 100, kw  # the rule did something
+        assert np.array_equal(c0, c1) and np.array_equal(n0, n1), kw
+        assert torch.equal(w0, w1), kw
+
+
+def test_batched_forgetting_matches_decay_every_substep():
+    ws = []
+    for sparse in (False, True):
+        dev = _plastic_device(sparse=sparse, a_plus=0.0, a_minus=0.0, tau_forget_s=1.0)
+        c = dev.culture
+        c.w.copy_((c.w0 * 0.5).clamp(max=c.cfg.w_max))  # away from baseline, within bounds
+        dev.step(500.0)  # 1000 substeps, a multiple of forget_every
+        ws.append(c.w.clone())
+    assert torch.allclose(ws[0], ws[1], rtol=1e-5, atol=1e-6)
+
+
+def test_gpu_delivery_matrix_patched_in_place_equals_rebuild():
+    import pytest
+
+    if not torch.cuda.is_available():
+        pytest.skip("no GPU")
+    dev = _plastic_device(device="cuda", istdp_eta=0.01, w_max_inh=30.0)
+    dev.stimulate([10, 20], [5.0, 50.0], [1.0, 1.0])
+    dev.step(200.0)
+    c = dev.culture
+    patched = c._delivery_matrix().values().clone()
+    c._A_cache = (None, None, c._A_cache[2])  # force a rebuild from the current weights
+    assert torch.equal(patched, c._delivery_matrix().values())
+
+
+def test_guard_catches_weights_bounded_below_their_cap(tmp_path):
+    """The iSTDP sweep's bug: inhibitory weights clamped to w_max (10) by another step while their cap was 30."""
+    import pytest
+
+    from biocompute.culture.plasticity import STDP
+    from biocompute.runguard import Guard, GuardFail
+
+    c = small_culture(seed=6)
+    stdp = STDP(istdp_eta=0.01, w_max_inh=30.0)
+    g = Guard("t", tmp_path)
+    inh = (~c.syn_exc).nonzero(as_tuple=True)[0]
+    c.w[inh] = torch.minimum(c.w0[inh] * 3.0, torch.full_like(c.w0[inh], 30.0))  # healthy: spread up to the cap
+    g.culture(c, stdp, rate_hz=5.0)
+    c.w[inh] = torch.minimum(c.w0[inh] * 3.0, torch.full_like(c.w0[inh], c.cfg.w_max))  # piled up at 10
+    with pytest.raises(GuardFail):
+        g.culture(c, stdp)
+    c.w[inh] = c.w0[inh]
+    c.v[0] = float("nan")
+    with pytest.raises(GuardFail):
+        g.culture(c, stdp)
