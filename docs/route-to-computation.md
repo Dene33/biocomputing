@@ -53,6 +53,7 @@ The robot's balance loop runs at 50 Hz. A dish in that loop may add at most ~40 
 | Can a culture be coached to choose the fix? | not our model culture. Correct choices in the last 50 of 150 trials: adaptive coaching 0.51, random 0.43, none 0.50 (3 cultures each; chance 0.5). Each context's score drifts by ±10–25 spikes on its own. Dose-response: 400 pairings move the probe response by 20–25 spikes (~20× its standard error), but both contexts move together, in a direction that depends on the culture. The trained pathway's own share is ±3–6 spikes, with either sign. The model culture answers every probe with the same network burst, so it can't hold a context-specific mapping. Without homeostasis its weights double in 100 s of activity | `coach_probe.py`, `--dose` |
 | Does suppressing bursts make pairing specific? | no. Background stimulation, stronger inhibition, sparser wiring or more noise cut burstiness, but the trained pathway's own share stays inconsistent: −3.2 / −9.2 in the base culture, from +3.2 / −2.8 to −0.1 / −10.3 in the others (2 cultures; target negative). The site of the probe was already decodable at 75–99% | `burst_probe.py` fb08bf9 |
 | The cart-pole organoid protocol, step by step | can't be tested on this model. Electrode selection by first-order connectivity works: specific pairs (own 0.80–1.00, crossed 0–0.04). Once the decoder is calibrated under stimulation, one of three cultures balances the pole with no training at all (90th percentile 34.6 s, bar 20.85 s): the selected pairs act as a reflex. Training never beat no training. With plasticity on, the culture runs away under the task's stimulation: rates rise 2–7× (6 → 13–45 Hz per electrode) within 20 s to 10 min, and the input with the slightly stronger response takes over both outputs (cross gain up to 24.6 spikes per pulse vs 2–3 for its own). That holds for every strength tried (×1 to ×0.03) and also for weight-dependent STDP. Scaling total input doesn't stop it: weights shift onto inputs that fire together | `cartpole_replication.py` a51c67a |
+| Does inhibitory plasticity fix the model? | no, not within one time-boxed attempt. Vogels-type inhibitory plasticity, each neuron's target its resting rate, cuts the runaway from 45 to ~9 Hz per electrode, but rates settle at 1.5–1.7× rest (gate 1.5×) while inhibitory weights keep climbing (4–9× their start, rarely at the cap), and the inputs' evoked responses fade to 0.5–1.5 spikes per pulse. No setting is specific and steady (5 settings, 10 min each). Untested guess: the rule also strengthens inhibitory→inhibitory synapses, partly silencing the inhibition | `cartpole_replication.py --drift` 6cd83c4 |
 
 ## The routes
 
@@ -171,9 +172,11 @@ On 32–59 electrodes no reservoir carries a 23-joint policy.
    (the cart-pole gap of 46% vs 2–4%). Until then, its negative learning results say nothing about real dishes. First
    it must answer two electrode groups with different responses, keep a change in one pathway specific to that
    pathway, and hold its weights steady without an added scaling step. The cart-pole replication names the missing
-   piece: the model has nothing that holds firing *rates* in place under stimulation. It would need firing-rate
-   homeostasis or inhibitory plasticity, then has to pass the drift test (`cartpole_replication.py --drift`: rates
-   and pathway specificity steady for 10 minutes of task stimulation) before a replication run.
+   piece: the model has nothing that holds firing *rates* in place under stimulation. One time-boxed attempt to add
+   it (inhibitory plasticity, 2026-11-23) failed the drift test (`cartpole_replication.py --drift`: rates and
+   pathway specificity steady for 10 minutes of task stimulation): rates fell close to the gate, specificity never
+   held. A further attempt is a modelling project of its own (inhibitory plasticity on I→E synapses only,
+   intrinsic excitability homeostasis); until then, learning questions go to a real dish.
 2. **First real-dish session**, one culture: A1 (channel, ~20 min), C1 (open-loop pushes, ~20 min, then blockers at
    the end), B1 (coaching, ~1 hour, before the blockers). Each decides its route on its own.
 3. **If B1 passes:** B2 on the dish; build the harness, torque limit and payload mount; B3.

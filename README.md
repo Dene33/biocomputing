@@ -180,7 +180,9 @@ the routes ranked against real hardware. No stimulation regime makes the dish co
 than its own stimulation pattern and detects pushes worse than a filter (AUC ≤ 0.75 vs 0.86). Slow NMDA excitation
 doesn't change that. There is a job for a dish: weak knees and a 20 kg payload each need their own fix (0/20 → 19/20),
 and each fix is fatal for the other change. But our model culture can't be coached to choose (chance), because every
-probe sets off the same network burst. Ranked routes: coached adaptation first (fits every platform, cart-pole
+probe sets off the same network burst. The flaw is the model's plasticity: under repeated stimulation it runs away
+(the cart-pole organoid protocol, replicated step by step, can't be tested on it), and one time-boxed fix with
+inhibitory plasticity brought rates near rest but didn't keep the inputs' pathways apart. Ranked routes: coached adaptation first (fits every platform, cart-pole
 precedent; a real dish decides), push detection tested open loop alongside it, the inner-ear relay as hardware testbed.
 
 **Next:** [docs/next-steps.md](docs/next-steps.md). Ideas behind it: [docs/organoid-control-ideas.md](docs/organoid-control-ideas.md).

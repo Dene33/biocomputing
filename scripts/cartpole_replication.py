@@ -52,10 +52,16 @@ step, on the simulated culture (20,000 neurons, 256-electrode grid at 100 um, fo
    bounds excitatory weights only; without inhibitory plasticity nothing changes, inhibitory weights start <= 10).
    ``--drift-pairs ETA:CAP`` sweeps rate and cap together; the drift row now reports the share of inhibitory
    synapses at the cap and at zero, and the share of neurons above 1.5x their target in the last 60 s.
-   Refinement round (drift_istdp.json; eta:cap 0.01:30 0.03:30 0.1:30 0.03:100 0.1:100), stopped at 397 of 600 s,
-   from the checkpoints: rate vs rest over the last 60 s 1.67 / 1.63 / 1.59 / 1.58 / 1.51, flat since ~4 min; not
-   specific in any arm. The stronger encoder still drives decoder 1 (own / cross gain 1.05 / 2.4 at 0.01:30, 0.42 /
-   0.39 at 0.1:100). Inhibitory plasticity holds rates, not pathways.
+   Refinement round, the last of the time box (drift_istdp.json; eta:cap 0.01:30 0.03:30 0.1:30 0.03:100 0.1:100):
+   no arm passes. Rate vs rest, last 60 s: 1.64 / 1.67 / 1.65 / 1.56 / 1.51 (gate 1.5); 59-72% of neurons above
+   1.5x their own target. Inhibition is not at its cap (2-4% of synapses at 30, <1% at 100) and still climbing (mean
+   5.7 -> 23-25 at cap 30, 38-51 at cap 100), yet rates don't come down: more inhibition stops buying lower rates.
+   Untested guess: the rule also strengthens inhibitory -> inhibitory synapses (Vogels et al. used I -> E only), so
+   it partly silences the inhibition itself. Evoked responses fade: own gains 2-4 -> 0.5-1.5 spikes per pulse, and
+   in three arms decoder 1 follows the wrong encoder (own / cross 0.57 / 2.0 at 0.01:30). Only 0.1:100 is specific
+   in the last window (1.06 / 0.45, 0.92 / 0.29), not a minute earlier (0.57 / 0.59), with gains near zero (0.09 /
+   0.01 at 9 min). Inhibitory plasticity cuts the runaway (45 Hz -> ~9 Hz per electrode) but doesn't make the model
+   hold rates and pathways; no replication run.
    After each episode, if the mean of the last 5 episodes is not above that of the last 20: a 400 ms training
    signal, then 3 s wait (null: the same time without stimulation).
    - ``random``: 5 training units in random order, 10 ms apart, repeated at 10 Hz
