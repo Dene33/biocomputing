@@ -22,7 +22,7 @@ The culture drives **all 23 joints of Asimov 1 at 50 Hz** in MuJoCo. Two ways to
 | `src/biocompute/loop.py` | The closed loop. The culture needs 20 ms of its own time to answer, so an action applies one step late. |
 | `src/biocompute/train/` | Tasks, DAgger (serial, and `parallel.py`: several copies of the same dish in worker processes), feedback sessions |
 | `scripts/` | `characterise_culture.py`, `baselines.py`, `train_reservoir.py`, `train_dagger.py` (parallel DAgger, ridge or MLP decoder), `eval_readout.py` (many seeds, ablations), `train_feedback.py`, `evaluate.py`, `view.py`, `train_expert.py` / `program_expert.py` (stance-only balance experts: they cannot pass `stand_push`) |
-| `scripts/` (experiments) | `reflex_oracle.py`, `blind_teacher.py`, `no_imu_student.py`, `vestibular_probe.py`, `trigger_probe.py`, `adaptation_slot.py`, `struggle_signal.py`, `coach_probe.py`, `dish_regimes.py`, `burst_probe.py`, `cartpole_replication.py`, `cebra_probe.py`: one experiment each; results in [docs/route-to-computation.md](docs/route-to-computation.md) and the commit log |
+| `scripts/` (experiments) | `reflex_oracle.py`, `blind_teacher.py`, `no_imu_student.py`, `vestibular_probe.py`, `trigger_probe.py`, `adaptation_slot.py`, `struggle_signal.py`, `coach_probe.py`, `dish_regimes.py`, `burst_probe.py`, `cartpole_replication.py`, `cebra_probe.py`, `bl1_drift.py` (with `bl1_checks.py`, `bl1_rep_analysis.py`; runs in bl1's own venv): one experiment each; results in [docs/route-to-computation.md](docs/route-to-computation.md) and the commit log |
 | `scripts/launch.py`, `scripts/watch.py`, `src/biocompute/runguard.py` | Guarded long runs: smoke test, detached systemd unit, in-run checks, watchdog |
 | `src/biocompute/eval/dish_channel.py` | A dish as a statistical channel (delay, update rate, noise, gain), the stand-in for the culture in Phases 2 and 3.1 |
 | `wsp/controller/` | Weight-space programming of the robot-side controller (Phase 2). `track_a.py` needs `teacher_weights.npz`, written from the teacher's ONNX by `export_teacher.py` |
@@ -196,7 +196,10 @@ doesn't change that, and neither does a stronger readout: CEBRA finds less in th
 and each fix is fatal for the other change. But our model culture can't be coached to choose (chance), because every
 probe sets off the same network burst. The flaw is the model's plasticity: under repeated stimulation it runs away
 (the cart-pole organoid protocol, replicated step by step, can't be tested on it), and one time-boxed fix with
-inhibitory plasticity brought rates near rest but didn't keep the inputs' pathways apart. Ranked routes: coached adaptation first (fits every platform, cart-pole
+inhibitory plasticity brought rates near rest but didn't keep the inputs' pathways apart. An outside model, bl1
+(github.com/m9h/bl1, run as shipped and with two of its five bugs fixed, 5 cultures), fails the same drift test:
+its per-neuron synaptic scaling holds rates on its own, but with STDP on, pathways move within minutes
+(`bl1_drift.py`). Ranked routes: coached adaptation first (fits every platform, cart-pole
 precedent; a real dish decides), push detection tested open loop alongside it, the inner-ear relay as hardware testbed.
 
 **Next:** [docs/next-steps.md](docs/next-steps.md). Ideas behind it: [docs/organoid-control-ideas.md](docs/organoid-control-ideas.md).

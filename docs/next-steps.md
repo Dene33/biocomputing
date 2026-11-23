@@ -259,7 +259,8 @@ It counts as computation only if:
 - Weaken a knee or add a payload.
 - Freeze the decoder; let feedback stimulation drive plasticity.
 - Compare plasticity on vs off.
-- Needs homeostatic synaptic scaling first: plain STDP runs away.
+- Needs homeostatic synaptic scaling first: plain STDP runs away. bl1's per-neuron scaling holds rates but not
+  pathways once STDP is on (`bl1_drift.py`; [route doc](route-to-computation.md)).
 
 ## Phase 5: hardware readiness (in parallel, when access exists)
 
