@@ -1,0 +1,14 @@
+{"seed": 2, "config": {"enc": [217, 100], "dec": [233, 116], "train": [4, 201, 251, 150, 214, 152, 36, 138], "score": 1.68, "c1_ab": 0.88, "c1_cd": 0.88, "c1_ad": 0.04, "c1_cb": 0.04, "burst_enc": [0.24, 0.2], "c1_mean": 0.035, "burst_mean": 0.21}, "wall_s": 342}
+{"seed": 1, "config": {"enc": [129, 34], "dec": [113, 35], "train": [101, 110, 33, 251, 126, 213, 36, 66], "score": 1.78, "c1_ab": 1.0, "c1_cd": 0.8, "c1_ad": 0.0, "c1_cb": 0.0, "burst_enc": [0.24, 0.16], "c1_mean": 0.047, "burst_mean": 0.21}, "wall_s": 342}
+{"seed": 0, "config": {"enc": [136, 155], "dec": [137, 139], "train": [216, 33, 34, 126, 121, 134, 192, 90], "score": 1.8, "c1_ab": 0.92, "c1_cd": 0.88, "c1_ad": 0.0, "c1_cb": 0.0, "burst_enc": [0.24, 0.24], "c1_mean": 0.053, "burst_mean": 0.2}, "wall_s": 342}
+{"mode": "null", "episodes": 100, "p90_s": 4.2, "mean_s": 3.95, "proficient": false, "trainings": 0, "decoder_hz": [80.1, 40.04], "w_exc_mean": 2.183, "seed": 1, "repeat": 0, "wall_s": 3839}
+{"mode": "null", "episodes": 101, "p90_s": 3.9, "mean_s": 3.83, "proficient": false, "trainings": 0, "decoder_hz": [37.25, 76.65], "w_exc_mean": 3.637, "seed": 0, "repeat": 0, "wall_s": 3848}
+{"mode": "null", "episodes": 64, "p90_s": 15.51, "mean_s": 9.0, "proficient": false, "trainings": 0, "decoder_hz": [83.97, 81.74], "w_exc_mean": 3.324, "seed": 2, "repeat": 0, "wall_s": 3851}
+{"mode": "random", "episodes": 106, "p90_s": 3.9, "mean_s": 3.44, "proficient": false, "trainings": 68, "decoder_hz": [87.19, 32.67], "w_exc_mean": 2.183, "seed": 1, "repeat": 0, "wall_s": 7349}
+{"mode": "random", "episodes": 107, "p90_s": 3.9, "mean_s": 3.36, "proficient": false, "trainings": 60, "decoder_hz": [40.3, 89.47], "w_exc_mean": 2.167, "seed": 0, "repeat": 0, "wall_s": 7357}
+{"mode": "random", "episodes": 66, "p90_s": 13.2, "mean_s": 8.61, "proficient": false, "trainings": 35, "decoder_hz": [89.84, 86.21], "w_exc_mean": 2.168, "seed": 2, "repeat": 0, "wall_s": 7365}
+{"mode": "adaptive", "episodes": 107, "p90_s": 3.9, "mean_s": 3.36, "proficient": false, "trainings": 66, "decoder_hz": [40.84, 92.34], "w_exc_mean": 2.169, "seed": 0, "repeat": 0, "wall_s": 10866}
+{"mode": "adaptive", "episodes": 106, "p90_s": 3.9, "mean_s": 3.43, "proficient": false, "trainings": 63, "decoder_hz": [90.32, 32.84], "w_exc_mean": 3.571, "seed": 1, "repeat": 0, "wall_s": 10875}
+{"mode": "adaptive", "episodes": 62, "p90_s": 16.5, "mean_s": 9.43, "proficient": false, "trainings": 38, "decoder_hz": [89.65, 87.25], "w_exc_mean": 3.595, "seed": 2, "repeat": 0, "wall_s": 10882}
+/home/dene/.local/share/uv/python/cpython-3.11-linux-x86_64-gnu/lib/python3.11/multiprocessing/resource_tracker.py:254: UserWarning: resource_tracker: There appear to be 6 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '
