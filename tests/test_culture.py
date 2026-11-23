@@ -106,3 +106,42 @@ def test_gpu_sparse_delivery_matches_per_synapse_reference():
     assert torch.allclose(out2[: c.n], ref_e * 0.5, atol=1e-3)
     # wells are independent: no synapse crosses between them
     assert not ((c.pre < c.n_per_well) ^ (c.post < c.n_per_well)).any()
+
+
+def test_saved_state_resumes_spike_for_spike():
+    from biocompute.culture.plasticity import STDP
+
+    def make():
+        dev = SimulatedBiocomputer(make_config("cpu_2k", n_neurons=400, synapses_per_neuron=30, radius_um=500, seed=5),
+                                   make_mea_config("mcs60", seed=5))
+        dev.culture.plasticity = STDP(istdp_eta=0.01, w_max_inh=30.0)
+        return dev
+
+    a = make()
+    a.stimulate([10, 20], [5.0, 50.0], [1.0, 1.0])
+    a.step(300.0)
+    st, pst = a.state(), a.culture.plasticity.state()
+    a.stimulate([10], [7.0], [1.0])
+    ref = a.step(300.0)
+    b = make()
+    b.load_state(st)
+    b.culture.plasticity.load_state(b.culture, pst)
+    b.stimulate([10], [7.0], [1.0])
+    out = b.step(300.0)
+    assert np.array_equal(ref.channels, out.channels) and np.array_equal(ref.times_ms, out.times_ms)
+    assert torch.equal(a.culture.w, b.culture.w)
+
+
+def test_inhibitory_plasticity_adds_inhibition_to_neurons_above_target():
+    from biocompute.culture.plasticity import STDP
+
+    c = small_culture(seed=6)
+    c.plasticity = STDP(a_plus=0.0, a_minus=0.0, istdp_eta=0.01, target_hz=0.1, w_max_inh=30.0)
+    raster = c.run(2000.0)
+    rate = raster.float().sum(0) / 2.0
+    inh = ~c.syn_exc
+    dw = (c.w - c.w0)[inh]
+    target_rate = rate[c.post[inh]]
+    busy = target_rate > 5 * 0.1
+    assert busy.any() and dw[busy].mean() > 0  # neurons above target gain inhibition
+    assert torch.equal(c.w[c.syn_exc], c.w0[c.syn_exc]) or (c.w - c.w0)[c.syn_exc].abs().max() < 1e-3

@@ -320,6 +320,22 @@ class OrganoidCulture:
             raster[s] = self.substep(i_ext_fn(s) if i_ext_fn else None)
         return raster
 
+    _STATE = ("v", "u", "i_exc", "i_inh", "i_nmda", "stp_x", "history", "w", "w0", "excitability", "alive")
+
+    def state(self) -> dict:
+        """The dynamic state (on the CPU): neurons, synapses, weights, clock and random generators. The structure
+        (positions, wiring, delays, parameters) is rebuilt from the config and its seed."""
+        st = {k: getattr(self, k).cpu().clone() for k in self._STATE}
+        return st | {"head": self.head, "t_ms": self.t_ms, "torch_gen": self.torch_gen.get_state(),
+                     "gen": self.gen.get_state()}
+
+    def load_state(self, st: dict) -> None:
+        for k in self._STATE:
+            getattr(self, k).copy_(st[k].to(self.device))
+        self.head, self.t_ms = st["head"], st["t_ms"]
+        self.torch_gen.set_state(st["torch_gen"])
+        self.gen.set_state(st["gen"])
+
     def kill(self, fraction: float) -> None:
         """Cell loss: a random ``fraction`` of the living neurons stops firing for good."""
         alive = self.alive.nonzero(as_tuple=True)[0]

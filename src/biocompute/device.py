@@ -62,6 +62,21 @@ class SimulatedBiocomputer:
     def device(self) -> torch.device:
         return self.culture.device
 
+    def state(self) -> dict:
+        """Everything needed to resume this device (culture, electrode noise, rate limits). Plasticity objects
+        hold their own state (``STDP.state``)."""
+        return {"culture": self.culture.state(), "mea_gen": self.mea.gen.get_state(), "mea_dead": self.mea.dead.copy(),
+                "last_pulse_ms": self._last_pulse_ms.copy(), "queue": list(self._queue),
+                "pulses": (self.pulses_delivered, self.pulses_dropped)}
+
+    def load_state(self, st: dict) -> None:
+        self.culture.load_state(st["culture"])
+        self.mea.gen.set_state(st["mea_gen"])
+        self.mea.dead[:] = st["mea_dead"]
+        self._last_pulse_ms[:] = st["last_pulse_ms"]
+        self._queue = list(st["queue"])
+        self.pulses_delivered, self.pulses_dropped = st["pulses"]
+
     def stimulate(self, channels, times_ms, amplitudes) -> None:
         self._queue.append((np.asarray(channels, int), np.asarray(times_ms, float), np.asarray(amplitudes, float)))
 

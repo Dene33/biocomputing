@@ -15,6 +15,14 @@ amount. In this culture it is unstable under repeated stimulation: the input wit
 potentiated until it fires the whole network (scripts/cartpole_replication.py --drift). ``multiplicative=True``
 scales depression with the weight, relative to the culture's mean initial excitatory weight (van Rossum, Bi &
 Turrigiano 2000): strong synapses depress harder, so weights settle around that mean instead of running to the bound.
+Neither stops the runaway: weights shift onto inputs that fire together.
+
+``istdp_eta`` > 0 adds inhibitory plasticity (Vogels, Sprekeler, Zenke, Clopath & Gerstner, Science 2011) on every
+inhibitory synapse: a coincidence of pre- and postsynaptic spikes strengthens it, each presynaptic spike weakens it
+by ``alpha`` = 2 x target rate x tau. A neuron firing above its target rate gains inhibition until it is back at the
+target, so firing rates are held while excitatory STDP keeps its timing rule. Targets default to ``target_hz`` for
+every neuron; ``set_targets`` gives each neuron its own (e.g. its resting rate). Inhibitory weights are bounded by
+``w_max_inh`` (default: the culture's ``w_max``, as before).
 """
 
 from __future__ import annotations
@@ -34,9 +42,14 @@ class STDP:
         tau_forget_s: float = 2700.0,
         enabled: bool = True,
         multiplicative: bool = False,
+        istdp_eta: float = 0.0,
+        target_hz: float = 5.0,
+        w_max_inh: float | None = None,
     ):
         self.a_plus, self.a_minus = a_plus, a_minus
         self.multiplicative = multiplicative
+        self.istdp_eta, self.target_hz, self.w_max_inh = istdp_eta, target_hz, w_max_inh
+        self._targets = None
         self.tau_plus_ms, self.tau_minus_ms = tau_plus_ms, tau_minus_ms
         self.tau_forget_s = tau_forget_s
         self.enabled = enabled
@@ -52,7 +65,20 @@ class STDP:
         self.dec_minus = math.exp(-dt / self.tau_minus_ms)
         self.forget = dt / (self.tau_forget_s * 1000.0)
         self.w_ref = float(culture.w0[culture.syn_exc].mean())
+        self.inh_idx = (~culture.syn_exc).nonzero(as_tuple=True)[0]
+        self.inh_pre, self.inh_post = culture.pre[self.inh_idx], culture.post[self.inh_idx]
+        w_max = culture.cfg.w_max
+        self.w_cap = torch.where(culture.syn_exc, w_max, w_max if self.w_max_inh is None else self.w_max_inh)
+        if self._targets is None:
+            self._targets = torch.full((culture.n,), float(self.target_hz), device=dev)
+        self.alpha = 2.0 * self._targets * 1e-3 * self.tau_minus_ms
         self._ready = True
+
+    def set_targets(self, culture, hz) -> None:
+        """Per-neuron target rates (Hz) for inhibitory plasticity."""
+        self._targets = torch.as_tensor(hz, dtype=torch.float32, device=culture.device).clone()
+        if self._ready:
+            self.alpha = 2.0 * self._targets * 1e-3 * self.tau_minus_ms
 
     def timing_update(self, culture, spikes: torch.Tensor) -> torch.Tensor:
         """The STDP change for every synapse this substep (zeros where not plastic)."""
@@ -69,6 +95,12 @@ class STDP:
                 dep = dep * (culture.w / self.w_ref)
             dw = self.a_plus * self.x_pre[culture.pre] * s[culture.post] - dep
             dw = dw * self.plastic
+            if self.istdp_eta:
+                # Inhibitory synapses (Vogels et al. 2011): pre spike -> eta (post trace - alpha); post spike ->
+                # eta (pre trace). Traces before this substep's spikes, as for the excitatory rule.
+                pre, post = self.inh_pre, self.inh_post
+                dw_i = s[pre] * (self.y_post[post] - self.alpha[post]) + s[post] * self.x_pre[pre]
+                dw[self.inh_idx] += self.istdp_eta * dw_i
             self.x_pre += s
             self.y_post += s
         return dw
@@ -76,7 +108,27 @@ class STDP:
     def _finish(self, culture) -> None:
         w = culture.w
         w += (culture.w0 - w) * self.forget
-        w.clamp_(0.0, culture.cfg.w_max)
+        if self.w_max_inh is None:
+            w.clamp_(0.0, culture.cfg.w_max)
+        else:
+            w.clamp_(min=0.0)
+            torch.minimum(w, self.w_cap, out=w)
+
+    def state(self) -> dict:
+        """Everything needed to resume (traces, targets); the parameters live in the constructor call."""
+        st = {"ready": self._ready, "targets": None if self._targets is None else self._targets.cpu().clone()}
+        if self._ready:
+            st |= {"x_pre": self.x_pre.cpu().clone(), "y_post": self.y_post.cpu().clone()}
+        return st
+
+    def load_state(self, culture, st: dict) -> None:
+        if st["targets"] is not None:
+            self._targets = st["targets"].to(culture.device)
+        self._ready = False
+        if st["ready"]:
+            self._setup(culture)
+            self.x_pre.copy_(st["x_pre"].to(culture.device))
+            self.y_post.copy_(st["y_post"].to(culture.device))
 
     def on_substep(self, culture, spikes: torch.Tensor) -> None:
         if not self.enabled:

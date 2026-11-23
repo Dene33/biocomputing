@@ -38,10 +38,13 @@ step, on the simulated culture (20,000 neurons, 256-electrode grid at 100 um, fo
    textbook unstable form (Song, Miller & Abbott 2000; van Rossum, Bi & Turrigiano 2000 for the stable,
    weight-dependent form).
 
-   ``--stdp-rule multiplicative``: the weight-dependent form, in the drift test and the replication.
-
-Logs: run_raw_decoder.log (round 1), run_rest.log (round 1), run_task.log (calibration + round 1 null); the runs
-were stopped there because the decoders pinned. drift.json: the drift test.
+   ``--stdp-rule multiplicative``: the weight-dependent form. It plateaus lower (~22 Hz) but the same encoder
+   takes over both decoders (drift_multiplicative.json).
+   ``--istdp-eta`` adds inhibitory plasticity (Vogels et al. 2011, see plasticity.py), each neuron's target its
+   resting rate (floor ``--target-floor``), inhibitory weights up to ``--w-max-inh``. Drift gate, fixed before the
+   sweep: rate per electrode in the last 60 s <= 1.5x the resting rate (20 s before any stimulation; a 60 s trial
+   showed the runaway can happen inside the first minute, so "last vs first minute" would miss it), and in the
+   last 60 s each decoder's own gain >= 2x its cross gain with the cross gain <= 1 spike per pulse.
    After each episode, if the mean of the last 5 episodes is not above that of the last 20: a 400 ms training
    signal, then 3 s wait (null: the same time without stimulation).
    - ``random``: 5 training units in random order, 10 ms apart, repeated at 10 Hz
@@ -55,7 +58,17 @@ were stopped there because the decoders pinned. drift.json: the drift test.
    proficient above 20.85 s, mean + 3 SD of the best random controller with this physics (8.73 +- 4.04 s; paper
    8.64 +- 4.00 s -> 20.64 s).
 
+Logs: run_raw_decoder.log (round 1), run_rest.log (round 1), run_task.log (calibration + round 1 null); the runs
+were stopped there because the decoders pinned. drift.json, drift_multiplicative.json: the drift tests.
+
+Stop and resume: every job checkpoints (device, plasticity, script state) to <out>/ckpt every 5 minutes of wall
+time, and on SIGTERM at the next 200 ms read, then exits. Run the same command again to resume; finished jobs are
+kept in <out>/jobs and skipped. A stop during a job's setup (characterisation, calibration, ~15 min) restarts that
+job's setup.
+
     uv run scripts/cartpole_replication.py
+    uv run scripts/cartpole_replication.py --drift --drift-scales 1 --drift-etas 0.001 0.003 0.01 0.03 --drift-seconds 600
+    systemctl --user stop <unit>   # graceful: saves, then exits; relaunch the same command to resume
 """
 
 import argparse
@@ -64,6 +77,8 @@ import itertools
 import json
 import math
 import multiprocessing as mp
+import os
+import signal
 import time
 from pathlib import Path
 
@@ -84,6 +99,12 @@ class CartPole:
 
     def __init__(self, rng):
         self.s = rng.uniform(-0.05, 0.05, 4)
+
+    @classmethod
+    def resume(cls, s):
+        env = cls.__new__(cls)
+        env.s = np.array(s)
+        return env
 
     def step(self, a):
         x, xd, th, thd = self.s
@@ -115,9 +136,11 @@ def build(seed):
 
 def characterise(dev, reps=25, isi_ms=250.0):
     bins = np.zeros((200, dev.n_channels))
+    neuron = np.zeros(dev.culture.n)
     for i in range(200):
         b = dev.step(100.0)
         bins[i] = np.bincount(b.channels, minlength=dev.n_channels)
+        neuron += dev.oracle_counts
     counts = bins.sum(0)
     c200 = bins.reshape(100, 2, -1).sum(1)  # counts per 200 ms read
     rest_stats = np.stack([c200.mean(0), c200.std(0)], 1)
@@ -144,7 +167,7 @@ def characterise(dev, reps=25, isi_ms=250.0):
     med = np.median(totals)
     thr = med + 3 * np.median(np.abs(totals - med))
     burst = (totals > thr).mean(1)
-    return cand, counts[cand], first, burst, rest_stats
+    return cand, counts[cand], first, burst, rest_stats, neuron / 20.0
 
 
 def configure(cand, rate, first, burst):
@@ -210,76 +233,199 @@ def calibrate(dev, cfg, rng, seconds=120.0):
             "pulses_per_read": round(float(X.sum(1).mean()), 2)}
 
 
+# --- Stop and resume ------------------------------------------------------------------------------------------
+STOP = {"requested": False, "phase": "idle"}
+
+
+class Stopped(Exception):
+    pass
+
+
+def _on_term(signum, frame):
+    STOP["requested"] = True  # in a running job: saved and stopped at the next read
+    if STOP["phase"] == "setup":
+        raise Stopped("setup")  # nothing worth saving yet; a rerun starts this job's setup over
+
+
+def _start_job():
+    if STOP["requested"]:
+        raise Stopped("not started")
+    STOP["phase"] = "setup"
+
+
+def _worker_init():
+    signal.signal(signal.SIGTERM, _on_term)
+
+
+class Checkpoint:
+    """Atomic snapshots of one job: device, plasticity and the script's state; every ``every_s`` of wall time and
+    when a stop is requested (then raises ``Stopped``)."""
+
+    def __init__(self, path, every_s=300.0):
+        self.path, self.every_s, self.t = Path(path), every_s, time.time()
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+
+    def load(self):
+        import torch
+
+        return torch.load(self.path, weights_only=False) if self.path.exists() else None
+
+    def save(self, dev, stdp, script):
+        import torch
+
+        tmp = self.path.with_suffix(".tmp")
+        torch.save({"dev": dev.state(), "stdp": stdp.state(), "script": script}, tmp)
+        os.replace(tmp, self.path)
+        self.t = time.time()
+
+    def tick(self, dev, stdp, script_fn):
+        if STOP["requested"] or time.time() - self.t > self.every_s:
+            self.save(dev, stdp, script_fn())
+            if STOP["requested"]:
+                raise Stopped(str(self.path))
+
+
+def make_stdp(spec):
+    from biocompute.culture.plasticity import STDP
+
+    return STDP(a_plus=0.01 * spec["scale"], a_minus=0.012 * spec["scale"],
+                multiplicative=spec["rule"] == "multiplicative", istdp_eta=spec["eta"],
+                w_max_inh=spec["w_max_inh"] if spec["eta"] else None)
+
+
+def spec_tag(spec):
+    t = ("" if spec["scale"] == 1.0 else f"_stdp{spec['scale']:g}") + (
+        "" if spec["rule"] == "additive" else f"_{spec['rule']}")
+    return t + (f"_istdp{spec['eta']:g}" if spec["eta"] else "")
+
+
+def resting_rates(dev, seconds=20.0):
+    """Per-neuron rates (Hz) and the mean rate per electrode over ``seconds`` of spontaneous activity, plasticity
+    off."""
+    c = dev.culture
+    keep, c.plasticity = c.plasticity, None
+    counts, det = np.zeros(c.n), 0
+    for _ in range(int(seconds * 10)):
+        det += len(dev.step(100.0).channels)
+        counts += dev.oracle_counts
+    c.plasticity = keep
+    return counts / seconds, det / seconds / dev.n_channels
+
+
+def gains(X, Y):
+    A = np.column_stack([np.ones(len(X)), X])
+    return np.linalg.lstsq(A, Y, rcond=None)[0][1:].T  # [decoder, encoder]: spikes per pulse
+
+
 def drift(job):
     import torch
 
-    scale, seconds, rule = job
+    arm, spec, seconds, out = job
+    _start_job()
     enc, dec = [136, 155], [137, 139]  # seed 0's configuration (characterise/configure, see run_task.log)
-    dev, stdp, w_in0 = build(0)
-    c = dev.culture
-    stdp.multiplicative = rule == "multiplicative"
-    stdp.a_plus *= scale
-    stdp.a_minus *= scale
-    c.plasticity = stdp if scale > 0 else None
+    ck = Checkpoint(out / "ckpt" / f"drift_{arm}.pt")
     rng = np.random.default_rng(1)
-    last = {e: -1e9 for e in enc}
-    X, Y, N = [], [], []
-    for i in range(int(seconds * 5)):
+    dev, _, w_in0 = build(0)
+    stdp = make_stdp(spec)
+    c = dev.culture
+    plastic = spec["scale"] > 0 or spec["eta"] > 0
+    saved = ck.load()
+    if saved:
+        dev.load_state(saved["dev"])
+        stdp.load_state(c, saved["stdp"])
+        S = saved["script"]
+        rng.bit_generator.state = S.pop("rng")
+    else:
+        rates, rest_hz = resting_rates(dev)
+        if spec["eta"]:
+            stdp.set_targets(c, np.maximum(rates, spec["floor"]))
+        S = {"i": 0, "X": [], "Y": [], "N": [], "last": {e: -1e9 for e in enc}, "th": 0.0,
+             "neuron_rest_hz": round(float(rates.mean()), 3), "rest_hz_per_electrode": round(float(rest_hz), 2)}
+    c.plasticity = stdp if plastic else None
+    n_reads = int(seconds * 5)
+    STOP["phase"] = "resumable"
+    while S["i"] < n_reads:
+        ck.tick(dev, stdp, lambda: S | {"rng": rng.bit_generator.state})
+        i = S["i"]
         if i % 5 == 0:
-            th = math.radians(rng.uniform(-12.0, 12.0))
-        X.append(schedule(dev, enc, th, last))
+            S["th"] = math.radians(rng.uniform(-12.0, 12.0))
+        S["X"].append(schedule(dev, enc, S["th"], S["last"]))
         b = dev.step(200.0)
-        Y.append([(b.channels == dec[0]).sum(), (b.channels == dec[1]).sum()])
-        N.append(len(b.channels))
-        if (i + 1) % 25 == 0 and scale > 0:
+        S["Y"].append([int((b.channels == dec[0]).sum()), int((b.channels == dec[1]).sum())])
+        S["N"].append(len(b.channels))
+        if (i + 1) % 25 == 0 and plastic:
             C.scale(c, w_in0)
-    X, Y, N = np.array(X, float), np.array(Y, float), np.array(N, float)
-    gains = []
-    for k in range(0, len(X) - 299, 300):
-        A = np.column_stack([np.ones(300), X[k:k + 300]])
-        gains.append(np.round(np.linalg.lstsq(A, Y[k:k + 300], rcond=None)[0][1:].T, 2).tolist())
-    row = {"stdp_scale": scale, "stdp_rule": rule, "seconds": seconds,
-           "hz_per_electrode_10s": np.round(N.reshape(-1, 50).mean(1) / 0.2 / dev.n_channels, 1).tolist(),
+        S["i"] += 1
+    STOP["phase"] = "idle"
+    X, Y, N = np.array(S["X"], float), np.array(S["Y"], float), np.array(S["N"], float)
+    g = [np.round(gains(X[k:k + 300], Y[k:k + 300]), 2).tolist() for k in range(0, len(X) - 299, 300)]
+    hz = N / 0.2 / dev.n_channels
+    ratio = float(hz[-300:].mean() / max(S["rest_hz_per_electrode"], 1e-9))
+    end = np.array(g[-1])
+    specific = all(end[k, k] >= 2 * abs(end[k, 1 - k]) and abs(end[k, 1 - k]) <= 1.0 for k in (0, 1))
+    inh = ~c.syn_exc
+    row = {"arm": arm, **spec, "seconds": seconds,
+           "hz_per_electrode_10s": np.round(hz.reshape(-1, 50).mean(1), 1).tolist(),
            "dec_hz_10s": np.round(Y.reshape(-1, 50, 2).mean(1) / 0.2, 1).tolist(),
-           "gain_60s": gains, "w_exc_mean": round(float(c.w[c.syn_exc].mean()), 3)}
-    print(json.dumps(row), flush=True)
+           "gain_60s": g, "rate_ratio": round(ratio, 2), "specific_end": bool(specific),
+           "pass": bool(ratio <= 1.5 and specific), "neuron_rest_hz": S["neuron_rest_hz"],
+           "rest_hz_per_electrode": S["rest_hz_per_electrode"],
+           "w_exc_mean": round(float(c.w[c.syn_exc].mean()), 3), "w_inh_mean": round(float(c.w[inh].mean()), 3),
+           "w_inh_mean_start": round(float(c.w0[inh].mean()), 3)}
+    (out / "jobs").mkdir(exist_ok=True)
+    (out / "jobs" / f"drift_{arm}.json").write_text(json.dumps(row))
+    ck.path.unlink(missing_ok=True)
+    print(json.dumps({k: v for k, v in row.items() if k not in ("dec_hz_10s",)}), flush=True)
     del dev
     torch.cuda.empty_cache()
     return row
 
 
-def cycle(dev, stdp, w_in0, cfg, mode, minutes, rng, agent, decoder="rest"):
+def new_cycle(mode, minutes):
+    return {"mode": mode, "t_ms": 0.0, "limit": minutes * 60000.0, "last": None, "steps_all": [], "n_train": 0,
+            "dec_counts": [], "ep_hz": [], "r": np.zeros(2), "env": None, "steps": 0}
+
+
+def cycle(dev, stdp, w_in0, cfg, cs, rng, agent, decoder, tick):
+    """Run, or resume, the cycle held in ``cs``; ``tick()`` checkpoints between reads."""
     c = dev.culture
+    mode = cs["mode"]
     c.plasticity = None if mode == "frozen" else stdp
     enc, dec, pool = cfg["enc"], cfg["dec"], cfg["train"]
-    t_ms, limit = 0.0, minutes * 60000.0
-    last = {e: -1e9 for e in enc}
-    steps_all, n_train, dec_counts, ep_hz = [], 0, [], []
-    r = np.zeros(2)
+    if cs["last"] is None:
+        cs["last"] = {e: -1e9 for e in enc}
     mu, sd = np.array(cfg[f"dec_{decoder}"]).T if decoder != "raw" else (np.zeros(2), np.ones(2))
     sd = np.maximum(sd, 1.0)
-    while t_ms < limit:
-        env, steps = CartPole(rng), 0
+    while cs["t_ms"] < cs["limit"]:
+        if cs["env"] is None:
+            cs["env"], cs["steps"] = CartPole(rng).s, 0
+        env = CartPole.resume(cs["env"])
         while True:
-            schedule(dev, enc, env.s[2], last)
+            tick()
+            schedule(dev, enc, env.s[2], cs["last"])
             b = dev.step(200.0)
             cnt = np.array([(b.channels == dec[0]).sum(), (b.channels == dec[1]).sum()], float)
-            dec_counts.append(cnt)
-            r = 0.2 * r + 0.8 * (cnt - mu) / sd
-            t_ms += 200.0
-            steps += 1
-            if env.step(-(r[0] - r[1])) or t_ms >= limit:
+            cs["dec_counts"].append(cnt)
+            cs["r"] = 0.2 * cs["r"] + 0.8 * (cnt - mu) / sd
+            cs["t_ms"] += 200.0
+            cs["steps"] += 1
+            done = env.step(-(cs["r"][0] - cs["r"][1]))
+            cs["env"] = env.s
+            if done or cs["t_ms"] >= cs["limit"]:
                 break
-        steps_all.append(steps)
-        ep_hz.append(np.mean(dec_counts[-steps:], 0) / 0.2)
+        # Episode end: everything below runs between checkpoints.
+        steps = cs["steps"]
+        cs["steps_all"].append(steps)
+        cs["ep_hz"].append(np.mean(cs["dec_counts"][-steps:], 0) / 0.2)
+        cs["env"] = None
         C.scale(c, w_in0)
-        change = np.mean(steps_all[-5:]) - np.mean(steps_all[-20:])
+        change = np.mean(cs["steps_all"][-5:]) - np.mean(cs["steps_all"][-20:])
         if mode in ("adaptive", "frozen") and agent["last"] is not None:
             agent["traces"] *= 0.3
             agent["traces"][agent["last"]] += 1.0
             agent["values"] += 0.3 * (change - agent["values"]) * agent["traces"]
             np.maximum(agent["values"], 0.1, out=agent["values"])
-        if t_ms >= limit:
+        if cs["t_ms"] >= cs["limit"]:
             break
         pat = None
         if not change > 0:
@@ -290,23 +436,25 @@ def cycle(dev, stdp, w_in0, cfg, mode, minutes, rng, agent, decoder="rest"):
                 agent["last"] = int(rng.choice(len(p), p=p))
                 pat = list(agent["pairs"][agent["last"]])
         if pat is not None:
-            n_train += 1
+            cs["n_train"] += 1
             chs = [int(x) for _ in range(4) for x in pat]
             tts = [k * 100.0 + j * 10.0 for k in range(4) for j in range(len(pat))]
             dev.stimulate(np.array(chs), np.array(tts), np.ones(len(chs)))
         dev.step(400.0)
         for _ in range(6):
             dev.step(500.0)
-        t_ms += 3400.0
-    t = np.array(steps_all) * STEP_S
+        cs["t_ms"] += 3400.0
+    t = np.array(cs["steps_all"]) * STEP_S
     p90 = float(np.percentile(t, 90))
+    ep_hz = cs["ep_hz"]
     return {"mode": mode, "episodes": len(t), "p90_s": round(p90, 2), "mean_s": round(float(t.mean()), 2),
-            "proficient": bool(p90 > PROFICIENT_S), "trainings": n_train,
-            "decoder_hz": [round(float(x) / 0.2, 2) for x in np.mean(dec_counts, 0)],
+            "proficient": bool(p90 > PROFICIENT_S), "trainings": cs["n_train"],
+            "decoder_hz": [round(float(x) / 0.2, 2) for x in np.mean(cs["dec_counts"], 0)],
             "dec_hz_first10": np.round(np.mean(ep_hz[:10], 0), 1).tolist(),
             "dec_hz_last10": np.round(np.mean(ep_hz[-10:], 0), 1).tolist(),
-            "w_exc_mean": round(float(c.w[c.syn_exc].mean()), 3), "steps": [int(s) for s in steps_all],
-            "dec_hz_ep": np.round(ep_hz, 1).tolist()}
+            "w_exc_mean": round(float(c.w[c.syn_exc].mean()), 3),
+            "w_inh_mean": round(float(c.w[~c.syn_exc].mean()), 3),
+            "steps": [int(s) for s in cs["steps_all"]], "dec_hz_ep": np.round(ep_hz, 1).tolist()}
 
 
 def run(job):
@@ -314,34 +462,91 @@ def run(job):
 
     from biocompute.culture.plasticity import rest
 
-    seed, order, repeats, minutes, decoder, stdp_scale, rule = job
-    t0 = time.time()
+    seed, opt, out = job
+    _start_job()
+    tag = opt["tag"]
+    ck = Checkpoint(out / "ckpt" / f"{tag}_seed{seed}.pt")
     rng = np.random.default_rng(seed + 900)
-    dev, stdp, w_in0 = build(seed)
-    stdp.multiplicative = rule == "multiplicative"
-    stdp.a_plus *= stdp_scale
-    stdp.a_minus *= stdp_scale
-    cand, rate, first, burst, rest_stats = characterise(dev)
-    cfg = configure(cand, rate, first, burst)
-    cfg["dec_rest"] = [[round(float(x), 3) for x in rest_stats[ch]] for ch in cfg["dec"]]
-    cfg |= calibrate(dev, cfg, rng)
-    print(json.dumps({"seed": seed, "config": cfg, "wall_s": round(time.time() - t0)}), flush=True)
-    pairs = [p for p in itertools.permutations(cfg["train"], 2)]
-    agent = {"pairs": pairs, "values": np.ones(len(pairs)), "traces": np.zeros(len(pairs)), "last": None}
-    frozen_agent = {"pairs": pairs, "values": np.ones(len(pairs)), "traces": np.zeros(len(pairs)), "last": None}
-    cycles = []
-    for rep in range(repeats):
-        for mode in order:
-            res = cycle(dev, stdp, w_in0, cfg, mode, minutes, rng, frozen_agent if mode == "frozen" else agent,
-                        decoder)
-            res |= {"seed": seed, "repeat": rep, "decoder": decoder, "stdp_scale": stdp_scale, "stdp_rule": rule,
-                    "wall_s": round(time.time() - t0)}
-            cycles.append(res)
-            print(json.dumps({k: v for k, v in res.items() if k not in ("steps", "dec_hz_ep")}), flush=True)
-            rest(dev.culture, 2700.0, stdp)
+    dev, _, w_in0 = build(seed)
+    stdp = make_stdp(opt["spec"])
+    c = dev.culture
+    saved = ck.load()
+    if saved:
+        dev.load_state(saved["dev"])
+        stdp.load_state(c, saved["stdp"])
+        S = saved["script"]
+        rng.bit_generator.state = S.pop("rng")
+        print(json.dumps({"seed": seed, "resumed_at": S["k"], "cycle_t_s": None if S["cs"] is None else
+                          round(S["cs"]["t_ms"] / 1000)}), flush=True)
+    else:
+        t0 = time.time()
+        cand, rate, first, burst, rest_stats, neuron_hz = characterise(dev)
+        cfg = configure(cand, rate, first, burst)
+        cfg["dec_rest"] = [[round(float(x), 3) for x in rest_stats[ch]] for ch in cfg["dec"]]
+        cfg |= calibrate(dev, cfg, rng)
+        if opt["spec"]["eta"]:
+            stdp.set_targets(c, np.maximum(neuron_hz, opt["spec"]["floor"]))
+        print(json.dumps({"seed": seed, "config": cfg, "wall_s": round(time.time() - t0)}), flush=True)
+        pairs = [p for p in itertools.permutations(cfg["train"], 2)]
+        S = {"cfg": cfg, "cycles": [], "k": 0, "cs": None,
+             "agent": {"pairs": pairs, "values": np.ones(len(pairs)), "traces": np.zeros(len(pairs)), "last": None},
+             "frozen_agent": {"pairs": pairs, "values": np.ones(len(pairs)), "traces": np.zeros(len(pairs)),
+                              "last": None}}
+        ck.save(dev, stdp, S | {"rng": rng.bit_generator.state})
+    plan = [(rep, mode) for rep in range(opt["repeats"]) for mode in opt["order"]]
+    snapshot = lambda: S | {"rng": rng.bit_generator.state}  # noqa: E731
+    STOP["phase"] = "resumable"
+    while S["k"] < len(plan):
+        rep, mode = plan[S["k"]]
+        if S["cs"] is None:
+            S["cs"] = new_cycle(mode, opt["minutes"])
+        agent = S["frozen_agent"] if mode == "frozen" else S["agent"]
+        res = cycle(dev, stdp, w_in0, S["cfg"], S["cs"], rng, agent, opt["decoder"],
+                    lambda: ck.tick(dev, stdp, snapshot))
+        res |= {"seed": seed, "repeat": rep, "decoder": opt["decoder"], **opt["spec"]}
+        S["cycles"].append(res)
+        print(json.dumps({k: v for k, v in res.items() if k not in ("steps", "dec_hz_ep")}), flush=True)
+        rest(c, 2700.0, stdp)
+        S["k"] += 1
+        S["cs"] = None
+        ck.save(dev, stdp, snapshot())
+    STOP["phase"] = "idle"
+    result = {"seed": seed, "config": S["cfg"], "cycles": S["cycles"]}
+    (out / "jobs").mkdir(exist_ok=True)
+    (out / "jobs" / f"{tag}_seed{seed}.json").write_text(json.dumps(result))
+    ck.path.unlink(missing_ok=True)
     del dev
     torch.cuda.empty_cache()
-    return {"seed": seed, "config": cfg, "cycles": cycles}
+    return result
+
+
+def _guarded(fn):
+    def call(job):
+        try:
+            return fn(job)
+        except Stopped as e:
+            return {"stopped": str(e)}
+    return call
+
+
+def _run_safe(job):
+    return _guarded(run)(job)
+
+
+def _drift_safe(job):
+    return _guarded(drift)(job)
+
+
+def pool_map(fn, jobs, workers):
+    """Run jobs in worker processes that save and stop on SIGTERM; this process ignores SIGTERM and waits."""
+    signal.signal(signal.SIGTERM, signal.SIG_IGN)
+    with mp.get_context("spawn").Pool(workers, initializer=_worker_init) as pool:
+        res = list(pool.imap_unordered(fn, jobs))
+    stopped = [r["stopped"] for r in res if "stopped" in r]
+    if stopped:
+        print(json.dumps({"stopped": stopped, "resume": "run the same command again"}), flush=True)
+        raise SystemExit(0)
+    return res
 
 
 def main():
@@ -353,28 +558,44 @@ def main():
     ap.add_argument("--decoder", choices=["task", "rest", "raw"], default="task")
     ap.add_argument("--stdp-scale", type=float, default=1.0)
     ap.add_argument("--stdp-rule", choices=["additive", "multiplicative"], default="additive")
+    ap.add_argument("--istdp-eta", type=float, default=0.0, help="inhibitory plasticity rate (0: off)")
+    ap.add_argument("--w-max-inh", type=float, default=30.0)
+    ap.add_argument("--target-floor", type=float, default=0.5, help="lowest per-neuron target rate (Hz)")
     ap.add_argument("--drift", action="store_true", help="STDP drift test instead of the replication")
     ap.add_argument("--drift-scales", type=float, nargs="+", default=[0.1, 0.03, 0.3, 1.0, 0.0])
+    ap.add_argument("--drift-etas", type=float, nargs="+", default=[0.0])
+    ap.add_argument("--drift-seconds", type=float, default=None,
+                    help="per arm (default: 120 s at x0 and x1, 300 s at x0.3, 600 s below)")
     ap.add_argument("--workers", type=int, default=3)
     ap.add_argument("--out", default="outputs/cartpole_replication")
     a = ap.parse_args()
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
+
+    def spec(scale, eta):
+        return {"scale": scale, "rule": a.stdp_rule, "eta": eta, "w_max_inh": a.w_max_inh, "floor": a.target_floor}
+
     if a.drift:
-        if a.stdp_rule == "additive":
-            jobs = [(x, 120.0 if x in (0.0, 1.0) else 300.0 if x >= 0.3 else 600.0, "additive") for x in a.drift_scales]
-        else:
-            jobs = [(x, 600.0, a.stdp_rule) for x in a.drift_scales]
-        with mp.get_context("spawn").Pool(a.workers) as pool:
-            res = pool.map(drift, jobs, chunksize=1)
-        name = "drift.json" if a.stdp_rule == "additive" else f"drift_{a.stdp_rule}.json"
-        (out / name).write_text(json.dumps(res, indent=1))
+        arms = []
+        for x, eta in itertools.product(a.drift_scales, a.drift_etas):
+            sp = spec(x, eta)
+            secs = a.drift_seconds or (120.0 if x in (0.0, 1.0) else 300.0 if x >= 0.3 else 600.0)
+            arms.append((f"x{x:g}" + spec_tag({**sp, "scale": 1.0}), sp, secs, out))
+        todo = [j for j in arms if not (out / "jobs" / f"drift_{j[0]}.json").exists()]
+        pool_map(_drift_safe, todo, a.workers)
+        res = [json.loads((out / "jobs" / f"drift_{j[0]}.json").read_text()) for j in arms]
+        name = "drift" + ("" if a.stdp_rule == "additive" else f"_{a.stdp_rule}") + (
+            "_istdp" if any(a.drift_etas) else "")
+        (out / f"{name}.json").write_text(json.dumps(res, indent=1))
         return
-    jobs = [(s, a.order, a.repeats, a.cycle_min, a.decoder, a.stdp_scale, a.stdp_rule) for s in a.seeds]
-    with mp.get_context("spawn").Pool(a.workers) as pool:
-        res = pool.map(run, jobs, chunksize=1)
-    tag = a.decoder + ("" if a.stdp_scale == 1.0 else f"_stdp{a.stdp_scale:g}") + (
-        "" if a.stdp_rule == "additive" else f"_{a.stdp_rule}")
+    sp = spec(a.stdp_scale, a.istdp_eta)
+    tag = a.decoder + spec_tag(sp)
+    opt = {"tag": tag, "spec": sp, "order": a.order, "repeats": a.repeats, "minutes": a.cycle_min,
+           "decoder": a.decoder}
+    jobs = [(s, opt, out) for s in a.seeds]
+    todo = [j for j in jobs if not (out / "jobs" / f"{tag}_seed{j[0]}.json").exists()]
+    pool_map(_run_safe, todo, a.workers)
+    res = [json.loads((out / "jobs" / f"{tag}_seed{s}.json").read_text()) for s in a.seeds]
     (out / f"results_{tag}.json").write_text(json.dumps(res))
     summ = {}
     for m in a.order:
