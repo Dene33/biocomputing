@@ -19,3 +19,6 @@ outputs/**/jobs/
 outputs/**/smoke/
 outputs/**/heartbeat/
 outputs/**/ckpt/
+
+# Third-party weights: Menlo's teacher policy exported to numpy (rebuilt by wsp/controller/export_teacher.py), not ours to publish
+wsp/controller/teacher_weights.npz
