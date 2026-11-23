@@ -29,10 +29,11 @@ The robot's balance loop runs at 50 Hz. A dish in that loop may add at most ~40 
 ## What real cultures are known to compute
 
 - **Learning from feedback.** DishBrain (Kagan et al., Neuron 2022): Pong improved within 5 minutes of play, and not
-  without feedback. Cortical organoids on a MaxWell MEA (Robbins et al., Cell Reports 2026; press coverage only)
+  without feedback. Mouse cortical organoids on a MaxWell MaxOne MEA (Robbins et al., Cell Reports 45:116984, 2026)
   learned to balance a simulated cart-pole. Between episodes, an algorithm chose which neurons got short
-  high-frequency training bursts: 46% proficient, against 2.3% with no feedback and 4.4% with random feedback.
-  Learning was short-term: gone after 45 minutes of rest.
+  high-frequency training bursts. Proficient cycles: 23.1% with adaptive training (46.4% when it ran continuously),
+  against 2.3% with no training and 4.5% with random training (from the paper, as recorded in
+  `cartpole_replication.py`). Learning was short-term: gone after 45 minutes of rest (from press coverage).
 - **Adaptation and deviance detection.** Cultures adapt to repeated stimuli (Eytan et al. 2003). A 2025 study on CMOS
   arrays found true deviance responses, NMDA-dependent, 11–150 ms after the stimulus.
 - **Fading memory and nonlinear dynamics** (Brainoware, Cai et al., Nature Electronics 2023).
@@ -173,7 +174,7 @@ On 32–59 electrodes no reservoir carries a 23-joint policy.
 
 1. **No new hardware.** Write the B1, C1 and A1 protocols as stimulation schedules plus analysis scripts for the
    CL API. Run no more simulated learning experiments until the culture model reproduces a published learning effect
-   (the cart-pole gap of 46% vs 2–4%). Until then, its negative learning results say nothing about real dishes. First
+   (the cart-pole gap: 23% proficient with adaptive training vs 2–5% without). Until then, its negative learning results say nothing about real dishes. First
    it must answer two electrode groups with different responses, keep a change in one pathway specific to that
    pathway, and hold its weights steady without an added scaling step. The cart-pole replication names the missing
    piece: the model has nothing that holds firing *rates* in place under stimulation. One time-boxed attempt to add

@@ -32,7 +32,8 @@ step, on the simulated culture (20,000 neurons, 256-electrode grid at 100 um, fo
    ``--stdp-scale`` scales STDP's amplitudes (a_plus, a_minus) in the replication itself.
    Result: it is the plasticity, at every strength. STDP off: 6 Hz per electrode throughout, decoders specific. On:
    the encoder with the slightly stronger response is potentiated until its pulses fire the whole network
-   (x1: 6 -> 45 Hz in 20 s; x0.3: 39 Hz; x0.1: 28 Hz; x0.03: 6.5 -> 13 Hz in 10 min) and then drives both decoders
+   (x1: 6 -> 12 Hz by 20 s, 41 Hz by 40 s, 43 Hz over the second minute; last-minute means x0.3: 38 Hz,
+   x0.1: 30 Hz; x0.03: 6.5 -> 13 Hz in 10 min) and then drives both decoders
    (end gains on the other decoder 24.6 / 14.7 / 19.2 / 7.5 spikes per pulse vs 0.3-2.9 from its own encoder).
    Scaling total input doesn't stop it; weaker STDP only slows it. The rule is additive with hard bounds, the
    textbook unstable form (Song, Miller & Abbott 2000; van Rossum, Bi & Turrigiano 2000 for the stable,
@@ -60,7 +61,7 @@ step, on the simulated culture (20,000 neurons, 256-electrode grid at 100 um, fo
    it partly silences the inhibition itself. Evoked responses fade: own gains 2-4 -> 0.5-1.5 spikes per pulse, and
    in three arms decoder 1 follows the wrong encoder (own / cross 0.57 / 2.0 at 0.01:30). Only 0.1:100 is specific
    in the last window (1.06 / 0.45, 0.92 / 0.29), not a minute earlier (0.57 / 0.59), with gains near zero (0.09 /
-   0.01 at 9 min). Inhibitory plasticity cuts the runaway (45 Hz -> ~9 Hz per electrode) but doesn't make the model
+   0.01 at 9 min). Inhibitory plasticity cuts the runaway (43 Hz -> 9-10 Hz per electrode) but doesn't make the model
    hold rates and pathways; no replication run.
    After each episode, if the mean of the last 5 episodes is not above that of the last 20: a 400 ms training
    signal, then 3 s wait (null: the same time without stimulation).

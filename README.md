@@ -22,6 +22,10 @@ The culture drives **all 23 joints of Asimov 1 at 50 Hz** in MuJoCo. Two ways to
 | `src/biocompute/loop.py` | The closed loop. The culture needs 20 ms of its own time to answer, so an action applies one step late. |
 | `src/biocompute/train/` | Tasks, DAgger (serial, and `parallel.py`: several copies of the same dish in worker processes), feedback sessions |
 | `scripts/` | `characterise_culture.py`, `baselines.py`, `train_reservoir.py`, `train_dagger.py` (parallel DAgger, ridge or MLP decoder), `eval_readout.py` (many seeds, ablations), `train_feedback.py`, `evaluate.py`, `view.py`, `train_expert.py` / `program_expert.py` (stance-only balance experts: they cannot pass `stand_push`) |
+| `scripts/` (experiments) | `reflex_oracle.py`, `blind_teacher.py`, `no_imu_student.py`, `vestibular_probe.py`, `trigger_probe.py`, `adaptation_slot.py`, `struggle_signal.py`, `coach_probe.py`, `dish_regimes.py`, `burst_probe.py`, `cartpole_replication.py`, `cebra_probe.py`: one experiment each; results in [docs/route-to-computation.md](docs/route-to-computation.md) and the commit log |
+| `scripts/launch.py`, `scripts/watch.py`, `src/biocompute/runguard.py` | Guarded long runs: smoke test, detached systemd unit, in-run checks, watchdog |
+| `src/biocompute/eval/dish_channel.py` | A dish as a statistical channel (delay, update rate, noise, gain), the stand-in for the culture in Phases 2 and 3.1 |
+| `wsp/controller/` | Weight-space programming of the robot-side controller (Phase 2). `track_a.py` needs `teacher_weights.npz`, written from the teacher's ONNX by `export_teacher.py` |
 
 ## Setup
 
@@ -66,8 +70,17 @@ uv run scripts/eval_readout.py outputs/dagger/<run> --control silent          # 
 uv run scripts/reflex_oracle.py                                               # stance + recovery primitives, oracle choice
 ```
 
-Long runs: start them detached (`setsid nohup … &`) so an editor crash can't kill them. `train_dagger.py` checkpoints
-every round and resumes from the last one when restarted on the same output folder.
+Long runs go through `scripts/launch.py`: it smoke-tests the script (`--smoke`, the whole pipeline at tiny scale),
+then starts it as a detached systemd unit, so an editor crash can't kill it. `scripts/watch.py` follows the log and
+stops the unit on an error, a failed in-run check (`biocompute.runguard.Guard`) or a stall:
+
+```sh
+uv run scripts/launch.py --unit bio-X --log outputs/X/run.log -- scripts/foo.py <args>
+uv run scripts/watch.py --unit bio-X --log outputs/X/run.log
+```
+
+`train_dagger.py` checkpoints every round and `cartpole_replication.py` saves when stopped; both resume when the same
+command is run again.
 
 Tasks (`src/biocompute/train/tasks.py`):
 
@@ -90,9 +103,9 @@ The `cpu_2k` preset is tuned so that spontaneous activity looks like a cortical 
 
 It also responds to single-electrode stimulation. Bursts end because short-term depression uses up synaptic resources, as in culture models. These are plausible ranges, not a fit to one dataset: reports for organoids (e.g. Trujillo et al., *Cell Stem Cell* 2019) and dissociated cultures (Wagenaar et al., *BMC Neuroscience* 2006) vary with age and protocol. The realism dials are neuron count, electrode count and pitch, detection radius, noise, dead channels, stimulation limits, latency, forgetting time constant and aging.
 
-## Status and findings (21 November 2026)
+## Status and findings (23 November 2026)
 
-Built: everything in the layout above, with 13 passing tests. Teacher parity with cyclotron is exact.
+Built: everything in the layout above, with 19 passing tests. Teacher parity with cyclotron is exact.
 
 **Baselines** (`scripts/baselines.py`, 5 seeds, 20 s, 1-step latency):
 
@@ -178,7 +191,8 @@ statistical channel models; the closed loop with the culture itself is Phase 3.3
 **Route finding** ([docs/route-to-computation.md](docs/route-to-computation.md)). Phase 4 tested in simulation and
 the routes ranked against real hardware. No stimulation regime makes the dish compute. It keeps less of the recent IMU
 than its own stimulation pattern and detects pushes worse than a filter (AUC ≤ 0.75 vs 0.86). Slow NMDA excitation
-doesn't change that. There is a job for a dish: weak knees and a 20 kg payload each need their own fix (0/20 → 19/20),
+doesn't change that, and neither does a stronger readout: CEBRA finds less in the dish than a linear one
+(`cebra_probe.py`). There is a job for a dish: weak knees and a 20 kg payload each need their own fix (0/20 → 19/20),
 and each fix is fatal for the other change. But our model culture can't be coached to choose (chance), because every
 probe sets off the same network burst. The flaw is the model's plasticity: under repeated stimulation it runs away
 (the cart-pole organoid protocol, replicated step by step, can't be tested on it), and one time-boxed fix with

@@ -1,6 +1,6 @@
 # Next steps: from a sensory relay to an organoid that matters
 
-21 November 2026. Context: [README, Status and findings](../README.md#status-and-findings-21-november-2026) and
+21 November 2026. Context: [README, Status and findings](../README.md#status-and-findings-23-november-2026) and
 [organoid-control-ideas.md](organoid-control-ideas.md).
 
 ## Where we are
@@ -272,7 +272,8 @@ It counts as computation only if:
 - **Evaluation.** 20+ fresh seeds per claim; fixed validation seeds, plus hidden test seeds for anything an agent optimises.
 - **Baselines.** Every result is reported against the teacher, zero action (default pose), no-culture and silenced-dish.
 - **Claims.** "Computation" only when the dish beats the no-culture control.
-- **Runs.** Long runs are detached (`setsid nohup …`) and checkpoint every round.
+- **Runs.** Long runs start through `scripts/launch.py` (smoke test, detached systemd unit), are watched by
+  `scripts/watch.py` (stops on errors and stalls), and checkpoint so they can resume.
 
 ## Order and decision points
 
