@@ -55,8 +55,9 @@ def test_pathway_reading_needs_full_length_arms():
 
 def test_gate_b1_needs_full_length_arms_and_additive_stdp():
     def rows(minutes, rule="additive"):
+        arms = ((0.0, 0.0, 1.0), (0.0, 1e-5, 1.0), (1.0, 1e-5, 1.2), (1.0, 0.0, 5.0))  # scale, scaling eta, rate
         return [drift_row(s, x, h, minutes, rate=r, rule=rule if x else "additive")
-                for s in (0, 1, 2) for x, h, r in ((0.0, 0.0, 1.0), (0.0, 1e-5, 1.0), (1.0, 1e-5, 1.2), (1.0, 0.0, 5.0))]
+                for s in (0, 1, 2) for x, h, r in arms]
 
     full = CP.drift_summary(rows(10), "additive")
     assert full["gate_B1"]["tested"] and full["gate_B1"]["pass"]
@@ -64,3 +65,44 @@ def test_gate_b1_needs_full_length_arms_and_additive_stdp():
     assert not short["tested"] and not short["pass"]
     other = CP.drift_summary(rows(10, "multiplicative"), "multiplicative")
     assert "gate_B1" not in other and other["stdp_rule"] == "multiplicative"
+
+
+RD = load("real_drift")
+
+
+def test_ratios_against_a_silent_or_negative_baseline_are_nan():
+    """Preferred gains of -0.05 over the first 3 minutes gave detectable_vs_pref ~1e9 (divided by 1e-9)."""
+    g = np.full((RD.MIN_MINUTES, 2, 2), 0.3)
+    g[:3] = [[-0.1, -0.05], [-0.1, -0.05]]
+    w = RD.window_stats(g, 0.0, np.ones(RD.MIN_MINUTES))
+    assert np.isnan(w["detectable_vs_pref"]) and np.isnan(w["rate_ratio_first30"]) and w["rate_ratio_first3"] == 1.0
+
+
+def null_run(start, rate):
+    return {"mixed_encoders": False, "encoders": [1, 2], "start_time": start, "exp_type": "none", "train_pulses": 0,
+            "gain_run": np.eye(2), "rate_hz": rate, "end_offset_s": 900.0}
+
+
+def test_hours_leave_out_a_session_whose_first_null_run_is_silent():
+    """Its ratios were all inf -> None, so a summary of the JSON counted a session with no numbers."""
+    times = ["2023-11-24T10:00:00", "2023-11-24T12:00:00", "2023-11-24T14:00:00"]
+    hours, _, silent = RD.sessions({"live": [null_run(t, r) for t, r in zip(times, (2.0, 3.0, 1.0))],
+                                    "silent": [null_run(t, r) for t, r in zip(times, (0.0, 3.0, 1.0))]})
+    assert [h["exp"] for h in hours] == ["live"] and silent == ["silent"]
+    s = RD.hours_summary(hours, silent)
+    assert s["sessions"] == 1 and s["span_h"] == [4.0, 4.0]
+    assert s["rate_vs_first"]["median"] == 1.0 and s["rate_vs_first_max"] == 1.5  # later runs: 1.5x and 0.5x
+    assert s["sessions_in_band_every_run"] == 0  # 0.5x is outside 2/3-1.5x
+
+
+def test_time_gaps_do_not_depend_on_the_machine_zone(monkeypatch):
+    """The logs' times carry no zone; read in Berlin's, a gap across its DST switch came out an hour short."""
+    import time
+
+    monkeypatch.setenv("TZ", "Europe/Berlin")
+    time.tzset()
+    try:
+        assert RD.hours_apart("2024-03-31T01:30:00", "2024-03-31T03:30:00") == 2.0
+    finally:
+        monkeypatch.undo()
+        time.tzset()

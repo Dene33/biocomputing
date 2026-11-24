@@ -27,9 +27,11 @@ condition for random and adaptive runs; across hours, each null run's whole-run 
 first; across rests of >= 30 min between runs, the change from the last 3 minutes of one run to the first 3 of the
 next.
 
-Timing control, added after the first run: the same whole-run gains with the pulses of the 0.2 s *after* each read,
-which can't cause its spikes. If they come out as large as the real ones, the gains measure slow covariation with
-the game (pulse rates and decoder activity both follow the pole), not evoked spikes.
+Timing control, added after the first run: the same whole-run gains with the pulses of the 0.2 s *after* each read.
+It can't settle what it was added for. The loop is closed in every run, null runs included: decoder counts set the
+action, the action moves the pole, the pole sets the next pulse rates. So the pulses after a read follow from the
+read's spikes, and gains as large as the real ones are expected whether or not those are evoked spikes. Reported, not
+interpreted.
 
 Reading, fixed before the first run on the data (24 Nov 2026), on the "none" runs (one run with training pulses
 among them is excluded):
@@ -42,16 +44,18 @@ among them is excluded):
 
 Result (24 Nov 2026): the reading is "inconclusive (no power)", and the timing control shows the pathway measure
 doesn't work on these logs at all. 129 null runs (1 excluded), 98 with >= 8 full minutes, from 12 organoids.
-- Pathways: preferred-encoder gains median 0.08 spikes per pulse against a smallest visible change (2 SE) of 0.43;
-  14.5% of pathways "moved". The pulses of the 0.2 s after each read give the same gains (median largest |gain|
-  0.34 against 0.34), so 200 ms counts don't isolate evoked spikes, and the logs keep no spike times. The pathway
-  half of the drift test can't be answered from this record.
+- Pathways: preferred-encoder gains median 0.08 spikes per pulse against a smallest visible change (2 SE) of 0.43,
+  so a change as large as the gains themselves would go unseen; 14.5% of pathways "moved". The pathway half of the
+  drift test can't be answered from this record. The pulses of the 0.2 s after each read give gains as large (median
+  largest |gain| 0.34 against 0.34), which the closed loop explains either way (see the timing control above), so
+  whether the 200 ms gains are evoked spikes stays open; the logs keep no spike times to check.
 - Rates (no regression involved): over a 15-min run of input pulses alone, the decoders' rate in the last 3 minutes
   is 0.77x the first 30 s (IQR 0.61-0.96, p95 1.18) and 0.94x the first 3 minutes (0.87-1.04): real tissue settles
   slightly and never runs away. Our model on the same measure: no plasticity 0.98, additive STDP 1.45-3.1,
-  weight-dependent STDP with scaling at 1e-4 1.02. Over hours (15 sessions of 4-21 h, each null run against the
-  session's first): median 1.2x (IQR 0.93-1.48, p5-p95 0.52-1.8); 7 of 15 sessions stay within 1.5x in every run,
-  one reaches 6.3x. Across rests of >= 30 min: 1.07x (0.91-1.24).
+  weight-dependent STDP with scaling at 1e-4 1.02. Over hours (``hours_summary``: 15 sessions of 4-21 h, each later
+  null run against the session's first; one session whose first null run is silent is left out): median 1.2x (IQR
+  0.93-1.48, p5-p95 0.52-1.8); 7 of 15 sessions stay within 1.5x either way in every run, one reaches 6.3x. Across
+  rests of >= 30 min: 1.07x (0.91-1.24).
 - So the rate half of our drift gate (<= 1.5x over 10 minutes) is realistic, and over hours real rates wander by up
   to ~1.5-2x.
 
@@ -106,6 +110,17 @@ def clean(x):
     return x
 
 
+def ratio(a, b):
+    """a / b, NaN unless b > 0: a silent or negative baseline has no ratio (it gave inf, or values near 1e9)."""
+    return float(a) / float(b) if b > 0 else float("nan")
+
+
+def hours_apart(a, b):
+    """Hours from ISO time a to b as wall-clock times. The logs carry no timezone; reading them in this machine's zone
+    (datetime.timestamp) shifted gaps by an hour wherever its DST changed in between."""
+    return (datetime.fromisoformat(b) - datetime.fromisoformat(a)).total_seconds() / 3600
+
+
 def fit_gains(P, Y):
     """[decoder, encoder] spikes per pulse, or NaNs if an encoder has too few pulses or no variance."""
     if (P.sum(0) < MIN_PULSES).any() or (P.std(0) == 0).any():
@@ -130,11 +145,11 @@ def window_stats(g_min, rate_first30, rate_min):
     return {"moved_own": int(moved[0, 0] + moved[1, 1]), "moved_cross": int(moved[0, 1] + moved[1, 0]),
             "moved": int(moved.sum()), "diff": diff, "se2": 2 * se, "gain_first3": f, "gain_last3": l,
             "pref_gain_first3": pref_gain,
-            "detectable_vs_pref": float(np.median(2 * se) / max(np.mean(pref_gain), 1e-9)),
+            "detectable_vs_pref": ratio(np.median(2 * se), np.mean(pref_gain)),
             "specific_start": bool(pref_s[0] != pref_s[1]),
             "takeover": bool(pref_s[0] != pref_s[1] and pref_e[0] == pref_e[1]),
-            "rate_ratio_first30": r_last3 / rate_first30 if rate_first30 > 0 else float("nan"),
-            "rate_ratio_first3": r_last3 / float(np.mean(rate_min[:3])) if np.mean(rate_min[:3]) > 0 else float("nan")}
+            "rate_ratio_first30": ratio(r_last3, rate_first30),
+            "rate_ratio_first3": ratio(r_last3, np.mean(rate_min[:3]))}
 
 
 def analyze_run(run, md, guard):
@@ -243,8 +258,9 @@ def reading(s):
 
 
 def sessions(rows_by_exp):
-    """Across hours (null runs) and across rests (any consecutive runs >= 30 min apart)."""
-    hours, rests = [], []
+    """Across hours (null runs) and across rests (any consecutive runs >= 30 min apart). Sessions whose first null run
+    is silent have no baseline for the hours comparison: left out, and listed."""
+    hours, rests, silent = [], [], []
     by_cfg = defaultdict(list)  # one configuration = one experiment with one encoder pair
     for exp, rows in rows_by_exp.items():
         for r in rows:
@@ -252,36 +268,46 @@ def sessions(rows_by_exp):
                 by_cfg[(exp, tuple(r["encoders"]))].append(r)
     for (exp, enc), rows in by_cfg.items():
         rows = sorted(rows, key=lambda r: r["start_time"])
-        t0 = datetime.fromisoformat(rows[0]["start_time"])
         nulls = [r for r in rows
                  if r["exp_type"] == "none" and not r["train_pulses"] and np.isfinite(r["gain_run"]).all()]
-        if len(nulls) >= 3:
-            h = np.array([(datetime.fromisoformat(r["start_time"]) - t0).total_seconds() / 3600 for r in nulls])
-            if h.max() - h.min() >= 1.0:
-                G = np.array([r["gain_run"] for r in nulls])
-                rate = np.array([r["rate_hz"] for r in nulls])
-                slope = np.array([[np.polyfit(h, G[:, i, j], 1)[0] for j in (0, 1)] for i in (0, 1)])
-                pref = np.abs(G.mean(0)).max()
-                hours.append({"exp": exp, "encoders": enc, "null_runs": len(nulls), "span_h": float(h.max() - h.min()),
-                              "gain_slope_per_h": slope, "gain_slope_per_h_vs_pref": np.abs(slope).max() / pref,
-                              "gain_range": G.max(0) - G.min(0), "rate_vs_first": rate / rate[0],
-                              "pref_flips": int(len({tuple(g.argmax(1)) for g in G}) > 1)})
+        h = np.array([hours_apart(rows[0]["start_time"], r["start_time"]) for r in nulls])
+        if len(nulls) >= 3 and h.max() - h.min() >= 1.0 and nulls[0]["rate_hz"] <= 0:
+            silent.append(exp)
+        elif len(nulls) >= 3 and h.max() - h.min() >= 1.0:
+            G = np.array([r["gain_run"] for r in nulls])
+            rate = np.array([r["rate_hz"] for r in nulls])
+            slope = np.array([[np.polyfit(h, G[:, i, j], 1)[0] for j in (0, 1)] for i in (0, 1)])
+            hours.append({"exp": exp, "encoders": enc, "null_runs": len(nulls), "span_h": float(h.max() - h.min()),
+                          "gain_slope_per_h": slope,
+                          "gain_slope_per_h_vs_pref": ratio(np.abs(slope).max(), np.abs(G.mean(0)).max()),
+                          "gain_range": G.max(0) - G.min(0), "rate_vs_first": rate / rate[0],
+                          "pref_flips": int(len({tuple(g.argmax(1)) for g in G}) > 1)})
         for a, b in zip(rows, rows[1:]):
-            end_a = datetime.fromisoformat(a["start_time"]).timestamp() + a["end_offset_s"]
-            gap = (datetime.fromisoformat(b["start_time"]).timestamp() - end_a) / 60
+            gap = hours_apart(a["start_time"], b["start_time"]) * 60 - a["end_offset_s"] / 60
             wa, wb = a.get("within"), b.get("within")
             if gap >= 30 and wa and wb:
                 across = wb["gain_first3"] - wa["gain_last3"]
                 rests.append({"exp": exp, "gap_min": gap, "types": [a["exp_type"], b["exp_type"]],
                               "change_across_rest": across, "change_within_before": wa["diff"],
-                              "rate_ratio_across": float(np.mean(b["rate_hz_per_minute"][:3])
-                                                         / np.mean(a["rate_hz_per_minute"][-3:]))})
-    return hours, rests
+                              "rate_ratio_across": ratio(np.mean(b["rate_hz_per_minute"][:3]),
+                                                         np.mean(a["rate_hz_per_minute"][-3:]))})
+    return hours, rests, silent
+
+
+def hours_summary(hours, silent):
+    """Across hours, pooled: every later null run of a session against its first (the hand-computed figures of the
+    first write-up, now produced here)."""
+    later = [x for h in hours for x in h["rate_vs_first"][1:]]
+    span = [h["span_h"] for h in hours]
+    return {"sessions": len(hours), "left_out_silent_first_run": silent,
+            "span_h": [min(span, default=None), max(span, default=None)],
+            "rate_vs_first": spread(later), "rate_vs_first_max": max(later, default=None),
+            "sessions_in_band_every_run": sum(all(BAND[0] <= x <= BAND[1] for x in h["rate_vs_first"]) for h in hours)}
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--out", default="outputs/real_drift")
+    ap.add_argument("--out", default=str(ROOT / "outputs/real_drift"))
     ap.add_argument("--smoke", action="store_true", help="first 3 experiments into <out>/smoke")
     a = ap.parse_args()
     out = Path(a.out)
@@ -316,9 +342,10 @@ def main():
     for m in mrows:
         by_kind[m["kind"]].append(m)
     model = {k: summarize(v) for k, v in sorted(by_kind.items())}
-    hours, rests = sessions(rows_by_exp)
+    hours, rests, silent = sessions(rows_by_exp)
     absmean = lambda key: spread([float(np.mean(np.abs(r[key]))) for r in rests])  # noqa: E731
-    res = {"reading": read, "summary": summ, "model": model, "hours": hours, "rests": rests,
+    res = {"reading": read, "summary": summ, "model": model, "hours": hours,
+           "hours_summary": hours_summary(hours, silent), "rests": rests,
            "rests_summary": {"n": len(rests), "abs_change_across_rest": absmean("change_across_rest"),
                              "abs_change_within_before": absmean("change_within_before"),
                              "rate_ratio_across": spread([r["rate_ratio_across"] for r in rests])},

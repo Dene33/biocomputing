@@ -144,8 +144,8 @@ Stop and resume: every job checkpoints (device, plasticity, script state) to <ou
 time, and on SIGTERM at the next 200 ms read, then exits. Run the same command again to resume; finished jobs are
 kept in <out>/jobs and skipped. Result and checkpoint files are named by every setting the job runs with (a digest
 after the arm name, ``job_key``), so a rerun with any setting changed runs anew; code changes are not part of the key,
-so rerun into a fresh --out after changing the model. A stop during a job's setup (characterisation, calibration, ~15 min) restarts that
-job's setup.
+so rerun into a fresh --out after changing the model. A stop during a job's setup (characterisation, calibration,
+~15 min) restarts that job's setup.
 
     uv run scripts/cartpole_replication.py
     uv run scripts/cartpole_replication.py --drift --drift-scales 1 --drift-pairs 0.01:30 0.1:100 --drift-seconds 600
