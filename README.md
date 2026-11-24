@@ -22,7 +22,7 @@ The culture drives **all 23 joints of Asimov 1 at 50 Hz** in MuJoCo. Two ways to
 | `src/biocompute/loop.py` | The closed loop. The culture needs 20 ms of its own time to answer, so an action applies one step late. |
 | `src/biocompute/train/` | Tasks, DAgger (serial, and `parallel.py`: several copies of the same dish in worker processes), feedback sessions |
 | `scripts/` | `characterise_culture.py`, `baselines.py`, `train_reservoir.py`, `train_dagger.py` (parallel DAgger, ridge or MLP decoder), `eval_readout.py` (many seeds, ablations), `train_feedback.py`, `evaluate.py`, `view.py`, `train_expert.py` / `program_expert.py` (stance-only balance experts: they cannot pass `stand_push`) |
-| `scripts/` (experiments) | `reflex_oracle.py`, `blind_teacher.py`, `no_imu_student.py`, `vestibular_probe.py`, `trigger_probe.py`, `adaptation_slot.py`, `struggle_signal.py`, `coach_probe.py`, `dish_regimes.py`, `burst_probe.py`, `cartpole_replication.py`, `cebra_probe.py`, `bl1_drift.py` (with `bl1_checks.py`, `bl1_rep_analysis.py`; runs in bl1's own venv): one experiment each; results in [docs/route-to-computation.md](docs/route-to-computation.md) and the commit log |
+| `scripts/` (experiments) | `reflex_oracle.py`, `blind_teacher.py`, `no_imu_student.py`, `vestibular_probe.py`, `trigger_probe.py`, `adaptation_slot.py`, `struggle_signal.py`, `coach_probe.py`, `dish_regimes.py`, `burst_probe.py`, `cartpole_replication.py`, `cebra_probe.py`, `bl1_drift.py` (with `bl1_checks.py`, `bl1_rep_analysis.py`; runs in bl1's own venv), `public_data_targets.py`: one experiment each; results in [docs/route-to-computation.md](docs/route-to-computation.md) and the commit log |
 | `scripts/launch.py`, `scripts/watch.py`, `src/biocompute/runguard.py` | Guarded long runs: smoke test, detached systemd unit, in-run checks, watchdog |
 | `src/biocompute/eval/dish_channel.py` | A dish as a statistical channel (delay, update rate, noise, gain), the stand-in for the culture in Phases 2 and 3.1 |
 | `wsp/controller/` | Weight-space programming of the robot-side controller (Phase 2). `track_a.py` needs `teacher_weights.npz`, written from the teacher's ONNX by `export_teacher.py` |
@@ -187,6 +187,9 @@ unchanged teacher up in 58–60/60 runs; 1 × 12 in 20/60.
 **Phase 2, weight-space programming** (`wsp/controller/`). Scaling the teacher's first-layer IMU weights by 1/gain
 brings the CL1-sized channel to 58/60 (validation) and 40/40 (hidden test; unchanged teacher 16/40). These are
 statistical channel models; the closed loop with the culture itself is Phase 3.3.
+
+Public data for track B (`scripts/public_data_targets.py`): 81 recordings of 29 dense cortical cultures from
+Wagenaar et al. 2006, and the cart-pole organoids' Zenodo record, give the ranges the model must match.
 
 **Route finding** ([docs/route-to-computation.md](docs/route-to-computation.md)). Phase 4 tested in simulation and
 the routes ranked against real hardware. No stimulation regime makes the dish compute. It keeps less of the recent IMU

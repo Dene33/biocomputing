@@ -240,7 +240,7 @@ the track with a write-up, and learning questions wait for a dish.
 
 ### Order
 
-1. A1 on the GPU, with B0 alongside (CPU and network).
+1. A1 on the GPU, with B0 alongside (CPU and network). B0 done.
 2. A2.
 3. B1, then B2, B3 and B4, each behind its gate.
 

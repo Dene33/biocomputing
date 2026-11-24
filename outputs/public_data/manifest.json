@@ -1,0 +1,748 @@
+{
+ "wagenaar": {
+  "1-1-24.spk.txt.bz2": {
+   "batch": 1,
+   "culture": 1,
+   "div": 24,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/1-1-24.spk.txt.bz2",
+   "archive_timestamp": "20260208215825",
+   "bytes": 700652,
+   "sha256": "0fa20a7358eb41f466dae3269c8f4ad58480394f3aac860a6125043a028faaf3"
+  },
+  "1-1-25.spk.txt.bz2": {
+   "batch": 1,
+   "culture": 1,
+   "div": 25,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/1-1-25.spk.txt.bz2",
+   "archive_timestamp": "20260208220040",
+   "bytes": 1140046,
+   "sha256": "ed3689010337d66c5b029a178c4e73d40a23fb25af83a28263be172675b99534"
+  },
+  "1-2-24.spk.txt.bz2": {
+   "batch": 1,
+   "culture": 2,
+   "div": 24,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/1-2-24.spk.txt.bz2",
+   "archive_timestamp": "20260208215818",
+   "bytes": 1755215,
+   "sha256": "750afcef32ed12be5b59492f13429347bc10f2d4610622a19bd1ecd2bf9c2fc2"
+  },
+  "1-2-25.spk.txt.bz2": {
+   "batch": 1,
+   "culture": 2,
+   "div": 25,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/1-2-25.spk.txt.bz2",
+   "archive_timestamp": "20260208215822",
+   "bytes": 2067236,
+   "sha256": "d0f9a2a065e742c413ec2bbb1f3bb115f31adf5732a052e47f251e33f9d462d9"
+  },
+  "1-3-24.spk.txt.bz2": {
+   "batch": 1,
+   "culture": 3,
+   "div": 24,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/1-3-24.spk.txt.bz2",
+   "archive_timestamp": "20260208220150",
+   "bytes": 899415,
+   "sha256": "a9733eb7542085aa9f016790d4bad76480cb49f6a9ad1a50c355aeb31ad066eb"
+  },
+  "1-3-25.spk.txt.bz2": {
+   "batch": 1,
+   "culture": 3,
+   "div": 25,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/1-3-25.spk.txt.bz2",
+   "archive_timestamp": "20260208215809",
+   "bytes": 1188555,
+   "sha256": "5b5c0cda7521f521835bfefb913dbbcee5e32263b353ee45aded9952b4017135"
+  },
+  "1-4-24.spk.txt.bz2": {
+   "batch": 1,
+   "culture": 4,
+   "div": 24,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/1-4-24.spk.txt.bz2",
+   "archive_timestamp": "20260208215810",
+   "bytes": 1202874,
+   "sha256": "c111b737ceab3167c05c9b0cbb7903f029e9468e249d4f3f2df18e5735af29bc"
+  },
+  "1-4-25.spk.txt.bz2": {
+   "batch": 1,
+   "culture": 4,
+   "div": 25,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/1-4-25.spk.txt.bz2",
+   "archive_timestamp": "20260208220109",
+   "bytes": 1541358,
+   "sha256": "409486ebcb33a5700024d97bb76cfb8e55728bc7e0ac172a7348938c71c441f8"
+  },
+  "1-5-24.spk.txt.bz2": {
+   "batch": 1,
+   "culture": 5,
+   "div": 24,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/1-5-24.spk.txt.bz2",
+   "archive_timestamp": "20260208215910",
+   "bytes": 1352050,
+   "sha256": "725c0227a8be6f2a8fac390431c0fc010b47cf9446e65859822cea8370ed7c40"
+  },
+  "1-5-25.spk.txt.bz2": {
+   "batch": 1,
+   "culture": 5,
+   "div": 25,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/1-5-25.spk.txt.bz2",
+   "archive_timestamp": "20260208220136",
+   "bytes": 1542991,
+   "sha256": "49aaafdd6e1557b0208f2ae18bb116ba556ebb4e7087dd447f289c49f997cdec"
+  },
+  "2-1-24.spk.txt.bz2": {
+   "batch": 2,
+   "culture": 1,
+   "div": 24,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/2-1-24.spk.txt.bz2",
+   "archive_timestamp": "20260208215820",
+   "bytes": 868765,
+   "sha256": "4b33581fd22cee68e8e1ffb1105a80ed1b95e67f13364db3239e9d93a29ab876"
+  },
+  "2-1-28.spk.txt.bz2": {
+   "batch": 2,
+   "culture": 1,
+   "div": 28,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/2-1-28.spk.txt.bz2",
+   "archive_timestamp": "20260208220006",
+   "bytes": 2100819,
+   "sha256": "6aeda86477b4a99e412abd2784efd4929d32a3536541b020e9619e01d720af98"
+  },
+  "2-1-32.spk.txt.bz2": {
+   "batch": 2,
+   "culture": 1,
+   "div": 32,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/2-1-32.spk.txt.bz2",
+   "archive_timestamp": "20260208215809",
+   "bytes": 1502387,
+   "sha256": "336d29d40e9b7e953080217b7e13f7c67988ceb94b02de3bb286259e2a93f11a"
+  },
+  "2-2-24.spk.txt.bz2": {
+   "batch": 2,
+   "culture": 2,
+   "div": 24,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/2-2-24.spk.txt.bz2",
+   "archive_timestamp": "20260208220002",
+   "bytes": 4160867,
+   "sha256": "ec75b91c297e8b13e7e6f2c7eb5af31e0faeaab1917c96f560908016d1d3e603"
+  },
+  "2-2-26.spk.txt.bz2": {
+   "batch": 2,
+   "culture": 2,
+   "div": 26,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/2-2-26.spk.txt.bz2",
+   "archive_timestamp": "20260208215811",
+   "bytes": 3721864,
+   "sha256": "879d4005291e3fb88797f0fe694b4da637c83369cd6486b0f0ab0722cd087e0e"
+  },
+  "2-2-32.spk.txt.bz2": {
+   "batch": 2,
+   "culture": 2,
+   "div": 32,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/2-2-32.spk.txt.bz2",
+   "archive_timestamp": "20260208215839",
+   "bytes": 3451730,
+   "sha256": "43631cf493da9b8c5bb850050d6648b1ccf077a3b5d4c1719983fadb2b7d5ab5"
+  },
+  "2-3-24.spk.txt.bz2": {
+   "batch": 2,
+   "culture": 3,
+   "div": 24,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/2-3-24.spk.txt.bz2",
+   "archive_timestamp": "20260208215842",
+   "bytes": 3420344,
+   "sha256": "6de1f6aff507a861e5660475c1b81bed255bebbb12ac9e21b9558b7617b5fa5b"
+  },
+  "2-3-28.spk.txt.bz2": {
+   "batch": 2,
+   "culture": 3,
+   "div": 28,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/2-3-28.spk.txt.bz2",
+   "archive_timestamp": "20260208215831",
+   "bytes": 2845787,
+   "sha256": "e29381d15ca77b9f930c4a2e959e5e2d4a0473438c92e9f3f7c6f0a6274e916d"
+  },
+  "2-3-32.spk.txt.bz2": {
+   "batch": 2,
+   "culture": 3,
+   "div": 32,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/2-3-32.spk.txt.bz2",
+   "archive_timestamp": "20260208215858",
+   "bytes": 2940841,
+   "sha256": "8f2f54effeae5246ff43f2c08172a7d6115dede093697ab99e978cda08e7d2fc"
+  },
+  "2-4-24.spk.txt.bz2": {
+   "batch": 2,
+   "culture": 4,
+   "div": 24,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/2-4-24.spk.txt.bz2",
+   "archive_timestamp": "20260208215914",
+   "bytes": 2715369,
+   "sha256": "dddb9f4abd5ef61627666a4d1bd463b5b655d78cf6e9a38910771583e2c6cd0e"
+  },
+  "2-4-28.spk.txt.bz2": {
+   "batch": 2,
+   "culture": 4,
+   "div": 28,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/2-4-28.spk.txt.bz2",
+   "archive_timestamp": "20260208215813",
+   "bytes": 2932919,
+   "sha256": "ca3ff29e504e18b5e7729d5a4b81a6642a4f8d9a0d38fc11185bed36e6cb4e6f"
+  },
+  "2-4-32.spk.txt.bz2": {
+   "batch": 2,
+   "culture": 4,
+   "div": 32,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/2-4-32.spk.txt.bz2",
+   "archive_timestamp": "20260208220214",
+   "bytes": 3291766,
+   "sha256": "9e827aad0cf1a59c5afe9fb18874f26ffa81eb214c66b980ce97a199af1e628d"
+  },
+  "2-5-24.spk.txt.bz2": {
+   "batch": 2,
+   "culture": 5,
+   "div": 24,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/2-5-24.spk.txt.bz2",
+   "archive_timestamp": "20260208220113",
+   "bytes": 2693775,
+   "sha256": "04d24d0d00ac1d3f7ad59f98a973eed06d1e23fd2bacb6b9397158e2e23ead10"
+  },
+  "2-5-28.spk.txt.bz2": {
+   "batch": 2,
+   "culture": 5,
+   "div": 28,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/2-5-28.spk.txt.bz2",
+   "archive_timestamp": "20260208220124",
+   "bytes": 4395157,
+   "sha256": "6e231bbd2ec3f82e8f49d8eb9034372a9d88a0aca5d6bcd68575f8fc52572abd"
+  },
+  "2-5-32.spk.txt.bz2": {
+   "batch": 2,
+   "culture": 5,
+   "div": 32,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/2-5-32.spk.txt.bz2",
+   "archive_timestamp": "20260208220208",
+   "bytes": 2655944,
+   "sha256": "d5dc7c401634a38672a85faafc45ab62b3a07485f3e7050bcf4e76141f2602c3"
+  },
+  "2-6-24.spk.txt.bz2": {
+   "batch": 2,
+   "culture": 6,
+   "div": 24,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/2-6-24.spk.txt.bz2",
+   "archive_timestamp": "20260208215820",
+   "bytes": 534341,
+   "sha256": "509afe311be8c61dbb49964a09ecf23f62c5a80ba87f2f3204072489cd5284a2"
+  },
+  "2-6-28.spk.txt.bz2": {
+   "batch": 2,
+   "culture": 6,
+   "div": 28,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/2-6-28.spk.txt.bz2",
+   "archive_timestamp": "20260208215839",
+   "bytes": 615633,
+   "sha256": "05aae982d38000ee44f8b631b1740bc82784171d4dfbbf9ae79e3e832b702987"
+  },
+  "2-6-32.spk.txt.bz2": {
+   "batch": 2,
+   "culture": 6,
+   "div": 32,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/2-6-32.spk.txt.bz2",
+   "archive_timestamp": "20260208215811",
+   "bytes": 820567,
+   "sha256": "d125caa9ec8643b07f438449f8d75852e3cfe0a1766ad7cc80b8c3c76cbc6a9d"
+  },
+  "3-1-24.spk.txt.bz2": {
+   "batch": 3,
+   "culture": 1,
+   "div": 24,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/3-1-24.spk.txt.bz2",
+   "archive_timestamp": "20260208220131",
+   "bytes": 847846,
+   "sha256": "76cdf8f9a8553c49110afd751be742e4cd55fb68005abd08bc54717a34cfd12b"
+  },
+  "3-1-27.spk.txt.bz2": {
+   "batch": 3,
+   "culture": 1,
+   "div": 27,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/3-1-27.spk.txt.bz2",
+   "archive_timestamp": "20260208215835",
+   "bytes": 1696602,
+   "sha256": "3d9dd5c0c139fa3c305052bc928057454b99433f4914eea2b3a06472d9ba9e07"
+  },
+  "3-1-31.spk.txt.bz2": {
+   "batch": 3,
+   "culture": 1,
+   "div": 31,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/3-1-31.spk.txt.bz2",
+   "archive_timestamp": "20260208215824",
+   "bytes": 1504447,
+   "sha256": "2852175ff50ff5b3bb92e9bb52098394d2301e20ac1dcc587c43c5d55ffe9a4f"
+  },
+  "3-2-24.spk.txt.bz2": {
+   "batch": 3,
+   "culture": 2,
+   "div": 24,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/3-2-24.spk.txt.bz2",
+   "archive_timestamp": "20260208215826",
+   "bytes": 1862094,
+   "sha256": "f93811a430ea92a5e395025e2d2b146be7bdcca15a259a15aefed184dc39b466"
+  },
+  "3-2-27.spk.txt.bz2": {
+   "batch": 3,
+   "culture": 2,
+   "div": 27,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/3-2-27.spk.txt.bz2",
+   "archive_timestamp": "20260208215811",
+   "bytes": 2072536,
+   "sha256": "44edf2a0c7fb1024c5244ff4fb8d2e4c68514123abb2a6cceadaf20d4c2ad9d3"
+  },
+  "3-2-31.spk.txt.bz2": {
+   "batch": 3,
+   "culture": 2,
+   "div": 31,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/3-2-31.spk.txt.bz2",
+   "archive_timestamp": "20260208215917",
+   "bytes": 844923,
+   "sha256": "c9240f262236c2f9a011cde27ac1b0b6d4f4fff48a9ae169906e038f69309d80"
+  },
+  "3-3-24.spk.txt.bz2": {
+   "batch": 3,
+   "culture": 3,
+   "div": 24,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/3-3-24.spk.txt.bz2",
+   "archive_timestamp": "20260208215943",
+   "bytes": 1128121,
+   "sha256": "130626b11e42fa2d8bdc28a474983e7b73f474bae43f89eca281f66983845933"
+  },
+  "3-3-27.spk.txt.bz2": {
+   "batch": 3,
+   "culture": 3,
+   "div": 27,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/3-3-27.spk.txt.bz2",
+   "archive_timestamp": "20260208215809",
+   "bytes": 1360336,
+   "sha256": "3dd4af0da469e2bfdfb62eed949fdf1f529616803e2ef5e07fd342ef2fae59ba"
+  },
+  "3-3-31.spk.txt.bz2": {
+   "batch": 3,
+   "culture": 3,
+   "div": 31,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/3-3-31.spk.txt.bz2",
+   "archive_timestamp": "20260208220219",
+   "bytes": 1785894,
+   "sha256": "410c12de47a8a80d3e40ae73f8363ced3219e3ee00304f89a0552c67372cbaf1"
+  },
+  "3-4-24.spk.txt.bz2": {
+   "batch": 3,
+   "culture": 4,
+   "div": 24,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/3-4-24.spk.txt.bz2",
+   "archive_timestamp": "20260208215942",
+   "bytes": 2978940,
+   "sha256": "19eb1446ea2464c3be4b8ae661b3a5ffdaed09b37076b36505204814b1da3546"
+  },
+  "3-4-26.spk.txt.bz2": {
+   "batch": 3,
+   "culture": 4,
+   "div": 26,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/3-4-26.spk.txt.bz2",
+   "archive_timestamp": "20260208215847",
+   "bytes": 2119409,
+   "sha256": "d94bbb92db8ec2c743799cf1b070e626c9e25c6e1d3b23bfd5b9778a72c54c46"
+  },
+  "3-4-31.spk.txt.bz2": {
+   "batch": 3,
+   "culture": 4,
+   "div": 31,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/3-4-31.spk.txt.bz2",
+   "archive_timestamp": "20260208220152",
+   "bytes": 2272977,
+   "sha256": "0440a8ca2fb6762eff15bb183b4d4982bab7a0b86a122df700bcb132762d2d80"
+  },
+  "3-5-24.spk.txt.bz2": {
+   "batch": 3,
+   "culture": 5,
+   "div": 24,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/3-5-24.spk.txt.bz2",
+   "archive_timestamp": "20260208224800",
+   "bytes": 850100,
+   "sha256": "61d88fbdd9726346c52b82f68a2641b1b6e13a4fcc8660baaf395397e1005dad"
+  },
+  "3-5-26.spk.txt.bz2": {
+   "batch": 3,
+   "culture": 5,
+   "div": 26,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/3-5-26.spk.txt.bz2",
+   "archive_timestamp": "20260208215856",
+   "bytes": 871395,
+   "sha256": "1aaae48f5a36f584d7c38fd845f03e7a807652debd694809e0a83f265dfb2b63"
+  },
+  "3-5-31.spk.txt.bz2": {
+   "batch": 3,
+   "culture": 5,
+   "div": 31,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/3-5-31.spk.txt.bz2",
+   "archive_timestamp": "20260208220056",
+   "bytes": 427666,
+   "sha256": "a2bd27f8bc44aaa6653c4a922b2068533c7d0c83c9a55e8f9eedefd989b265f8"
+  },
+  "3-6-24.spk.txt.bz2": {
+   "batch": 3,
+   "culture": 6,
+   "div": 24,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/3-6-24.spk.txt.bz2",
+   "archive_timestamp": "20260208220212",
+   "bytes": 1055160,
+   "sha256": "790b2bfc634ff6f31fd9db4768e2c7fb1f4faf30a281be3c8f6927d338921b7b"
+  },
+  "3-6-26.spk.txt.bz2": {
+   "batch": 3,
+   "culture": 6,
+   "div": 26,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/3-6-26.spk.txt.bz2",
+   "archive_timestamp": "20260208220147",
+   "bytes": 1384643,
+   "sha256": "272e9e2273cc251953499e3c4166c20ea109c0d3b2b796c133c0e820ef2dfec2"
+  },
+  "3-6-31.spk.txt.bz2": {
+   "batch": 3,
+   "culture": 6,
+   "div": 31,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/3-6-31.spk.txt.bz2",
+   "archive_timestamp": "20260208215849",
+   "bytes": 2201053,
+   "sha256": "f008970edaf81de5c592fd9ea0bd1e47198330d994e9f6754357e277201b26a3"
+  },
+  "4-1-24.spk.txt.bz2": {
+   "batch": 4,
+   "culture": 1,
+   "div": 24,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/4-1-24.spk.txt.bz2",
+   "archive_timestamp": "20260208215832",
+   "bytes": 1700866,
+   "sha256": "0ada0a0ac2d4477d8b78eca6f9f324937f7a52c622b8aeb2c91e5054831cdeb1"
+  },
+  "4-1-27.spk.txt.bz2": {
+   "batch": 4,
+   "culture": 1,
+   "div": 27,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/4-1-27.spk.txt.bz2",
+   "archive_timestamp": "20260208215840",
+   "bytes": 2134090,
+   "sha256": "ca036192ac02086b15443c23945d6e624c26b4c32dfc658e32df86c0072e267b"
+  },
+  "4-1-29.spk.txt.bz2": {
+   "batch": 4,
+   "culture": 1,
+   "div": 29,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/4-1-29.spk.txt.bz2",
+   "archive_timestamp": "20260208220015",
+   "bytes": 2219641,
+   "sha256": "efdee7d437f39c9d9d959d7c4f24ae583955296dbaf3659823a98392c2d15d79"
+  },
+  "4-2-24.spk.txt.bz2": {
+   "batch": 4,
+   "culture": 2,
+   "div": 24,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/4-2-24.spk.txt.bz2",
+   "archive_timestamp": "20260208215826",
+   "bytes": 1343840,
+   "sha256": "92209b0a327a19e32d1f1666a990e0acff3e44a2c186b07a433db81ae1353a42"
+  },
+  "4-2-27.spk.txt.bz2": {
+   "batch": 4,
+   "culture": 2,
+   "div": 27,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/4-2-27.spk.txt.bz2",
+   "archive_timestamp": "20260208220230",
+   "bytes": 1487989,
+   "sha256": "f1cef836b90be9a3989eaf9e9caa4fd16efec081f0097fc3a9da802e69085d71"
+  },
+  "4-2-29.spk.txt.bz2": {
+   "batch": 4,
+   "culture": 2,
+   "div": 29,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/4-2-29.spk.txt.bz2",
+   "archive_timestamp": "20260208215958",
+   "bytes": 1767331,
+   "sha256": "f13fc91f79c8a3084aa1668001cbfabbc5328c675a794303f898480698df4657"
+  },
+  "5-1-24.spk.txt.bz2": {
+   "batch": 5,
+   "culture": 1,
+   "div": 24,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/5-1-24.spk.txt.bz2",
+   "archive_timestamp": "20260208215909",
+   "bytes": 1928299,
+   "sha256": "bf8610fefe7fc59e7347b8ae41e6d063cc082ff240373ad237544e19eb683ae8"
+  },
+  "5-1-27.spk.txt.bz2": {
+   "batch": 5,
+   "culture": 1,
+   "div": 27,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/5-1-27.spk.txt.bz2",
+   "archive_timestamp": "20260208220229",
+   "bytes": 3233255,
+   "sha256": "6c2a5a9fdce45a7580cb962bff2f2fe5da7e738aefd2b6aca3f2ce5495d7f81d"
+  },
+  "5-1-31.spk.txt.bz2": {
+   "batch": 5,
+   "culture": 1,
+   "div": 31,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/5-1-31.spk.txt.bz2",
+   "archive_timestamp": "20260208215817",
+   "bytes": 2603407,
+   "sha256": "ec5c349873f4d77f704fdaf487fd76b126dff42500dc04c26cedaafe2d1032e1"
+  },
+  "5-2-24.spk.txt.bz2": {
+   "batch": 5,
+   "culture": 2,
+   "div": 24,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/5-2-24.spk.txt.bz2",
+   "archive_timestamp": "20260208215815",
+   "bytes": 895477,
+   "sha256": "a0d5a8c72d854784ce58e69db0ca80ae93491d26873881aeb29e6b703c1998b0"
+  },
+  "5-2-27.spk.txt.bz2": {
+   "batch": 5,
+   "culture": 2,
+   "div": 27,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/5-2-27.spk.txt.bz2",
+   "archive_timestamp": "20260208215841",
+   "bytes": 883926,
+   "sha256": "de8de951065ca48a3adf89e9a9c55f4494b732a67840e8260b6bfe28fd625920"
+  },
+  "5-2-31.spk.txt.bz2": {
+   "batch": 5,
+   "culture": 2,
+   "div": 31,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/5-2-31.spk.txt.bz2",
+   "archive_timestamp": "20260208215830",
+   "bytes": 994595,
+   "sha256": "078a8d0849236fa27b0506af3486022cc4a74b19df4826a206b598737a4923e0"
+  },
+  "5-3-27.spk.txt.bz2": {
+   "batch": 5,
+   "culture": 3,
+   "div": 27,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/5-3-27.spk.txt.bz2",
+   "archive_timestamp": "20260208215918",
+   "bytes": 3545149,
+   "sha256": "e4f5000fd25e38a13e453f6d3e9a97c7635516bd9f57ae16cfe2c41a46b1633d"
+  },
+  "5-3-31.spk.txt.bz2": {
+   "batch": 5,
+   "culture": 3,
+   "div": 31,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/5-3-31.spk.txt.bz2",
+   "archive_timestamp": "20260208215827",
+   "bytes": 1984771,
+   "sha256": "367033a114875846ca0a114715ba16f664f11d5e95d400b1597130ace1973e18"
+  },
+  "6-1-24.spk.txt.bz2": {
+   "batch": 6,
+   "culture": 1,
+   "div": 24,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/6-1-24.spk.txt.bz2",
+   "archive_timestamp": "20260208215825",
+   "bytes": 6796153,
+   "sha256": "47c23e64c4fa3a53294cced2de17a821420b0c3ba09c5f3e1031ad9564346e30"
+  },
+  "6-1-28.spk.txt.bz2": {
+   "batch": 6,
+   "culture": 1,
+   "div": 28,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/6-1-28.spk.txt.bz2",
+   "archive_timestamp": "20260208215838",
+   "bytes": 5231201,
+   "sha256": "168df8b7eb14cc349db7d8bc87c7a94a43ea7a4283309e604f702d3923c2951a"
+  },
+  "6-1-32.spk.txt.bz2": {
+   "batch": 6,
+   "culture": 1,
+   "div": 32,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/6-1-32.spk.txt.bz2",
+   "archive_timestamp": "20260208220711",
+   "bytes": 3516095,
+   "sha256": "da522dd46f6e3ff97fed9a41427244310d5eb8231de068b5df17f9ed2cb8a06b"
+  },
+  "6-3-24.spk.txt.bz2": {
+   "batch": 6,
+   "culture": 3,
+   "div": 24,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/6-3-24.spk.txt.bz2",
+   "archive_timestamp": "20260208215808",
+   "bytes": 9609994,
+   "sha256": "2f4ed45aecb419f8c0bc37ac624c07e4785b4d52bf2ee3c4c9322af3ffb5489e"
+  },
+  "6-3-28.spk.txt.bz2": {
+   "batch": 6,
+   "culture": 3,
+   "div": 28,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/6-3-28.spk.txt.bz2",
+   "archive_timestamp": "20260208220224",
+   "bytes": 4755037,
+   "sha256": "98792c04e46a2585faedb92562745167d4d86ba10e1adc9ca4a816b03a8e8de9"
+  },
+  "6-3-32.spk.txt.bz2": {
+   "batch": 6,
+   "culture": 3,
+   "div": 32,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/6-3-32.spk.txt.bz2",
+   "archive_timestamp": "20260208215921",
+   "bytes": 2136952,
+   "sha256": "c31640cf901c4f541da3c01687bb79d1c78e561b17837c358c650eb15fc2877d"
+  },
+  "7-1-21.spk.txt.bz2": {
+   "batch": 7,
+   "culture": 1,
+   "div": 21,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/7-1-21.spk.txt.bz2",
+   "archive_timestamp": "20260208215911",
+   "bytes": 261357,
+   "sha256": "3b6f0828ef4a6ddefbe2b690c07d116c5188b0ec43f36ec56fd4fa5129bcd74b"
+  },
+  "7-1-31.spk.txt.bz2": {
+   "batch": 7,
+   "culture": 1,
+   "div": 31,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/7-1-31.spk.txt.bz2",
+   "archive_timestamp": "20260208220010",
+   "bytes": 918704,
+   "sha256": "1908eae275bed8beb9566dc57f856864217e3d7d9355602a2a7feb9b78929da0"
+  },
+  "7-1-32.spk.txt.bz2": {
+   "batch": 7,
+   "culture": 1,
+   "div": 32,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/7-1-32.spk.txt.bz2",
+   "archive_timestamp": "20260208220005",
+   "bytes": 1178319,
+   "sha256": "bad03ed05c90403ea09b2666a17762107f0995b94157b155b461d7cf2c0f5852"
+  },
+  "7-2-21.spk.txt.bz2": {
+   "batch": 7,
+   "culture": 2,
+   "div": 21,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/7-2-21.spk.txt.bz2",
+   "archive_timestamp": "20260208215833",
+   "bytes": 618925,
+   "sha256": "f202fc7d333c67adb356481e0cf1c7e4fffdbdc588e13184543f69d76c12e006"
+  },
+  "7-2-31.spk.txt.bz2": {
+   "batch": 7,
+   "culture": 2,
+   "div": 31,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/7-2-31.spk.txt.bz2",
+   "archive_timestamp": "20260208215811",
+   "bytes": 1910359,
+   "sha256": "417b1b941608964d923da325a4cb98c6f8a55dd351b0192d8510b1a6c2624dc6"
+  },
+  "7-2-32.spk.txt.bz2": {
+   "batch": 7,
+   "culture": 2,
+   "div": 32,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/7-2-32.spk.txt.bz2",
+   "archive_timestamp": "20260208215844",
+   "bytes": 2007347,
+   "sha256": "7693ea8c755c689ce89771e977866eecd2ded1b48e94aaa62932c43d3324e0bc"
+  },
+  "8-1-24.spk.txt.bz2": {
+   "batch": 8,
+   "culture": 1,
+   "div": 24,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/8-1-24.spk.txt.bz2",
+   "archive_timestamp": "20260208215826",
+   "bytes": 661907,
+   "sha256": "b0bc6ae73968ab2de3ed159fe30f9a7f44a9b092888cbf211234a09255d8d849"
+  },
+  "8-1-28.spk.txt.bz2": {
+   "batch": 8,
+   "culture": 1,
+   "div": 28,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/8-1-28.spk.txt.bz2",
+   "archive_timestamp": "20260208215838",
+   "bytes": 948205,
+   "sha256": "3f2ae2437dd7e7bbd4f275e0765444d7a5020be226912cb22ffcf33009c1b6ec"
+  },
+  "8-1-31.spk.txt.bz2": {
+   "batch": 8,
+   "culture": 1,
+   "div": 31,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/8-1-31.spk.txt.bz2",
+   "archive_timestamp": "20260208220027",
+   "bytes": 1317157,
+   "sha256": "212314db7e81092d833272b1628ebbb4094ae61f8752bf33987b62f8d7b349c5"
+  },
+  "8-2-24.spk.txt.bz2": {
+   "batch": 8,
+   "culture": 2,
+   "div": 24,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/8-2-24.spk.txt.bz2",
+   "archive_timestamp": "20260208215849",
+   "bytes": 1749056,
+   "sha256": "0dd6c266309b1679a2177f71999004db3b652d7fe3927d3187442ac3aa7b7c67"
+  },
+  "8-2-28.spk.txt.bz2": {
+   "batch": 8,
+   "culture": 2,
+   "div": 28,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/8-2-28.spk.txt.bz2",
+   "archive_timestamp": "20260208220002",
+   "bytes": 2359505,
+   "sha256": "4d314c7061434dc08e6af9fc93aee4a15384cb2f6efa4d8e8b89c6886721596d"
+  },
+  "8-2-31.spk.txt.bz2": {
+   "batch": 8,
+   "culture": 2,
+   "div": 31,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/8-2-31.spk.txt.bz2",
+   "archive_timestamp": "20260208215847",
+   "bytes": 3232117,
+   "sha256": "745fc4c0d0004d7b52b218f8e2ba45bd6497534a665cd72e1800f1c50d0b9181"
+  },
+  "8-3-24.spk.txt.bz2": {
+   "batch": 8,
+   "culture": 3,
+   "div": 24,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/8-3-24.spk.txt.bz2",
+   "archive_timestamp": "20260208220011",
+   "bytes": 2953085,
+   "sha256": "5651472bd3de6e35bbc14e0509903ad1b6726699f04c0085b421aac4c24f90ea"
+  },
+  "8-3-28.spk.txt.bz2": {
+   "batch": 8,
+   "culture": 3,
+   "div": 28,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/8-3-28.spk.txt.bz2",
+   "archive_timestamp": "20260208215932",
+   "bytes": 3435609,
+   "sha256": "28b7b9f12b7e3d8f28af6d08bdf730eee42b7c8a319b5446f93f6709406bff54"
+  },
+  "8-3-31.spk.txt.bz2": {
+   "batch": 8,
+   "culture": 3,
+   "div": 31,
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/8-3-31.spk.txt.bz2",
+   "archive_timestamp": "20260208224751",
+   "bytes": 4570241,
+   "sha256": "7f3fc6e7df742a665cc0b0689de549444c57419938079099c78790c72f2c3c29"
+  }
+ },
+ "robbins": {
+  "file": "aggregated_experiment_data.pkl",
+  "source": "https://zenodo.org/api/records/17684862/files/aggregated_experiment_data.pkl/content",
+  "doi": "10.5281/zenodo.17684862",
+  "license": "CC-BY-4.0",
+  "md5": "af99f1f859136ca4a6dad47a1aa7c86d",
+  "bytes": 83234635
+ },
+ "failed": {
+  "5-3-24.spk.txt.bz2": {
+   "source": "https://potterlab.bme.gatech.edu/development-data/simple-text/daily/spont/dense/5-3-24.spk.txt.bz2",
+   "archive_timestamp": "20260208215958",
+   "error": "IncompleteRead(2807817 bytes read, 967712 more expected)"
+  }
+ }
+}

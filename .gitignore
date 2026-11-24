@@ -22,3 +22,6 @@ outputs/**/ckpt/
 
 # Third-party weights: Menlo's teacher policy exported to numpy (rebuilt by wsp/controller/export_teacher.py), not ours to publish
 wsp/controller/teacher_weights.npz
+
+# Public data from other labs (track B, B0): third-party files, never committed
+outputs/public_data/raw/
