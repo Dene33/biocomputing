@@ -77,7 +77,9 @@ step, on the simulated culture (20,000 neurons, 256-electrode grid at 100 um, fo
    is ours: bl1's arms "passed" the old gate by running down, and calm by muting doesn't count. Controls: no
    plasticity stays in that band, and the old 5 s step runs away (> 1.5x), so the test can see what B1 must stop.
    Reported, not gated: the rate per minute (``rate_ratio_60s``), encoder -> decoder gains per minute (B2's half of
-   the drift gate), the mean E->E weight against its start. Output: <out>/drift_scaling.json (rows and gate_B1).
+   the drift gate), the mean E->E weight against its start, the share of neurons above 1.5x their own resting rate
+   (floored) in the last 60 s, in every arm. The gate and the pathway test below count only arms of the full 10
+   minutes; shorter ones are reported as untested. Output: <out>/drift_scaling.json (rows and gate_B1).
 
         uv run scripts/launch.py --unit bio-b1 --log outputs/drift_scaling/run.log -- \
             scripts/cartpole_replication.py --drift --drift-seeds 0 1 2 --drift-scales 0 1 \
@@ -402,6 +404,11 @@ def spec_tag(spec):
 # Encoders and decoders per culture seed, from characterise/configure in the replication (run_task.log).
 DRIFT_CONFIGS = {0: ([136, 155], [137, 139]), 1: ([129, 34], [113, 35]), 2: ([217, 100], [233, 116])}
 B1_BAND = (2 / 3, 1.5)  # gate B1: last-minute rate per electrode within a factor 1.5 of rest, either way
+GATE_MINUTES = 10  # the drift gate's length: gate B1 and the pathway test count only arms this long
+
+
+def long_enough(r):
+    return r is not None and r["seconds"] >= 60 * GATE_MINUTES
 
 
 def resting_rates(dev, seconds=20.0):
@@ -441,10 +448,12 @@ def gate_b1(rows, eta=1e-5):
     for sd in seeds:
         row = {name: (by.get((sd, x, h)) or {}).get("rate_ratio") for name, x, h in
                (("off", 0.0, 0.0), ("scaling", 0.0, eta), ("stdp_scaling", 1.0, eta), ("stdp_old_step", 1.0, 0.0))}
-        row["pass"] = inb(by.get((sd, 0.0, eta))) and inb(by.get((sd, 1.0, eta)))
+        gated = [by.get((sd, 0.0, eta)), by.get((sd, 1.0, eta))]
+        row["pass"] = all(inb(r) for r in gated)
         row["controls_ok"] = inb(by.get((sd, 0.0, 0.0))) and (by.get((sd, 1.0, 0.0)) or {}).get("rate_ratio", 0) > hi
+        row["tested"] = all(long_enough(r) for r in gated)
         out["per_culture"][str(sd)] = row
-    out["tested"] = len(seeds) >= 3 and all(v["stdp_scaling"] is not None for v in out["per_culture"].values())
+    out["tested"] = len(seeds) >= 3 and all(v["tested"] for v in out["per_culture"].values())
     out["pass"] = out["tested"] and all(v["pass"] for v in out["per_culture"].values())
     return out
 
@@ -466,23 +475,33 @@ def pathways_vs_off(rows, eta=1e-5, max_moved=1):
         for (s2, x, h), r in sorted(by.items()):
             if s2 != sd or (x == 0 and not h):
                 continue
+            ok = long_enough(r) and long_enough(off)  # shorter arms have no spread to test against (SE NaN)
             g = np.array(r["gain_60s"])
-            se = np.sqrt(g[1:].std(0, ddof=1) ** 2 / 3 + g0[1:].std(0, ddof=1) ** 2 / 3)
+            se = np.sqrt(g[1:].std(0, ddof=1) ** 2 / 3 + g0[1:].std(0, ddof=1) ** 2 / 3) if ok else np.nan
             diff = g[-3:].mean(0) - g0[-3:].mean(0)
             moved = np.abs(diff) > 2 * se
             cult[f"x{x:g}_homeo{h:g}"] = {
-                "own_diff": [round(float(diff[k, k]), 2) for k in (0, 1)],
+                "tested": ok, "own_diff": [round(float(diff[k, k]), 2) for k in (0, 1)],
                 "cross_diff": [round(float(diff[k, 1 - k]), 2) for k in (0, 1)],
-                "moved_own": int(moved[0, 0] + moved[1, 1]), "moved_cross": int(moved[0, 1] + moved[1, 0])}
+                "moved_own": int(moved[0, 0] + moved[1, 1]) if ok else None,
+                "moved_cross": int(moved[0, 1] + moved[1, 0]) if ok else None}
         out["per_culture"][str(sd)] = cult
     key = f"x1_homeo{eta:g}"
     arms = [c.get(key) for c in out["per_culture"].values()]
     rates = [by.get((int(sd), 1.0, eta), {}).get("rate_ratio") for sd in out["per_culture"]]
     lo, hi = B1_BAND
-    out["moved_at_eta"] = sum(a["moved_own"] + a["moved_cross"] for a in arms if a) if all(arms) else None
-    out["reading"] = (len(arms) >= 3 and all(arms) and all(r is not None and lo <= r <= hi for r in rates)
+    tested = len(arms) >= 3 and all(a and a["tested"] for a in arms)
+    out["moved_at_eta"] = sum(a["moved_own"] + a["moved_cross"] for a in arms) if tested else None
+    out["reading"] = (tested and all(r is not None and lo <= r <= hi for r in rates)
                       and out["moved_at_eta"] <= max_moved)
     return out
+
+
+def drift_summary(rows, rule):
+    """What a scaling run reports: gate B1, defined for additive STDP and so given only for additive runs, and the
+    pathway test."""
+    return {"stdp_rule": rule} | ({"gate_B1": gate_b1(rows)} if rule == "additive" else {}) | {
+        "pathways": pathways_vs_off(rows)}
 
 
 def drift(job):
@@ -516,11 +535,12 @@ def drift(job):
         rng.bit_generator.state = S.pop("rng")
     else:
         rates, rest_hz = resting_rates(dev, seconds=opts["rest_s"])
+        target = np.maximum(rates, spec["floor"])  # each neuron's own: the brakes' target and every arm's yardstick
         if spec["eta"]:
-            stdp.set_targets(c, np.maximum(rates, spec["floor"]))
+            stdp.set_targets(c, target)
         if homeo is not None:
-            homeo.set_targets(c, np.maximum(rates, spec["floor"]))
-        S = {"i": 0, "X": [], "Y": [], "N": [], "last": {e: -1e9 for e in enc}, "th": 0.0,
+            homeo.set_targets(c, target)
+        S = {"i": 0, "X": [], "Y": [], "N": [], "last": {e: -1e9 for e in enc}, "th": 0.0, "target_hz": target,
              "neuron_rest_hz": round(float(rates.mean()), 3), "rest_hz_per_electrode": round(float(rest_hz), 2),
              "w_ee_start": float(c.w[ee].mean())}
     c.plasticity = rule if plastic else None
@@ -555,13 +575,11 @@ def drift(job):
     inh = ~c.syn_exc
     w_inh = c.w[inh]
     end_hz = S["neuron_end"] / (min(300, n_reads) * 0.2)
-    target = (stdp._targets if spec["eta"] else homeo._targets if homeo is not None else None)
-    target = target.cpu().numpy() if target is not None else np.full(c.n, S["neuron_rest_hz"])
     diag = {"inh_at_cap": round(float((w_inh >= (spec["w_max_inh"] if spec["eta"] else c.cfg.w_max) - 1e-3)
                                       .float().mean()), 3),
             "inh_at_zero": round(float((w_inh <= 1e-3).float().mean()), 3), "w_inh_max": round(float(w_inh.max()), 2),
             "neuron_end_hz": round(float(end_hz.mean()), 3),
-            "neurons_over_1p5x_target": round(float((end_hz > 1.5 * target).mean()), 3)}
+            "neurons_over_1p5x_target": round(float((end_hz > 1.5 * S["target_hz"]).mean()), 3)}
     row = {"arm": arm, **spec, "seconds": seconds, **diag,
            "hz_per_electrode_10s": np.round(per10(hz), 1).tolist(),
            "dec_hz_10s": np.round(per10(Y) / 0.2, 1).tolist(),
@@ -826,7 +844,7 @@ def main():
         res = [json.loads((out / "jobs" / f"{j[1]}.json").read_text()) for j in arms]
         name = "drift" + ("" if a.stdp_rule == "additive" else f"_{a.stdp_rule}") + (
             "_istdp" if any(eta for eta, _ in pairs) else "") + ("_scaling" if any(a.drift_homeo) else "")
-        summary = {"gate_B1": gate_b1(res), "pathways": pathways_vs_off(res)} if any(a.drift_homeo) else {}
+        summary = drift_summary(res, a.stdp_rule) if any(a.drift_homeo) else {}
         if summary:
             print(json.dumps(summary), flush=True)
         (out / f"{name}.json").write_text(json.dumps({"rows": res} | summary if summary else res, indent=1))
