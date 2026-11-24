@@ -67,7 +67,8 @@ step, on the simulated culture (20,000 neurons, 256-electrode grid at 100 um, fo
    Track B, step B1 (docs/route-to-computation.md, "Order of work without a dish"): a rate controller.
    ``--drift-homeo ETA`` replaces the 5 s total-input step with per-neuron synaptic scaling (plasticity.py,
    SynapticScaling: bl1's rule, each neuron's target its own resting rate with floor ``--target-floor``, rate
-   estimate a 10 s moving average, E->E weights x (1 + eta x 200 ms x (target - rate)) every 200 ms).
+   estimate a 10 s moving average, E->E weights x exp(eta x 200 ms x (target - rate)) every 200 ms; the runs of
+   24 Nov 2026 used bl1's 1 + eta x 200 ms x (target - rate), which can go negative, see plasticity.py).
    ``--drift-seeds`` runs the test on the replication's cultures 0, 1, 2 (their encoders and decoders from
    run_task.log). Arms per culture: no plasticity; scaling alone; STDP x1 with the old 5 s step (the runaway, as
    above); STDP x1 with scaling instead. bl1's eta 1e-5 is the gate's; 1e-4 runs after it, exploratory.

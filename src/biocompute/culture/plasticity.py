@@ -25,10 +25,12 @@ every neuron; ``set_targets`` gives each neuron its own (e.g. its resting rate).
 ``w_max_inh`` (default: the culture's ``w_max``, as before).
 
 - ``SynapticScaling``: per-neuron homeostatic synaptic scaling (Turrigiano 2008), bl1's rule
-  (github.com/m9h/bl1, plasticity/homeostatic.py) with its target bug fixed: each neuron's target is its own
-  resting rate (``set_targets``), not one 5 Hz for all. A rate estimate per neuron (moving average, 10 s) is updated
-  every substep; every ``every_ms`` the E->E weights onto each neuron scale by 1 + eta x every_ms x (target - rate),
-  eta per ms. A slow, activity-driven alternative to scripts/coach_probe.py's ``scale``, which resets every neuron's
+  (github.com/m9h/bl1, plasticity/homeostatic.py) with two fixes: each neuron's target is its own resting rate
+  (``set_targets``), not one 5 Hz for all; and each step multiplies by exp(eta x interval x (target - rate)), the
+  exact solution of bl1's equation, not by its Euler step 1 + eta x interval x (target - rate), which goes negative far
+  above target and silences the neuron's E->E input for good. A rate estimate per neuron (moving average, 10 s) is
+  updated every substep; every ``every_ms`` (rounded to whole substeps) the E->E weights onto each neuron scale by
+  that factor, eta per ms. A slow, activity-driven alternative to scripts/coach_probe.py's ``scale``, which resets every neuron's
   total excitatory input to its start every 5 s. Alone it holds rates at rest; with additive STDP it can't (track
   B1, cartpole_replication.py --drift --drift-homeo). With weight-dependent STDP at eta 1e-4 it holds rates, but
   one input still takes over both outputs.
@@ -236,6 +238,7 @@ class SynapticScaling:
         self.decay = math.exp(-dt / self.tau_rate_ms)
         self.hz_per_spike = 1000.0 / dt
         self.every = max(int(round(self.every_ms / dt)), 1)
+        self.step_ms = self.every * dt  # the interval actually applied (every_ms rounded to whole substeps)
         self.count = 0
         self._ready = True
 
@@ -246,8 +249,11 @@ class SynapticScaling:
             self.rate = self._targets.clone()
 
     def factor(self, culture) -> torch.Tensor:
-        """The multiplier each neuron's incoming E->E weights get at the next scaling step."""
-        f = 1.0 + self.eta * self.every_ms * (self._targets - self.rate)
+        """The multiplier each neuron's incoming E->E weights get at the next scaling step: the exact solution of
+        dW/dt = eta (target - rate) W over the interval. bl1's Euler step, 1 + eta x interval x (target - rate),
+        turns negative once the rate is more than 1/(eta x interval) above target (50 Hz at eta 1e-4) and zeroes every
+        weight onto the neuron for good; this one stays positive and equals it to first order."""
+        f = torch.exp(self.eta * self.step_ms * (self._targets - self.rate))
         return torch.where(culture.alive, f, torch.ones_like(f))
 
     def on_substep(self, culture, spikes: torch.Tensor) -> None:
@@ -289,7 +295,7 @@ class Chain:
         return [r.state() for r in self.rules]
 
     def load_state(self, culture, st: list) -> None:
-        for r, s in zip(self.rules, st):
+        for r, s in zip(self.rules, st, strict=True):  # a state saved from other rules must not load partly
             r.load_state(culture, s)
 
 

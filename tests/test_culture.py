@@ -223,21 +223,26 @@ def test_guard_catches_weights_bounded_below_their_cap(tmp_path):
 
 
 def test_synaptic_scaling_scales_only_ee_weights_onto_neurons_off_target():
-    """bl1's rule: every E->E weight onto a neuron above its target shrinks by 1 + eta x interval x (target - rate);
-    neurons at their target, and every synapse that isn't E->E, are left alone."""
+    """Every E->E weight onto a neuron off its target is multiplied by exp(eta x interval x (target - rate)), the
+    interval being the one applied (every_ms rounded to whole substeps); neurons at their target, and every synapse
+    that isn't E->E, are left alone. Far above target the weights shrink but survive: bl1's Euler step would be
+    1 - 1e-3 x 1.0 x 5000 = -4 there, and the clamp would zero them for good."""
     from biocompute.culture.plasticity import SynapticScaling
 
     c = small_culture(seed=7)
-    s = SynapticScaling(eta=1e-3, every_ms=1.0, tau_rate_ms=1e9)  # rate estimate effectively frozen
+    s = SynapticScaling(eta=1e-3, every_ms=1.2, tau_rate_ms=1e9)  # applied every 2 substeps = 1.0 ms; rate frozen
     s.set_targets(c, torch.full((c.n,), 5.0))
-    s.on_substep(c, torch.zeros(c.n, dtype=torch.bool))  # sets up; no scaling yet (every = 2 substeps)
-    s.rate[: c.n // 2] = 15.0
+    s.on_substep(c, torch.zeros(c.n, dtype=torch.bool))  # sets up; no scaling yet
+    q = c.n // 4
+    s.rate[:q], s.rate[q:2 * q] = 15.0, 5005.0
     s.on_substep(c, torch.zeros(c.n, dtype=torch.bool))
     ee = c.syn_exc & c.excitatory[c.post]
-    hot = c.post < c.n // 2
-    assert (ee & hot).any() and (ee & ~hot).any()
-    torch.testing.assert_close(c.w[ee & hot], c.w0[ee & hot] * (1 + 1e-3 * 1.0 * (5.0 - 15.0)))
-    torch.testing.assert_close(c.w[ee & ~hot], c.w0[ee & ~hot], rtol=1e-6, atol=0.0)
+    for lo, rate in ((0, 15.0), (q, 5005.0)):
+        m = ee & (c.post >= lo) & (c.post < lo + q)
+        assert m.any()
+        torch.testing.assert_close(c.w[m], c.w0[m] * float(np.exp(1e-3 * 1.0 * (5.0 - rate))))
+    at = ee & (c.post >= 2 * q)
+    torch.testing.assert_close(c.w[at], c.w0[at], rtol=1e-6, atol=0.0)
     assert torch.equal(c.w[~ee], c.w0[~ee])
 
 
@@ -257,15 +262,20 @@ def test_synaptic_scaling_rate_estimate_tracks_firing():
 
 
 def test_chain_of_stdp_and_scaling_resumes_exactly():
+    """The checkpoint falls between two scaling steps, so a scaling clock that didn't survive it would shift every
+    later step; the scaling must have acted (the weights differ from STDP alone); and a state saved from other rules
+    is refused, not loaded in part."""
+    import pytest
+
     from biocompute.culture.plasticity import STDP, Chain, SynapticScaling
 
     def rules():
-        return Chain(STDP(), SynapticScaling(eta=1e-4, every_ms=20.0))
+        return Chain(STDP(), SynapticScaling(eta=1e-4, every_ms=20.0))  # scaling every 40 substeps
 
     a = small_culture(seed=8)
     a.plasticity = rules()
     a.plasticity.rules[1].set_targets(a, torch.full((a.n,), 0.5))
-    a.run(200.0)
+    a.run(190.0)  # 380 substeps
     cst, pst = a.state(), a.plasticity.state()
     a.run(200.0)
     b = small_culture(seed=8)
@@ -273,5 +283,10 @@ def test_chain_of_stdp_and_scaling_resumes_exactly():
     b.plasticity = rules()
     b.plasticity.load_state(b, pst)
     b.run(200.0)
-    assert not torch.equal(a.w, a.w0)
     assert torch.equal(a.w, b.w)
+    stdp_only = small_culture(seed=8)
+    stdp_only.plasticity = STDP()
+    stdp_only.run(390.0)
+    assert not torch.equal(a.w, stdp_only.w)
+    with pytest.raises(ValueError):
+        Chain(STDP()).load_state(b, pst)
