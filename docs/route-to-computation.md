@@ -3,6 +3,11 @@
 22 November 2026. Builds on [next-steps.md](next-steps.md) and the README's status. Each claim cites the script and
 commit that produced it. Simulated results are statements about our model; each is a hypothesis for a real dish.
 
+**Status, 24 November 2026.** The routes below are ranked for real hardware, and every one of their gates needs a
+dish. We have no culture and no physical robot for now, so the routes are parked. The current work is in
+[Order of work without a dish](#order-of-work-without-a-dish); what waits is listed under
+[Parked until dish access](#parked-until-dish-access).
+
 ## The bar
 
 A route has to clear all five:
@@ -171,24 +176,89 @@ remote loop is too slow.
 Encoder → dish → decoder controlled the robot, and still did without the dish: the trained decoder did the work.
 On 32–59 electrodes no reservoir carries a 23-joint policy.
 
-## Order of work
+## Order of work without a dish
 
-1. **No new hardware.** Write the B1, C1 and A1 protocols as stimulation schedules plus analysis scripts for the
-   CL API. Run no more simulated learning experiments until the culture model reproduces a published learning effect
-   (the cart-pole gap: 23% proficient with adaptive training vs 2–5% without). Until then, its negative learning results say nothing about real dishes. First
-   it must answer two electrode groups with different responses, keep a change in one pathway specific to that
-   pathway, and hold its weights steady without an added scaling step. The cart-pole replication names the missing
-   piece: the model has nothing that holds firing *rates* in place under stimulation. One time-boxed attempt to add
-   it (inhibitory plasticity, 2026-11-23) failed the drift test (`cartpole_replication.py --drift`: rates and
-   pathway specificity steady for 10 minutes of task stimulation): rates fell close to the gate, specificity never
-   held. A further attempt is a modelling project of its own (inhibitory plasticity on I→E synapses only,
-   intrinsic excitability homeostasis); until then, learning questions go to a real dish. An outside model
-   doesn't fill the gap: bl1 (1e3f994) fails the same drift test in 5 cultures. Its per-neuron synaptic scaling is
-   the piece worth porting as the missing rate controller (it holds rates on its own), but with STDP on, pathways
-   still move within minutes, so porting it would not make the model coachable by itself.
-2. **First real-dish session**, one culture: A1 (channel, ~20 min), C1 (open-loop pushes, ~20 min, then blockers at
+24 November 2026. No real culture and no physical robot are available for now, so everything runs in simulation (the
+robot in MuJoCo). Two tracks; each step has a gate fixed in advance. Everything that needs a dish or the robot is
+under [Parked until dish access](#parked-until-dish-access). The track steps (A1, A2, B0–B4) are not the real-dish
+gates of the same names in the routes above.
+
+### Track A: the simulated culture in the robot's loop
+
+This is Phase 3.3 of [next-steps.md](next-steps.md#33-closed-loop), and route 3 rehearsed in simulation.
+
+- **A1. Closed loop** (`closed_loop_vestibular.py`).
+  - Only the 6 IMU values go through the dish. Joint states and the last action go straight to the controller.
+  - Everything is fixed before the first closed-loop seed. The decoder (ridge, 40 ms trace) is fitted on open-loop
+    replays of teacher episodes, and the 1/gain weight edit comes from held-out replay. Plasticity is off: a relay
+    doesn't need it, and the model's plasticity is its known flaw.
+  - Main configuration: 1 well × 12 electrodes (CL1-sized). Comparison: 1 × 32.
+  - Six arms, 40 fresh seeds each: culture with the edited teacher; culture with the unchanged teacher; dish silenced;
+    ideal IMU; dead culture (recurrent synapses removed) with its own refitted decoder and edit; zero action.
+  - **Gate:** the culture arm reaches ≥ 34/40 full 20 s runs, and the silenced dish 0/40. The dead culture will
+    probably match the live one. If so, we report it plainly: the dish relays and computes nothing.
+- **A2. Sessions and drift.**
+  - Between "sessions", age the culture (`aging.py`: 1, 3 and 7 days), and add a fresh culture seed to stand for a
+    new dish.
+  - Compare the stale decoder with one recalibrated from a short open-loop replay (~60 s) plus only the 1/gain edit.
+  - **Gate:** after aging, the recalibrated relay reaches ≥ 34/40 where the stale one drops. This tests route 3's
+    claim that a session needs only one weight edit.
+
+### Track B: a culture model good enough for learning questions
+
+Why: until the model reproduces a published learning effect, its learning results say nothing about real dishes. The
+cart-pole replication named the missing piece: nothing holds firing rates in place under stimulation. One time-boxed
+fix with inhibitory plasticity failed the drift test (rates near the gate, specificity never steady), and bl1
+(1e3f994) fails it too. bl1's per-neuron synaptic scaling holds rates on its own, so it is the piece worth porting,
+but with STDP on its pathways still move. So the track is time-boxed, and every step has a gate; a failed gate ends
+the track with a write-up, and learning questions wait for a dish.
+
+- **B0. Public data** (CPU, alongside A1). Recordings of real cultures from other labs:
+  - Wagenaar et al. 2006, dissociated cortical cultures (spontaneous, plus stimulation sets if published);
+  - FinalSpark's free dataset (request form);
+  - the Robbins et al. Zenodo record (10.5281/zenodo.17684862), if it holds recordings.
+
+  Extract per-electrode rates, burst rate, burst duration, inter-burst interval, recruitment, and the stability of
+  evoked responses if there is stimulation data.
+- **B1. Rate controller.** Per-neuron synaptic scaling: bl1's rule with its target bug fixed. Each neuron's rate is
+  a 10 s moving average, and its E→E weights scale multiplicatively toward its own resting rate.
+  **Gate:** scaling alone holds rates at rest. In the drift test's rate half (3 cultures), with our STDP on, the rate
+  stays ≤ 1.5× rest over the last minute.
+- **B2. Stable pathways.** One round, then one refinement round. Each candidate is combined with B1:
+  weight-dependent STDP, inhibitory plasticity on I→E synapses only, a BCM-style sliding threshold, intrinsic
+  excitability homeostasis, heterosynaptic normalisation.
+  **Gate:** the full drift gate (rates and pathway specificity steady for 10 minutes) passes in ≥ 3 of 5 cultures.
+- **B3. Reproduce published effects.** This is the gate for any simulated learning result.
+  - Spontaneous statistics fall within the ranges of B0's data.
+  - Stimulus-specific adaptation (Eytan et al. 2003): with one site stimulated often and one rarely, the rare site's
+    responses stay relatively larger.
+  - The cart-pole gap (`cartpole_replication.py`), in ≥ 3 cultures: adaptive training ≥ 15% proficient, no training
+    and random training ≤ 5%, a frozen culture at the no-training level. The paper reports 23.1% against 2.3% and
+    4.5%.
+- **B4** (only if B3 passes). Rerun coaching in simulation (`coach_probe.py`) with route 1's bar: adaptive coaching
+  beats random and no feedback by ≥ 20 points in ≥ 4 cultures. This reopens Phase 4.2 in simulation, then 4.1.
+
+### Order
+
+1. A1 on the GPU, with B0 alongside (CPU and network).
+2. A2.
+3. B1, then B2, B3 and B4, each behind its gate.
+
+One GPU job at a time (8 GB card). Every run is guarded: a smoke test, in-run checks, a watchdog, 40 fresh seeds and
+the standard baselines.
+
+## Parked until dish access
+
+These wait until a real culture or the robot is available. Then the ranking of the routes above applies again.
+
+1. **First real-dish session**, one culture: A1 (channel, ~20 min), C1 (open-loop pushes, ~20 min, then blockers at
    the end), B1 (coaching, ~1 hour, before the blockers). Each decides its route on its own.
-3. **If B1 passes:** B2 on the dish; build the harness, torque limit and payload mount; B3.
-4. **If C1 passes:** A2, then C2 on a local loop.
-5. **If both fail:** the dish can't yet do useful work for this robot. Report the negative result with its
-   controls and pick the next job from the adaptation slot (`adaptation_slot.py`) with a richer choice.
+2. **What follows it.** If B1 passes: B2 on the dish, then B3 and B4 on the robot. If C1 passes: A2 and A3, then C2
+   on a local loop. If both fail: report the negative result with its controls and pick the next job from the
+   adaptation slot (`adaptation_slot.py`) with a richer choice.
+3. **Protocol scripts** for B1, C1 and A1 as stimulation schedules plus analysis, for the CL API and FinalSpark's
+   Neuroplatform.
+4. **Robot hardware:** a harness or gantry, the knee torque limit in the motor drivers, a payload mount at the
+   pelvis.
+5. **The drift test on a real dish**: whether a real culture keeps its rates and pathways steady under the task's
+   stimulation, which is what blocks our model.

@@ -202,7 +202,11 @@ its per-neuron synaptic scaling holds rates on its own, but with STDP on, pathwa
 (`bl1_drift.py`). Ranked routes: coached adaptation first (fits every platform, cart-pole
 precedent; a real dish decides), push detection tested open loop alongside it, the inner-ear relay as hardware testbed.
 
-**Next:** [docs/next-steps.md](docs/next-steps.md). Ideas behind it: [docs/organoid-control-ideas.md](docs/organoid-control-ideas.md).
+**Next** (24 November 2026). We have no real culture and no physical robot for now, so the work runs in two
+simulated tracks ([Order of work without a dish](docs/route-to-computation.md#order-of-work-without-a-dish)).
+Track A puts the simulated culture in the robot's loop (Phase 3.3 of [docs/next-steps.md](docs/next-steps.md)).
+Track B tries to make the culture model good enough to ask learning questions of, behind gates fixed in advance.
+Real-dish and real-robot steps are parked. Ideas behind it: [docs/organoid-control-ideas.md](docs/organoid-control-ideas.md).
 
 ## Limits of the simulation
 

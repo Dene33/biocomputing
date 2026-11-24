@@ -3,6 +3,17 @@
 21 November 2026. Context: [README, Status and findings](../README.md#status-and-findings-23-november-2026) and
 [organoid-control-ideas.md](organoid-control-ideas.md).
 
+**Status, 24 November 2026.**
+- **Done:** Phase 1.1 and Gate G1; the Phase 2 harness (2.1) and track (a); Phase 3.1; Phase 4's simulation tests
+  ([route-to-computation.md](route-to-computation.md)).
+- **Next:** Phase 3.3, the culture in the robot's loop. It is track A of the route doc's
+  [Order of work without a dish](route-to-computation.md#order-of-work-without-a-dish).
+- **Waiting:** Phase 4's learning questions, behind track B's gates in the same section.
+- **Parked:** Phase 5 and every real-robot step. There is no dish and no robot for now.
+- **Open, not in the current plan:** Phase 2 track (b).
+
+The "Where we are" section below is the 21 November starting point, kept for the record.
+
 ## Where we are
 
 **Task.** Asimov 1 stands for 20 s while 120–200 N pushes hit the pelvis every 3 s (`stand_push`).
@@ -55,6 +66,8 @@ For comparison, run the reverse: joints degraded, IMU exact.
 
 **Output:** `outputs/blind_teacher/results.json` and a tolerance table: the accuracy, latency and rate the dish must deliver.
 
+**Status: done** (64f452d).
+
 **Result** (`scripts/blind_teacher.py`, 40 fresh seeds, 20 s, on top of the loop's 1-step action latency; "tolerated"
 means ≥ 34/40 full runs, the 17/20 bar of Phase 3.3). Teacher 20.0 s, 40/40; zero action 4.8 s, 0/40.
 
@@ -91,7 +104,7 @@ is unbiased), graded output. Latency costs more than noise, so the decoder must 
 - **The teacher falls without IMU, but tolerates a usable degradation** (e.g. ≥ 0.3 × noise, or ≥ 2 steps of delay): go to the vestibular design.
 - **Joint encoders alone suffice:** the IMU isn't privileged. Either hide more from the robot side (e.g. joint velocities) until the dish's signal is necessary, or switch to the trigger or integrator designs in [organoid-control-ideas.md](organoid-control-ideas.md).
 
-**Verdict: pass, with one caveat.**
+**Verdict: pass, with one caveat** (done).
 - Without the IMU the teacher falls faster than zero action (1.0 s against 4.8 s).
 - It tolerates usable degradation: 1.0 × noise, 60 ms of delay, 10 Hz, each alone.
 - **Caveat:** this shows the fixed teacher *uses* the IMU, not that a controller retrained without it would fall. With
@@ -123,6 +136,8 @@ is unbiased), graded output. Latency costs more than noise, so the decoder must 
 
 ### 2.1 Harness
 
+**Status: done.** Built in `wsp/controller/`, with 60 validation seeds (20 were too noisy).
+
 Borrow csinva's *method*, not their transformer code.
 
 | File | Role |
@@ -141,7 +156,9 @@ Borrow csinva's *method*, not their transformer code.
 ### 2.2 Two search tracks
 
 - **(a) Edit the teacher's weights.** This is WSP in the original sense. Adapt the 208k-parameter teacher (78 → 512 → 256 → 128 → 23) so it works when its IMU inputs come from the dish (noisy, delayed or slower).
+  **Done:** scaling the first-layer IMU weights by 1/gain (results in Phase 3.1).
 - **(b) Write a transparent controller from scratch.** Slower, but it shows *which features of the state* balance needs. We couldn't answer that by analysis: additive per-signal features explain 0.49 of the hard part of the action, random nonlinear features 0.64.
+  **Open,** and not in the current plan.
 
 ### 2.3 Baselines
 
@@ -153,6 +170,8 @@ Borrow csinva's *method*, not their transformer code.
 ## Phase 3: the vestibular organoid (GPU, ~1–2 days)
 
 ### 3.1 Open-loop probe
+
+**Status: done** (fa16306).
 
 Uses the existing pipeline (`outputs/probe/encoding.py`).
 - Encode only the 6 IMU values, each spread over several electrodes: staggered thresholds, or a moving "bump" across the grid.
@@ -233,18 +252,29 @@ Zero action on the hidden test: 4.4 s, 0/40. With the dish silenced, every teach
 
 ### 3.3 Closed loop
 
-The dish plus the Phase 2 controller, on 20+ fresh seeds. Ablations:
+**Status: next.** This is track A of the route doc
+([Order of work without a dish](route-to-computation.md#order-of-work-without-a-dish)): step A1 is the closed loop
+below, step A2 adds sessions and drift.
+
+The dish plus the Phase 2 controller, on 40 fresh seeds. The decoder and the weight edit are fixed before the first
+closed-loop seed, and plasticity is off. Main configuration: 1 well × 12 electrodes (CL1-sized); comparison 1 × 32.
+Arms:
+- culture with the edited teacher (the main arm), and with the unchanged teacher;
 - dish silenced;
 - ideal IMU (no culture);
-- dead culture **with its own retrained decoder** (fixes the confound in today's dead-culture result).
+- dead culture **with its own refitted decoder and edit** (fixes the confound in the 21 November dead-culture result);
+- zero action.
 
-**Success:** ≥ 17/20 survive, silenced dish 0/N, ≤ 32 stimulation channels per well.
+**Success:** ≥ 34/40 survive (the 17/20 bar on 40 seeds), silenced dish 0/40, ≤ 32 stimulation channels per well.
 
 ## Phase 4: make the dish compute (the real claim)
 
-Tested in simulation and ranked against real hardware in [route-to-computation.md](route-to-computation.md). No
-memory beyond the input in any stimulation regime (4.1). For 4.2, the job exists (`adaptation_slot.py`), but the
-model culture can't be coached.
+**Status: simulation tests done; learning questions wait.** Tested in simulation and ranked against real hardware in
+[route-to-computation.md](route-to-computation.md). No memory beyond the input in any stimulation regime (4.1). For
+4.2, the job exists (`adaptation_slot.py`), but the model culture can't be coached. Simulated learning questions wait
+behind track B's gates in the route doc: a rate controller (B1), stable pathways (B2), and published effects
+reproduced, including the cart-pole gap (B3). Only if B3 passes does coaching rerun in simulation (B4), reopening 4.2
+and then 4.1.
 
 ### 4.1 Vestibular integrator
 
@@ -264,6 +294,8 @@ It counts as computation only if:
 
 ## Phase 5: hardware readiness (in parallel, when access exists)
 
+**Status: parked** until a real dish is available (route doc, [Parked until dish access](route-to-computation.md#parked-until-dish-access)).
+
 1. **Channel test on a real dish.** Replay recorded IMU sequences open-loop, record, fit the decoder offline, compare against the Phase 1 spec. It needs no real-time loop, so it could even run remotely on FinalSpark.
 2. **Calibrate the simulator** to the real dish with the Phase 3.2 encoding model: stimulation reach, gain, noise.
 3. **Device adapter** (CL API or MaxLab) implementing the `Biocomputer` protocol in `src/biocompute/device.py`.
@@ -278,8 +310,9 @@ It counts as computation only if:
 
 ## Order and decision points
 
-1. **Phase 1.1**, then Gate G1. Short, CPU.
-2. **Phase 2** (CPU and agent) **and Phase 3.1** (GPU) in parallel.
-3. **Phase 3.2–3.3** once both deliver.
-4. **Phase 4** after the vestibular closed loop works.
-5. **Phase 5** whenever hardware access appears. The channel test can start at once.
+1. **Phase 1.1**, then Gate G1: done.
+2. **Phase 2** harness and track (a), **Phase 3.1**: done. Track (b) is open and not in the current plan.
+3. **Phase 3.3**: next, as track A (A1, then A2).
+4. **Phase 4**: simulation tests done. Learning questions run in simulation only if track B's gates pass.
+5. **Phase 5** and every real-robot step: parked until access. The channel test can start as soon as a dish is
+   available.
