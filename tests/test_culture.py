@@ -220,3 +220,58 @@ def test_guard_catches_weights_bounded_below_their_cap(tmp_path):
     c.v[0] = float("nan")
     with pytest.raises(GuardFail):
         g.culture(c, stdp)
+
+
+def test_synaptic_scaling_scales_only_ee_weights_onto_neurons_off_target():
+    """bl1's rule: every E->E weight onto a neuron above its target shrinks by 1 + eta x interval x (target - rate);
+    neurons at their target, and every synapse that isn't E->E, are left alone."""
+    from biocompute.culture.plasticity import SynapticScaling
+
+    c = small_culture(seed=7)
+    s = SynapticScaling(eta=1e-3, every_ms=1.0, tau_rate_ms=1e9)  # rate estimate effectively frozen
+    s.set_targets(c, torch.full((c.n,), 5.0))
+    s.on_substep(c, torch.zeros(c.n, dtype=torch.bool))  # sets up; no scaling yet (every = 2 substeps)
+    s.rate[: c.n // 2] = 15.0
+    s.on_substep(c, torch.zeros(c.n, dtype=torch.bool))
+    ee = c.syn_exc & c.excitatory[c.post]
+    hot = c.post < c.n // 2
+    assert (ee & hot).any() and (ee & ~hot).any()
+    torch.testing.assert_close(c.w[ee & hot], c.w0[ee & hot] * (1 + 1e-3 * 1.0 * (5.0 - 15.0)))
+    torch.testing.assert_close(c.w[ee & ~hot], c.w0[ee & ~hot], rtol=1e-6, atol=0.0)
+    assert torch.equal(c.w[~ee], c.w0[~ee])
+
+
+def test_synaptic_scaling_rate_estimate_tracks_firing():
+    from biocompute.culture.plasticity import SynapticScaling
+
+    c = small_culture(seed=7)
+    s = SynapticScaling(eta=0.0, tau_rate_ms=500.0)
+    s.set_targets(c, torch.zeros(c.n))
+    fire = torch.zeros(c.n, dtype=torch.bool)
+    for k in range(10000):  # 5 s; the first 50 neurons fire at 20 Hz (every 100 substeps of 0.5 ms)
+        fire[:50] = k % 100 == 0
+        s.on_substep(c, fire)
+    assert torch.allclose(s.rate[:50], torch.tensor(20.0), rtol=0.1)
+    assert float(s.rate[50:].abs().max()) == 0.0
+    assert torch.equal(c.w, c.w0)  # eta 0: nothing moves
+
+
+def test_chain_of_stdp_and_scaling_resumes_exactly():
+    from biocompute.culture.plasticity import STDP, Chain, SynapticScaling
+
+    def rules():
+        return Chain(STDP(), SynapticScaling(eta=1e-4, every_ms=20.0))
+
+    a = small_culture(seed=8)
+    a.plasticity = rules()
+    a.plasticity.rules[1].set_targets(a, torch.full((a.n,), 0.5))
+    a.run(200.0)
+    cst, pst = a.state(), a.plasticity.state()
+    a.run(200.0)
+    b = small_culture(seed=8)
+    b.load_state(cst)
+    b.plasticity = rules()
+    b.plasticity.load_state(b, pst)
+    b.run(200.0)
+    assert not torch.equal(a.w, a.w0)
+    assert torch.equal(a.w, b.w)

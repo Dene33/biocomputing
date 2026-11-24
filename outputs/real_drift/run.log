@@ -1,0 +1,55 @@
+[beat] real_drift 1/38 (3%, 0.0 min, eta 0.3 min) runs=23
+GUARD FAIL [real_drift]: 1564 sensory pulses on non-sensory electrodes
+Traceback (most recent call last):
+  File "/mnt/datadisk/repos/biocomputing/scripts/real_drift.py", line 295, in <module>
+    main()
+  File "/mnt/datadisk/repos/biocomputing/scripts/real_drift.py", line 262, in main
+    row = analyze_run(run, e["metadata"], guard) | {"exp": exp, "organoid": e["metadata"]["organoid"]}
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/datadisk/repos/biocomputing/scripts/real_drift.py", line 128, in analyze_run
+    guard.check(foreign <= 0.01 * max(sens.sum(), 1), f"{foreign} sensory pulses on non-sensory electrodes")
+  File "/mnt/datadisk/repos/biocomputing/src/biocompute/runguard.py", line 43, in check
+    self.fail(what)
+  File "/mnt/datadisk/repos/biocomputing/src/biocompute/runguard.py", line 39, in fail
+    raise GuardFail(msg)
+biocompute.runguard.GuardFail: GUARD FAIL [real_drift]: 1564 sensory pulses on non-sensory electrodes
+[beat] real_drift 1/38 (3%, 0.0 min, eta 0.3 min) runs=23
+Traceback (most recent call last):
+  File "/mnt/datadisk/repos/biocomputing/scripts/real_drift.py", line 309, in <module>
+    main()
+  File "/mnt/datadisk/repos/biocomputing/scripts/real_drift.py", line 276, in main
+    row = analyze_run(run, e["metadata"], guard) | {"exp": exp, "organoid": e["metadata"]["organoid"]}
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/datadisk/repos/biocomputing/scripts/real_drift.py", line 127, in analyze_run
+    elecs = [json.loads(e) if isinstance(e, str) else list(np.atleast_1d(e)) for e in s.get("stim_electrodes", [])]
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/datadisk/repos/biocomputing/scripts/real_drift.py", line 127, in <listcomp>
+    elecs = [json.loads(e) if isinstance(e, str) else list(np.atleast_1d(e)) for e in s.get("stim_electrodes", [])]
+             ^^^^^^^^^^^^^
+  File "/home/dene/.local/share/uv/python/cpython-3.11-linux-x86_64-gnu/lib/python3.11/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dene/.local/share/uv/python/cpython-3.11-linux-x86_64-gnu/lib/python3.11/json/decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dene/.local/share/uv/python/cpython-3.11-linux-x86_64-gnu/lib/python3.11/json/decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+[beat] real_drift 1/38 (3%, 0.0 min, eta 0.3 min) runs=23
+/mnt/datadisk/repos/biocomputing/scripts/real_drift.py:246: RuntimeWarning: divide by zero encountered in divide
+  "gain_range": G.max(0) - G.min(0), "rate_vs_first": rate / rate[0],
+/mnt/datadisk/repos/biocomputing/scripts/real_drift.py:246: RuntimeWarning: invalid value encountered in divide
+  "gain_range": G.max(0) - G.min(0), "rate_vs_first": rate / rate[0],
+/mnt/datadisk/repos/biocomputing/scripts/real_drift.py:256: RuntimeWarning: divide by zero encountered in scalar divide
+  "rate_ratio_across": float(np.mean(b["rate_hz_per_minute"][:3])
+[beat] real_drift 38/38 (100%, 0.1 min, eta 0.0 min) runs=426
+{"reading": "inconclusive (no power)", "none": {"runs": 129, "runs_measured": 98, "moved_share": 0.1454, "moved_own_share": 0.1327, "moved_cross_share": 0.1429, "takeover_share": 0.2653, "specific_start_share": 0.398, "rate_ratio_first30": {"n": 97, "median": 0.7742, "iqr": [0.614, 0.9561], "p5_p95": [0.398, 1.1841]}, "rate_ratio_first3": {"n": 97, "median": 0.939, "iqr": [0.8685, 1.0374], "p5_p95": [0.7548, 1.2088]}, "detectable_2se": {"n": 98, "median": 0.4264, "iqr": [0.2016, 0.7252], "p5_p95": [0.1031, 0.9985]}, "pref_gain_first3": {"n": 98, "median": 0.0765, "iqr": [0.0021, 0.1915], "p5_p95": [-0.1185, 0.5624]}, "detectable_vs_pref": {"n": 98, "median": 4.1964, "iqr": [2.0064, 33.4326], "p5_p95": [0.5924, 754442558.7129]}, "abs_change": {"n": 98, "median": 0.2082, "iqr": [0.0982, 0.3824], "p5_p95": [0.0442, 0.6643]}}, "random": {"runs": 67, "runs_measured": 47, "moved_share": 0.1223, "moved_own_share": 0.1064, "moved_cross_share": 0.1383, "takeover_share": 0.2128, "specific_start_share": 0.4255, "rate_ratio_first30": {"n": 47, "median": 0.8737, "iqr": [0.6316, 1.1022], "p5_p95": [0.4844, 1.5791]}, "rate_ratio_first3": {"n": 47, "median": 0.994, "iqr": [0.8896, 1.0886], "p5_p95": [0.7133, 1.3922]}, "detectable_2se": {"n": 47, "median": 0.4014, "iqr": [0.1944, 0.5798], "p5_p95": [0.115, 0.9378]}, "pref_gain_first3": {"n": 47, "median": 0.1412, "iqr": [0.0414, 0.2651], "p5_p95": [-0.0383, 0.6738]}, "detectable_vs_pref": {"n": 47, "median": 2.4166, "iqr": [1.4901, 6.4814], "p5_p95": [0.4725, 555129317.2752]}, "abs_change": {"n": 47, "median": 0.1765, "iqr": [0.091, 0.3048], "p5_p95": [0.049, 0.5131]}}, "adaptive": {"runs": 229, "runs_measured": 201, "moved_share": 0.2139, "moved_own_share": 0.1915, "moved_cross_share": 0.1891, "takeover_share": 0.2289, "specific_start_share": 0.4677, "rate_ratio_first30": {"n": 201, "median": 0.733, "iqr": [0.5184, 1.1807], "p5_p95": [0.3593, 2.1152]}, "rate_ratio_first3": {"n": 201, "median": 0.9718, "iqr": [0.8294, 1.1248], "p5_p95": [0.6545, 1.57]}, "detectable_2se": {"n": 201, "median": 0.6296, "iqr": [0.4487, 0.9369], "p5_p95": [0.2231, 1.9903]}, "pref_gain_first3": {"n": 201, "median": 0.163, "iqr": [0.0077, 0.3592], "p5_p95": [-0.2606, 1.0276]}, "detectable_vs_pref": {"n": 201, "median": 3.8243, "iqr": [1.7571, 51.211], "p5_p95": [0.8703, 912234575.1522]}, "abs_change": {"n": 201, "median": 0.3889, "iqr": [0.2272, 0.5997], "p5_p95": [0.1042, 1.1448]}}}
+[beat] real_drift 1/38 (3%, 0.0 min, eta 0.3 min) runs=23
+/mnt/datadisk/repos/biocomputing/scripts/real_drift.py:252: RuntimeWarning: divide by zero encountered in divide
+  "gain_range": G.max(0) - G.min(0), "rate_vs_first": rate / rate[0],
+/mnt/datadisk/repos/biocomputing/scripts/real_drift.py:252: RuntimeWarning: invalid value encountered in divide
+  "gain_range": G.max(0) - G.min(0), "rate_vs_first": rate / rate[0],
+/mnt/datadisk/repos/biocomputing/scripts/real_drift.py:262: RuntimeWarning: divide by zero encountered in scalar divide
+  "rate_ratio_across": float(np.mean(b["rate_hz_per_minute"][:3])
+[beat] real_drift 38/38 (100%, 0.1 min, eta 0.0 min) runs=426
+{"reading": "inconclusive (no power)", "none": {"runs": 129, "runs_measured": 98, "moved_share": 0.1454, "moved_own_share": 0.1327, "moved_cross_share": 0.1429, "takeover_share": 0.2653, "specific_start_share": 0.398, "rate_ratio_first30": {"n": 97, "median": 0.7742, "iqr": [0.614, 0.9561], "p5_p95": [0.398, 1.1841]}, "rate_ratio_first3": {"n": 97, "median": 0.939, "iqr": [0.8685, 1.0374], "p5_p95": [0.7548, 1.2088]}, "detectable_2se": {"n": 98, "median": 0.4264, "iqr": [0.2016, 0.7252], "p5_p95": [0.1031, 0.9985]}, "pref_gain_first3": {"n": 98, "median": 0.0765, "iqr": [0.0021, 0.1915], "p5_p95": [-0.1185, 0.5624]}, "detectable_vs_pref": {"n": 98, "median": 4.1964, "iqr": [2.0064, 33.4326], "p5_p95": [0.5924, 754442558.7129]}, "abs_change": {"n": 98, "median": 0.2082, "iqr": [0.0982, 0.3824], "p5_p95": [0.0442, 0.6643]}}, "random": {"runs": 67, "runs_measured": 47, "moved_share": 0.1223, "moved_own_share": 0.1064, "moved_cross_share": 0.1383, "takeover_share": 0.2128, "specific_start_share": 0.4255, "rate_ratio_first30": {"n": 47, "median": 0.8737, "iqr": [0.6316, 1.1022], "p5_p95": [0.4844, 1.5791]}, "rate_ratio_first3": {"n": 47, "median": 0.994, "iqr": [0.8896, 1.0886], "p5_p95": [0.7133, 1.3922]}, "detectable_2se": {"n": 47, "median": 0.4014, "iqr": [0.1944, 0.5798], "p5_p95": [0.115, 0.9378]}, "pref_gain_first3": {"n": 47, "median": 0.1412, "iqr": [0.0414, 0.2651], "p5_p95": [-0.0383, 0.6738]}, "detectable_vs_pref": {"n": 47, "median": 2.4166, "iqr": [1.4901, 6.4814], "p5_p95": [0.4725, 555129317.2752]}, "abs_change": {"n": 47, "median": 0.1765, "iqr": [0.091, 0.3048], "p5_p95": [0.049, 0.5131]}}, "adaptive": {"runs": 229, "runs_measured": 201, "moved_share": 0.2139, "moved_own_share": 0.1915, "moved_cross_share": 0.1891, "takeover_share": 0.2289, "specific_start_share": 0.4677, "rate_ratio_first30": {"n": 201, "median": 0.733, "iqr": [0.5184, 1.1807], "p5_p95": [0.3593, 2.1152]}, "rate_ratio_first3": {"n": 201, "median": 0.9718, "iqr": [0.8294, 1.1248], "p5_p95": [0.6545, 1.57]}, "detectable_2se": {"n": 201, "median": 0.6296, "iqr": [0.4487, 0.9369], "p5_p95": [0.2231, 1.9903]}, "pref_gain_first3": {"n": 201, "median": 0.163, "iqr": [0.0077, 0.3592], "p5_p95": [-0.2606, 1.0276]}, "detectable_vs_pref": {"n": 201, "median": 3.8243, "iqr": [1.7571, 51.211], "p5_p95": [0.8703, 912234575.1522]}, "abs_change": {"n": 201, "median": 0.3889, "iqr": [0.2272, 0.5997], "p5_p95": [0.1042, 1.1448]}}}

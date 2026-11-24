@@ -63,6 +63,62 @@ step, on the simulated culture (20,000 neurons, 256-electrode grid at 100 um, fo
    in the last window (1.06 / 0.45, 0.92 / 0.29), not a minute earlier (0.57 / 0.59), with gains near zero (0.09 /
    0.01 at 9 min). Inhibitory plasticity cuts the runaway (43 Hz -> 9-10 Hz per electrode) but doesn't make the model
    hold rates and pathways; no replication run.
+
+   Track B, step B1 (docs/route-to-computation.md, "Order of work without a dish"): a rate controller.
+   ``--drift-homeo ETA`` replaces the 5 s total-input step with per-neuron synaptic scaling (plasticity.py,
+   SynapticScaling: bl1's rule, each neuron's target its own resting rate with floor ``--target-floor``, rate
+   estimate a 10 s moving average, E->E weights x (1 + eta x 200 ms x (target - rate)) every 200 ms).
+   ``--drift-seeds`` runs the test on the replication's cultures 0, 1, 2 (their encoders and decoders from
+   run_task.log). Arms per culture: no plasticity; scaling alone; STDP x1 with the old 5 s step (the runaway, as
+   above); STDP x1 with scaling instead. bl1's eta 1e-5 is the gate's; 1e-4 runs after it, exploratory.
+   Gate B1, fixed before the run: at eta 1e-5, in each of the 3 cultures, the rate per electrode in the last 60 s stays
+   within a factor 1.5 of rest (2/3x to 1.5x) both with scaling alone and with STDP x1 plus scaling. The lower bound
+   is ours: bl1's arms "passed" the old gate by running down, and calm by muting doesn't count. Controls: no
+   plasticity stays in that band, and the old 5 s step runs away (> 1.5x), so the test can see what B1 must stop.
+   Reported, not gated: the rate per minute (``rate_ratio_60s``), encoder -> decoder gains per minute (B2's half of
+   the drift gate), the mean E->E weight against its start. Output: <out>/drift_scaling.json (rows and gate_B1).
+
+        uv run scripts/launch.py --unit bio-b1 --log outputs/drift_scaling/run.log -- \
+            scripts/cartpole_replication.py --drift --drift-seeds 0 1 2 --drift-scales 0 1 \
+            --drift-homeo 0 1e-5 1e-4 --drift-seconds 600 --workers 4 --out outputs/drift_scaling
+   Result (24 Nov 2026): gate B1 not passed; the controls behave. Last-minute rate per electrode against rest,
+   cultures 0 / 1 / 2: no plasticity 1.10 / 1.14 / 0.97; scaling alone 1.04 / 1.05 / 1.01 (0.99-1.07 in every
+   minute; neurons above 1.5x their own target 19-25% -> 0.5-1%); STDP x1 with the old 5 s step 6.97 / 9.10 / 4.54;
+   STDP x1 with scaling at eta 1e-5 7.40 / 9.59 / 5.96, no better than the old step: 5-9x rest by minute 2 and about
+   flat after, mean E->E weight 1.47-1.75x its start (the old step holds it at 0.99x). Exploratory eta 1e-4: 1.92 /
+   1.86 / 1.92, about 1.9x from minute 5 on, E->E weight 0.52-0.68x. Scaling alone doesn't mute the inputs (own gains
+   1-3 spikes per pulse, as with no plasticity). With STDP and eta 1e-4 the pathways mix: cross gains climb from ~1 to
+   2-5 spikes per pulse over the 10 minutes (no plasticity: 0-2), and in culture 2 one decoder ends up following the
+   other encoder (10.1 against 1.5). Ten times the eta cut the excess over rest from 6.7x to 0.9x: the brake works,
+   but against a push that doesn't let up. Likely reason, not tested: our STDP is additive (a fixed
+   step per pairing) and the scaling multiplicative, so they balance only at a rate error that grows as eta falls
+   and as the weights shrink. A rate brake also does nothing for the pathways.
+   Check before closing track B (24 Nov 2026; B2's first candidate, run early and labelled as such): does
+   weight-dependent STDP close the gap? ``--stdp-rule multiplicative`` (depression scales with the weight, van Rossum
+   et al. 2000) with the same scaling, cultures and folder. Arms without STDP don't involve the rule, so they are
+   named without it and B1's no-plasticity and scaling-alone arms are reused (their rows say "additive"). New arms
+   per culture: weight-dependent STDP x1 with the old 5 s step (control; culture 0 ran to ~22 Hz before), with
+   scaling at eta 1e-5 (gated) and 1e-4 (exploratory). Reading, fixed before the run: it supports opening B2 only if,
+   at eta 1e-5, the rate gate above holds in all 3 cultures and at most 1 of the 12 pathways (own and cross, 4 per
+   culture) has moved against the no-plasticity arm: last 3 minutes, beyond 2 SE from both arms' per-minute spread
+   over minutes 2-10 (``pathways_vs_off``, bl1_rep_analysis.py's test). On B1's rows that test finds 2 of 4 moved in
+   every culture at every setting with additive STDP, and 1 of 24 with scaling alone (the noise floor). Otherwise
+   the track closes, as its rule says. Output: <out>/drift_multiplicative_scaling.json.
+
+        uv run scripts/launch.py --unit bio-b1m --log outputs/drift_scaling/run_multiplicative.log -- \
+            scripts/cartpole_replication.py --drift --stdp-rule multiplicative --drift-seeds 0 1 2 \
+            --drift-scales 0 1 --drift-homeo 0 1e-5 1e-4 --drift-seconds 600 --workers 4 --out outputs/drift_scaling
+   Result (24 Nov 2026): the reading fails, so track B closes. Last-minute rate against rest, cultures 0 / 1 / 2:
+   weight-dependent STDP with the old step 3.98 / 3.85 / 2.59 (control); with scaling at eta 1e-5 4.19 / 5.36 / 3.63
+   (additive: 7.40 / 9.59 / 5.96), above the old step again, E->E weight 1.11-1.31x; 6 of 12 pathways moved (2 of
+   4 in every culture: a cross gain up by 14-18 spikes per pulse). Exploratory eta 1e-4: 1.40 / 1.45 / 1.32, within
+   the band in 29 of 30 minutes (1.05-1.50; culture 1 minute 8 at 1.56), E->E weight 0.67-0.76x, inputs still
+   answered (own gains 2.5-5.8): the first setting that holds rates. But the pathways still merge: 2 of 4 moved in
+   every culture, and in each culture one encoder drives both decoders by the end (the other decoder: 6.2 / 5.8 /
+   5.1 spikes per pulse from the wrong encoder against 1.3 / 0.9 / 1.1 from its own); separate in 0 of 30 minutes.
+   So the likely reason above holds for the rates (weight dependence plus faster scaling brings them in), and the
+   pathways are a separate problem: under repeated stimulation our STDP hands the network to whichever input drives
+   it, whatever holds the rates.
    After each episode, if the mean of the last 5 episodes is not above that of the last 20: a 400 ms training
    signal, then 3 s wait (null: the same time without stimulation).
    - ``random``: 5 training units in random order, 10 ms apart, repeated at 10 Hz
@@ -78,7 +134,8 @@ step, on the simulated culture (20,000 neurons, 256-electrode grid at 100 um, fo
 
 Logs: run_raw_decoder.log (round 1), run_rest.log (round 1), run_task.log (calibration + round 1 null); the runs
 were stopped there because the decoders pinned. drift.json, drift_multiplicative.json, drift_istdp_clamped10.json,
-drift_istdp.json: the drift tests.
+drift_istdp.json: the drift tests; outputs/drift_scaling/drift_scaling.json and run.log: B1;
+drift_multiplicative_scaling.json and run_multiplicative.log there: the weight-dependent check.
 
 Stop and resume: every job checkpoints (device, plasticity, script state) to <out>/ckpt every 5 minutes of wall
 time, and on SIGTERM at the next 200 ms read, then exits. Run the same command again to resume; finished jobs are
@@ -327,7 +384,13 @@ def spec_tag(spec):
     t = ("" if spec["scale"] == 1.0 else f"_stdp{spec['scale']:g}") + (
         "" if spec["rule"] == "additive" else f"_{spec['rule']}")
     return t + (f"_istdp{spec['eta']:g}" if spec["eta"] else "") + (
-        f"_cap{spec['w_max_inh']:g}" if spec["eta"] and spec["w_max_inh"] != 30.0 else "")
+        f"_cap{spec['w_max_inh']:g}" if spec["eta"] and spec["w_max_inh"] != 30.0 else "") + (
+        f"_homeo{spec['homeo']:g}" if spec.get("homeo") else "")
+
+
+# Encoders and decoders per culture seed, from characterise/configure in the replication (run_task.log).
+DRIFT_CONFIGS = {0: ([136, 155], [137, 139]), 1: ([129, 34], [113, 35]), 2: ([217, 100], [233, 116])}
+B1_BAND = (2 / 3, 1.5)  # gate B1: last-minute rate per electrode within a factor 1.5 of rest, either way
 
 
 def resting_rates(dev, seconds=20.0):
@@ -354,38 +417,106 @@ def per10(x):
     return x[:k].reshape(-1, min(50, k), *x.shape[1:]).mean(1)
 
 
+def gate_b1(rows, eta=1e-5):
+    """Gate B1 (fixed before the run): in every culture, the last-minute rate per electrode stays within B1_BAND of
+    rest (i) with scaling alone and (ii) with STDP x1 plus scaling, at bl1's eta. Other rates are reported only.
+    Controls: the no-plasticity arm stays in the band (stimulation alone doesn't lift the rate), and STDP with the old
+    5 s step runs away (> 1.5x: the test can catch what B1 must stop)."""
+    lo, hi = B1_BAND
+    by = {(r.get("seed", 0), r["scale"], r.get("homeo", 0.0)): r for r in rows if not r["eta"]}
+    seeds = sorted({k[0] for k in by})
+    inb = lambda r: r is not None and lo <= r["rate_ratio"] <= hi  # noqa: E731
+    out = {"band": [round(lo, 3), hi], "eta": eta, "per_culture": {}}
+    for sd in seeds:
+        row = {name: (by.get((sd, x, h)) or {}).get("rate_ratio") for name, x, h in
+               (("off", 0.0, 0.0), ("scaling", 0.0, eta), ("stdp_scaling", 1.0, eta), ("stdp_old_step", 1.0, 0.0))}
+        row["pass"] = inb(by.get((sd, 0.0, eta))) and inb(by.get((sd, 1.0, eta)))
+        row["controls_ok"] = inb(by.get((sd, 0.0, 0.0))) and (by.get((sd, 1.0, 0.0)) or {}).get("rate_ratio", 0) > hi
+        out["per_culture"][str(sd)] = row
+    out["tested"] = len(seeds) >= 3 and all(v["stdp_scaling"] is not None for v in out["per_culture"].values())
+    out["pass"] = out["tested"] and all(v["pass"] for v in out["per_culture"].values())
+    return out
+
+
+def pathways_vs_off(rows, eta=1e-5, max_moved=1):
+    """Pathways against the noise floor (bl1_rep_analysis.py's test): for each plastic arm, each encoder -> decoder
+    gain (own and cross) over the last 3 minutes against the same culture's no-plasticity arm; it has moved when the
+    difference exceeds 2 SE, SE from both arms' per-minute spread over minutes 2-10. Reported per culture and arm;
+    ``reading`` (fixed before the weight-dependent check) holds when, at ``eta``, STDP plus scaling is in B1_BAND in
+    every culture and at most ``max_moved`` of all its pathways moved."""
+    by = {(r.get("seed", 0), r["scale"], r.get("homeo", 0.0)): r for r in rows if not r["eta"]}
+    out = {"per_culture": {}}
+    for sd in sorted({k[0] for k in by}):
+        off = by.get((sd, 0.0, 0.0))
+        if off is None:
+            continue
+        g0 = np.array(off["gain_60s"])  # [minute, decoder, encoder]
+        cult = {}
+        for (s2, x, h), r in sorted(by.items()):
+            if s2 != sd or (x == 0 and not h):
+                continue
+            g = np.array(r["gain_60s"])
+            se = np.sqrt(g[1:].std(0, ddof=1) ** 2 / 3 + g0[1:].std(0, ddof=1) ** 2 / 3)
+            diff = g[-3:].mean(0) - g0[-3:].mean(0)
+            moved = np.abs(diff) > 2 * se
+            cult[f"x{x:g}_homeo{h:g}"] = {
+                "own_diff": [round(float(diff[k, k]), 2) for k in (0, 1)],
+                "cross_diff": [round(float(diff[k, 1 - k]), 2) for k in (0, 1)],
+                "moved_own": int(moved[0, 0] + moved[1, 1]), "moved_cross": int(moved[0, 1] + moved[1, 0])}
+        out["per_culture"][str(sd)] = cult
+    key = f"x1_homeo{eta:g}"
+    arms = [c.get(key) for c in out["per_culture"].values()]
+    rates = [by.get((int(sd), 1.0, eta), {}).get("rate_ratio") for sd in out["per_culture"]]
+    lo, hi = B1_BAND
+    out["moved_at_eta"] = sum(a["moved_own"] + a["moved_cross"] for a in arms if a) if all(arms) else None
+    out["reading"] = (len(arms) >= 3 and all(arms) and all(r is not None and lo <= r <= hi for r in rates)
+                      and out["moved_at_eta"] <= max_moved)
+    return out
+
+
 def drift(job):
     import torch
 
     from biocompute.runguard import Guard
 
+    from biocompute.culture.plasticity import Chain, SynapticScaling
+
     arm, spec, seconds, out, opts = job
+    seed = spec.get("seed", 0)
     _start_job()
     g = Guard(f"drift_{arm}", out)
-    enc, dec = [136, 155], [137, 139]  # seed 0's configuration (characterise/configure, see run_task.log)
+    enc, dec = DRIFT_CONFIGS[seed]
     ck = Checkpoint(out / "ckpt" / f"drift_{arm}.pt")
     rng = np.random.default_rng(1)
-    dev, _, w_in0 = build(0)
+    dev, _, w_in0 = build(seed)
     stdp = make_stdp(spec)
     c = dev.culture
-    plastic = spec["scale"] > 0 or spec["eta"] > 0
+    stdp_on = spec["scale"] > 0 or spec["eta"] > 0
+    # Per-neuron synaptic scaling (B1) replaces the 5 s total-input step (coach_probe.scale) when it is on.
+    homeo = SynapticScaling(eta=spec["homeo"]) if spec.get("homeo") else None
+    rule = stdp if homeo is None else Chain(stdp, homeo) if stdp_on else homeo
+    plastic = stdp_on or homeo is not None
+    ee = c.syn_exc & c.excitatory[c.post]
     saved = ck.load()
     if saved:
         dev.load_state(saved["dev"])
-        stdp.load_state(c, saved["stdp"])
+        rule.load_state(c, saved["stdp"])
         S = saved["script"]
         rng.bit_generator.state = S.pop("rng")
     else:
         rates, rest_hz = resting_rates(dev, seconds=opts["rest_s"])
         if spec["eta"]:
             stdp.set_targets(c, np.maximum(rates, spec["floor"]))
+        if homeo is not None:
+            homeo.set_targets(c, np.maximum(rates, spec["floor"]))
         S = {"i": 0, "X": [], "Y": [], "N": [], "last": {e: -1e9 for e in enc}, "th": 0.0,
-             "neuron_rest_hz": round(float(rates.mean()), 3), "rest_hz_per_electrode": round(float(rest_hz), 2)}
-    c.plasticity = stdp if plastic else None
+             "neuron_rest_hz": round(float(rates.mean()), 3), "rest_hz_per_electrode": round(float(rest_hz), 2),
+             "w_ee_start": float(c.w[ee].mean())}
+    c.plasticity = rule if plastic else None
     n_reads = int(seconds * 5)
     STOP["phase"] = "resumable"
     while S["i"] < n_reads:
-        ck.tick(dev, stdp, lambda: S | {"rng": rng.bit_generator.state})
+        ck.tick(dev, rule, lambda: S | {"rng": rng.bit_generator.state})
         i = S["i"]
         if i % 5 == 0:
             S["th"] = math.radians(rng.uniform(-12.0, 12.0))
@@ -395,12 +526,12 @@ def drift(job):
         S["N"].append(len(b.channels))
         if i >= n_reads - 300:
             S["neuron_end"] = S.get("neuron_end", 0) + dev.oracle_counts
-        if (i + 1) % 25 == 0 and plastic:
+        if (i + 1) % 25 == 0 and stdp_on and homeo is None:
             C.scale(c, w_in0)
         S["i"] += 1
         if g.due():
             hz = float(np.mean(S["N"][-50:])) / 0.2 / dev.n_channels
-            g.culture(c, stdp if plastic else None, rate_hz=hz)
+            g.culture(c, stdp if stdp_on else None, rate_hz=hz)
             g.beat(S["i"], n_reads, hz=round(hz, 2), w_inh=round(float(c.w[~c.syn_exc].mean()), 3))
     STOP["phase"] = "idle"
     X, Y, N = np.array(S["X"], float), np.array(S["Y"], float), np.array(S["N"], float)
@@ -413,7 +544,8 @@ def drift(job):
     inh = ~c.syn_exc
     w_inh = c.w[inh]
     end_hz = S["neuron_end"] / (min(300, n_reads) * 0.2)
-    target = stdp._targets.cpu().numpy() if spec["eta"] else np.full(c.n, S["neuron_rest_hz"])
+    target = (stdp._targets if spec["eta"] else homeo._targets if homeo is not None else None)
+    target = target.cpu().numpy() if target is not None else np.full(c.n, S["neuron_rest_hz"])
     diag = {"inh_at_cap": round(float((w_inh >= (spec["w_max_inh"] if spec["eta"] else c.cfg.w_max) - 1e-3)
                                       .float().mean()), 3),
             "inh_at_zero": round(float((w_inh <= 1e-3).float().mean()), 3), "w_inh_max": round(float(w_inh.max()), 2),
@@ -423,6 +555,9 @@ def drift(job):
            "hz_per_electrode_10s": np.round(per10(hz), 1).tolist(),
            "dec_hz_10s": np.round(per10(Y) / 0.2, 1).tolist(),
            "gain_60s": g, "rate_ratio": round(ratio, 2), "specific_end": bool(specific),
+           "seed": seed, "rate_ratio_60s": [round(float(m / max(S["rest_hz_per_electrode"], 1e-9)), 2)
+                                            for m in hz[: len(hz) // 300 * 300].reshape(-1, 300).mean(1)],
+           "w_ee_mean_vs_start": round(float(c.w[ee].mean()) / S["w_ee_start"], 3),
            "pass": bool(ratio <= 1.5 and specific), "neuron_rest_hz": S["neuron_rest_hz"],
            "rest_hz_per_electrode": S["rest_hz_per_electrode"],
            "w_exc_mean": round(float(c.w[c.syn_exc].mean()), 3), "w_inh_mean": round(float(c.w[inh].mean()), 3),
@@ -604,6 +739,8 @@ def _drift_safe(job):
 
 def pool_map(fn, jobs, workers):
     """Run jobs in worker processes that save and stop on SIGTERM; this process ignores SIGTERM and waits."""
+    if not jobs:  # nothing to do (all saved): an idle pool's shutdown can hang on workers that catch SIGTERM
+        return []
     signal.signal(signal.SIGTERM, signal.SIG_IGN)
     with mp.get_context("spawn").Pool(workers, initializer=_worker_init) as pool:
         res = list(pool.imap_unordered(fn, jobs))
@@ -631,6 +768,11 @@ def main():
     ap.add_argument("--drift-etas", type=float, nargs="+", default=[0.0])
     ap.add_argument("--drift-pairs", nargs="+", default=None, metavar="ETA:CAP",
                     help="inhibitory plasticity rate and cap per arm, instead of --drift-etas at --w-max-inh")
+    ap.add_argument("--drift-seeds", type=int, nargs="+", default=[0], choices=sorted(DRIFT_CONFIGS),
+                    help="cultures for the drift test (their encoders and decoders from the replication)")
+    ap.add_argument("--drift-homeo", type=float, nargs="+", default=[0.0],
+                    help="per-neuron synaptic scaling rate eta per ms (0: off, the 5 s total-input step when STDP is "
+                         "on); B1 uses 1e-5")
     ap.add_argument("--drift-seconds", type=float, default=None,
                     help="per arm (default: 120 s at x0 and x1, 300 s at x0.3, 600 s below)")
     ap.add_argument("--workers", type=int, default=3)
@@ -649,24 +791,33 @@ def main():
         a.seeds, a.order, a.repeats, a.cycle_min = a.seeds[:1], a.order[:1], 1, 0.1
     out.mkdir(parents=True, exist_ok=True)
 
-    def spec(scale, eta, cap=a.w_max_inh):
-        return {"scale": scale, "rule": a.stdp_rule, "eta": eta, "w_max_inh": cap, "floor": a.target_floor}
+    def spec(scale, eta, cap=a.w_max_inh, homeo=0.0, seed=0):
+        sp = {"scale": scale, "rule": a.stdp_rule, "eta": eta, "w_max_inh": cap, "floor": a.target_floor}
+        return sp | ({"homeo": homeo} if homeo else {}) | ({"seed": seed} if seed else {})
 
     if a.drift:
         arms = []
         pairs = [tuple(map(float, p.split(":"))) for p in a.drift_pairs] if a.drift_pairs else [
             (eta, a.w_max_inh) for eta in a.drift_etas]
-        for x, (eta, cap) in itertools.product(a.drift_scales, pairs):
-            sp = spec(x, eta, cap)
+        # Rates in the order given (B1's 1e-5 before the exploratory ones), each over every culture.
+        for h, seed, x, (eta, cap) in itertools.product(a.drift_homeo, a.drift_seeds, a.drift_scales, pairs):
+            sp = spec(x, eta, cap, h, seed)
             secs = a.drift_seconds or (120.0 if x in (0.0, 1.0) else 300.0 if x >= 0.3 else 600.0)
-            arms.append((f"x{x:g}" + spec_tag({**sp, "scale": 1.0}), sp, secs, out, sizes))
-        arms = arms[:1] if a.smoke else arms
+            # With STDP off (x0) the rule doesn't act, so the arm is named without it and reused across rules.
+            name = f"x{x:g}" + spec_tag({**sp, "scale": 1.0} | ({"rule": "additive"} if x == 0 else {})) + (
+                f"_s{seed}" if seed else "")
+            arms.append((name, sp, secs, out, sizes))
+        if a.smoke:  # the arm with the most machinery: STDP and scaling together if asked for
+            arms = [max(arms, key=lambda j: (j[1]["scale"] > 0) + bool(j[1].get("homeo")))]
         todo = [j for j in arms if not (out / "jobs" / f"drift_{j[0]}.json").exists()]
         pool_map(_drift_safe, todo, a.workers)
         res = [json.loads((out / "jobs" / f"drift_{j[0]}.json").read_text()) for j in arms]
         name = "drift" + ("" if a.stdp_rule == "additive" else f"_{a.stdp_rule}") + (
-            "_istdp" if any(eta for eta, _ in pairs) else "")
-        (out / f"{name}.json").write_text(json.dumps(res, indent=1))
+            "_istdp" if any(eta for eta, _ in pairs) else "") + ("_scaling" if any(a.drift_homeo) else "")
+        summary = {"gate_B1": gate_b1(res), "pathways": pathways_vs_off(res)} if any(a.drift_homeo) else {}
+        if summary:
+            print(json.dumps(summary), flush=True)
+        (out / f"{name}.json").write_text(json.dumps({"rows": res} | summary if summary else res, indent=1))
         return
     sp = spec(a.stdp_scale, a.istdp_eta)
     tag = a.decoder + spec_tag(sp)

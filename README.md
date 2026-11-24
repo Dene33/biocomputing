@@ -203,7 +203,9 @@ culture by up to 7 days doesn't break the old decoder (36–39/40), so the gate 
 session) was tested only on the new dish. It fails by one episode at day 3 (33/40). The 60 s decoder is noisier than
 the one fitted on 5 minutes (36/40 even at day 0), so the calibration's length is the weak point, not the aging.
 Public data for track B (`scripts/public_data_targets.py`): 81 recordings of 29 dense cortical cultures from
-Wagenaar et al. 2006, and the cart-pole organoids' Zenodo record, give the ranges the model must match.
+Wagenaar et al. 2006, and the cart-pole organoids' Zenodo record, give the ranges the model must match. The
+organoids' game logs also give the rate half of a real drift test (`scripts/real_drift.py`): under the input pulses
+alone, real rates don't climb. Whether real pathways stay put can't be read from them.
 
 **Route finding** ([docs/route-to-computation.md](docs/route-to-computation.md)). Phase 4 tested in simulation and
 the routes ranked against real hardware. No stimulation regime makes the dish compute. It keeps less of the recent IMU
@@ -216,14 +218,18 @@ probe sets off the same network burst. The flaw is the model's plasticity: under
 inhibitory plasticity brought rates near rest but didn't keep the inputs' pathways apart. An outside model, bl1
 (github.com/m9h/bl1, run as shipped and with two of its five bugs fixed, 5 cultures), fails the same drift test:
 its per-neuron synaptic scaling holds rates on its own, but with STDP on, pathways move within minutes
-(`bl1_drift.py`). Ranked routes: coached adaptation first (fits every platform, cart-pole
+(`bl1_drift.py`). The same scaling in our model (`SynapticScaling`, track B1) holds rates at rest on its own, but
+with our STDP on it doesn't stop the runaway (6–10× rest at bl1's rate). With weight-dependent STDP and ten times
+bl1's rate it holds rates (1.3–1.45×), yet one input still takes over both outputs in every culture. Ranked routes: coached adaptation first (fits every platform, cart-pole
 precedent; a real dish decides), push detection tested open loop alongside it, the inner-ear relay as hardware testbed.
 
 **Next** (24 November 2026). We have no real culture and no physical robot for now, so the work runs in two
 simulated tracks ([Order of work without a dish](docs/route-to-computation.md#order-of-work-without-a-dish)).
 Track A puts the simulated culture in the robot's loop (Phase 3.3 of [docs/next-steps.md](docs/next-steps.md));
 its two steps have run (above).
-Track B tries to make the culture model good enough to ask learning questions of, behind gates fixed in advance.
+Track B tried to make the culture model good enough to ask learning questions of, behind gates fixed in advance.
+It closed after its first step, a rate controller (B1): rates can be held, pathways can't, so learning questions
+wait for a dish.
 Real-dish and real-robot steps are parked. Ideas behind it: [docs/organoid-control-ideas.md](docs/organoid-control-ideas.md).
 
 ## Limits of the simulation

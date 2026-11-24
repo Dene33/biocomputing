@@ -9,8 +9,9 @@
 - **Run:** Phase 3.3, the culture in the robot's loop: track A (A1 and A2) of the route doc's
   [Order of work without a dish](route-to-computation.md#order-of-work-without-a-dish). Neither gate passed on its
   main configuration; results in [3.3](#33-closed-loop).
-- **Next:** track B, starting with B1.
-- **Waiting:** Phase 4's learning questions, behind track B's gates in the same section.
+- **Closed:** track B, after its first step (B1, a rate controller) failed and one check didn't rescue it. The
+  model can be made to hold its rates, but under repeated stimulation one input still takes over both outputs.
+- **Waiting:** Phase 4's learning questions, for a dish.
 - **Parked:** Phase 5 and every real-robot step. There is no dish and no robot for now.
 - **Open, not in the current plan:** Phase 2 track (b).
 
@@ -314,12 +315,12 @@ Arms:
 
 ## Phase 4: make the dish compute (the real claim)
 
-**Status: simulation tests done; learning questions wait.** Tested in simulation and ranked against real hardware in
-[route-to-computation.md](route-to-computation.md). No memory beyond the input in any stimulation regime (4.1). For
-4.2, the job exists (`adaptation_slot.py`), but the model culture can't be coached. Simulated learning questions wait
-behind track B's gates in the route doc: a rate controller (B1), stable pathways (B2), and published effects
-reproduced, including the cart-pole gap (B3). Only if B3 passes does coaching rerun in simulation (B4), reopening 4.2
-and then 4.1.
+**Status: simulation tests done; learning questions wait for a dish.** Tested in simulation and ranked against real
+hardware in [route-to-computation.md](route-to-computation.md). No memory beyond the input in any stimulation regime
+(4.1). For 4.2, the job exists (`adaptation_slot.py`), but the model culture can't be coached. Track B in the route
+doc tried to make the model fit for learning questions and closed after its first gate (24 November 2026): brakes on
+the firing rate can hold it near rest, but under repeated stimulation one input still takes over both outputs, so
+simulated learning results would say nothing about a real dish.
 
 ### 4.1 Vestibular integrator
 

@@ -23,6 +23,16 @@ by ``alpha`` = 2 x target rate x tau. A neuron firing above its target rate gain
 target, so firing rates are held while excitatory STDP keeps its timing rule. Targets default to ``target_hz`` for
 every neuron; ``set_targets`` gives each neuron its own (e.g. its resting rate). Inhibitory weights are bounded by
 ``w_max_inh`` (default: the culture's ``w_max``, as before).
+
+- ``SynapticScaling``: per-neuron homeostatic synaptic scaling (Turrigiano 2008), bl1's rule
+  (github.com/m9h/bl1, plasticity/homeostatic.py) with its target bug fixed: each neuron's target is its own
+  resting rate (``set_targets``), not one 5 Hz for all. A rate estimate per neuron (moving average, 10 s) is updated
+  every substep; every ``every_ms`` the E->E weights onto each neuron scale by 1 + eta x every_ms x (target - rate),
+  eta per ms. A slow, activity-driven alternative to scripts/coach_probe.py's ``scale``, which resets every neuron's
+  total excitatory input to its start every 5 s. Alone it holds rates at rest; with additive STDP it can't (track
+  B1, cartpole_replication.py --drift --drift-homeo). With weight-dependent STDP at eta 1e-4 it holds rates, but
+  one input still takes over both outputs.
+- ``Chain``: several rules on one culture (e.g. STDP and SynapticScaling), in order.
 """
 
 from __future__ import annotations
@@ -199,6 +209,88 @@ class RewardSTDP(STDP):
             return
         culture.w += self.learning_rate * value * self.eligibility * culture.cfg.w_max
         culture.w.clamp_(0.0, culture.cfg.w_max)
+
+
+class SynapticScaling:
+    """Per-neuron multiplicative scaling of E->E weights towards each neuron's target rate (bl1's rule, targets
+    fixed). ``dW_ij/dt = eta (target_i - rate_i) W_ij`` for every E->E synapse onto neuron i, applied every
+    ``every_ms`` (bl1 applies it after every 200 ms read). The rate estimate is bl1's: an exponential moving average
+    with ``tau_rate_ms``, starting at the target, so nothing moves until the rate leaves it. Dead neurons are left
+    alone (their rate is 0, and scaling would only inflate synapses that deliver nothing). Weights stay within
+    [0, the culture's w_max]."""
+
+    def __init__(self, eta: float = 1e-5, tau_rate_ms: float = 10000.0, every_ms: float = 200.0,
+                 target_hz: float = 5.0):
+        self.eta, self.tau_rate_ms, self.every_ms, self.target_hz = eta, tau_rate_ms, every_ms, target_hz
+        self._targets = None
+        self._ready = False
+
+    def _setup(self, culture) -> None:
+        dev = culture.device
+        if self._targets is None:
+            self._targets = torch.full((culture.n,), float(self.target_hz), device=dev)
+        self.rate = self._targets.clone()
+        self.ee = (culture.syn_exc & culture.excitatory[culture.post]).nonzero(as_tuple=True)[0]
+        self.ee_post = culture.post[self.ee]
+        dt = culture.cfg.dt_ms
+        self.decay = math.exp(-dt / self.tau_rate_ms)
+        self.hz_per_spike = 1000.0 / dt
+        self.every = max(int(round(self.every_ms / dt)), 1)
+        self.count = 0
+        self._ready = True
+
+    def set_targets(self, culture, hz) -> None:
+        """Per-neuron target rates (Hz); the rate estimate restarts at the targets."""
+        self._targets = torch.as_tensor(hz, dtype=torch.float32, device=culture.device).clone()
+        if self._ready:
+            self.rate = self._targets.clone()
+
+    def factor(self, culture) -> torch.Tensor:
+        """The multiplier each neuron's incoming E->E weights get at the next scaling step."""
+        f = 1.0 + self.eta * self.every_ms * (self._targets - self.rate)
+        return torch.where(culture.alive, f, torch.ones_like(f))
+
+    def on_substep(self, culture, spikes: torch.Tensor) -> None:
+        if not self._ready:
+            self._setup(culture)
+        self.rate.mul_(self.decay).add_(spikes.float(), alpha=self.hz_per_spike * (1.0 - self.decay))
+        self.count += 1
+        if self.count % self.every == 0:
+            w = culture.w[self.ee] * self.factor(culture)[self.ee_post]
+            culture.write_weights(self.ee, w.clamp(0.0, culture.cfg.w_max))
+
+    def state(self) -> dict:
+        st = {"ready": self._ready, "targets": None if self._targets is None else self._targets.cpu().clone()}
+        if self._ready:
+            st |= {"rate": self.rate.cpu().clone(), "count": self.count}
+        return st
+
+    def load_state(self, culture, st: dict) -> None:
+        if st["targets"] is not None:
+            self._targets = st["targets"].to(culture.device)
+        self._ready = False
+        if st["ready"]:
+            self._setup(culture)
+            self.rate.copy_(st["rate"].to(culture.device))
+            self.count = st["count"]
+
+
+class Chain:
+    """Several plasticity rules on one culture, applied in order every substep."""
+
+    def __init__(self, *rules):
+        self.rules = list(rules)
+
+    def on_substep(self, culture, spikes: torch.Tensor) -> None:
+        for r in self.rules:
+            r.on_substep(culture, spikes)
+
+    def state(self) -> list:
+        return [r.state() for r in self.rules]
+
+    def load_state(self, culture, st: list) -> None:
+        for r, s in zip(self.rules, st):
+            r.load_state(culture, s)
 
 
 def rest(culture, seconds: float, plasticity: STDP | None = None) -> None:
