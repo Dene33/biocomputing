@@ -1,0 +1,699 @@
+{"start": "2026-11-24 01:53:32", "combos": 10, "seeds": 40, "seconds": 20.0, "workers": 3, "smoke": false, "edit": "affine", "seed_base": 9100}
+[beat] setup_s12_dead 1/19334 (0%, 0.1 min, eta 1739.6 min) ms_per_step=99.6
+[beat] setup_s32_dead 1/19334 (0%, 0.1 min, eta 1741.7 min) ms_per_step=108.0
+[beat] setup_s12_live 1/19334 (0%, 0.1 min, eta 1767.8 min) ms_per_step=118.3
+[beat] setup_s12_dead 907/19334 (5%, 0.6 min, eta 12.0 min) ms_per_step=33.2
+[beat] setup_s32_dead 898/19334 (5%, 0.6 min, eta 12.1 min) ms_per_step=33.6
+[beat] setup_s12_live 906/19334 (5%, 0.6 min, eta 12.0 min) ms_per_step=33.3
+[beat] setup_s12_dead 1807/19334 (9%, 1.1 min, eta 10.6 min) ms_per_step=33.3
+[beat] setup_s32_dead 1797/19334 (9%, 1.1 min, eta 10.7 min) ms_per_step=33.5
+[beat] setup_s12_live 1808/19334 (9%, 1.1 min, eta 10.6 min) ms_per_step=33.3
+[beat] setup_s12_dead 2713/19334 (14%, 1.6 min, eta 9.8 min) ms_per_step=33.3
+[beat] setup_s32_dead 2696/19334 (14%, 1.6 min, eta 9.8 min) ms_per_step=33.5
+[beat] setup_s12_live 2713/19334 (14%, 1.6 min, eta 9.8 min) ms_per_step=33.3
+[beat] setup_s12_dead 3616/19334 (19%, 2.1 min, eta 9.1 min) ms_per_step=33.3
+[beat] setup_s32_dead 3594/19334 (19%, 2.1 min, eta 9.2 min) ms_per_step=33.5
+[beat] setup_s12_live 3617/19334 (19%, 2.1 min, eta 9.1 min) ms_per_step=33.3
+[beat] setup_s12_dead 4520/19334 (23%, 2.6 min, eta 8.5 min) ms_per_step=33.3
+[beat] setup_s32_dead 4493/19334 (23%, 2.6 min, eta 8.6 min) ms_per_step=33.5
+[beat] setup_s12_live 4519/19334 (23%, 2.6 min, eta 8.5 min) ms_per_step=33.3
+[beat] setup_s12_dead 5420/19334 (28%, 3.1 min, eta 8.0 min) ms_per_step=33.3
+[beat] setup_s12_live 5420/19334 (28%, 3.1 min, eta 8.0 min) ms_per_step=33.3
+[beat] setup_s32_dead 5394/19334 (28%, 3.1 min, eta 8.0 min) ms_per_step=33.5
+[beat] setup_s12_dead 6325/19334 (33%, 3.6 min, eta 7.4 min) ms_per_step=33.3
+[beat] setup_s32_dead 6289/19334 (33%, 3.6 min, eta 7.5 min) ms_per_step=33.5
+[beat] setup_s12_live 6325/19334 (33%, 3.6 min, eta 7.4 min) ms_per_step=33.3
+[beat] setup_s12_dead 7227/19334 (37%, 4.1 min, eta 6.9 min) ms_per_step=33.3
+[beat] setup_s12_live 7228/19334 (37%, 4.1 min, eta 6.9 min) ms_per_step=33.3
+[beat] setup_s32_dead 7186/19334 (37%, 4.1 min, eta 6.9 min) ms_per_step=33.5
+[beat] setup_s12_dead 8128/19334 (42%, 4.6 min, eta 6.3 min) ms_per_step=33.3
+[beat] setup_s32_dead 8085/19334 (42%, 4.6 min, eta 6.4 min) ms_per_step=33.5
+[beat] setup_s12_live 8132/19334 (42%, 4.6 min, eta 6.3 min) ms_per_step=33.3
+[beat] setup_s12_dead 9030/19334 (47%, 5.1 min, eta 5.8 min) ms_per_step=33.3
+[beat] setup_s12_live 9033/19334 (47%, 5.1 min, eta 5.8 min) ms_per_step=33.3
+[beat] setup_s32_dead 8983/19334 (46%, 5.1 min, eta 5.9 min) ms_per_step=33.5
+[beat] setup_s12_dead 9933/19334 (51%, 5.6 min, eta 5.3 min) ms_per_step=33.3
+[beat] setup_s12_live 9936/19334 (51%, 5.6 min, eta 5.3 min) ms_per_step=33.3
+[beat] setup_s32_dead 9880/19334 (51%, 5.6 min, eta 5.4 min) ms_per_step=33.5
+[beat] setup_s12_dead 10830/19334 (56%, 6.1 min, eta 4.8 min) ms_per_step=33.4
+[beat] setup_s12_live 10838/19334 (56%, 6.1 min, eta 4.8 min) ms_per_step=33.3
+[beat] setup_s32_dead 10782/19334 (56%, 6.1 min, eta 4.8 min) ms_per_step=33.5
+[beat] setup_s12_live 11740/19334 (61%, 6.6 min, eta 4.3 min) ms_per_step=33.3
+[beat] setup_s32_dead 11681/19334 (60%, 6.6 min, eta 4.3 min) ms_per_step=33.5
+[beat] setup_s12_dead 11733/19334 (61%, 6.6 min, eta 4.3 min) ms_per_step=33.3
+[beat] setup_s12_dead 12635/19334 (65%, 7.1 min, eta 3.8 min) ms_per_step=33.4
+[beat] setup_s32_dead 12576/19334 (65%, 7.1 min, eta 3.8 min) ms_per_step=33.5
+[beat] setup_s12_live 12643/19334 (65%, 7.1 min, eta 3.8 min) ms_per_step=33.3
+[beat] setup_s12_dead 13537/19334 (70%, 7.6 min, eta 3.3 min) ms_per_step=33.4
+[beat] setup_s32_dead 13475/19334 (70%, 7.6 min, eta 3.3 min) ms_per_step=33.5
+[beat] setup_s12_live 13547/19334 (70%, 7.6 min, eta 3.3 min) ms_per_step=33.3
+[beat] setup_s12_dead 14439/19334 (75%, 8.1 min, eta 2.8 min) ms_per_step=33.4
+[beat] setup_s32_dead 14375/19334 (74%, 8.1 min, eta 2.8 min) ms_per_step=33.5
+[beat] setup_s12_live 14445/19334 (75%, 8.1 min, eta 2.7 min) ms_per_step=33.3
+[beat] setup_s12_dead 15340/19334 (79%, 8.6 min, eta 2.2 min) ms_per_step=33.4
+[beat] setup_s32_dead 15274/19334 (79%, 8.6 min, eta 2.3 min) ms_per_step=33.5
+[beat] setup_s12_live 15345/19334 (79%, 8.6 min, eta 2.2 min) ms_per_step=33.3
+[beat] setup_s32_dead 16174/19334 (84%, 9.1 min, eta 1.8 min) ms_per_step=33.5
+[beat] setup_s12_dead 16242/19334 (84%, 9.1 min, eta 1.7 min) ms_per_step=33.4
+[beat] setup_s12_live 16244/19334 (84%, 9.1 min, eta 1.7 min) ms_per_step=33.4
+[beat] setup_s12_live 17144/19334 (89%, 9.6 min, eta 1.2 min) ms_per_step=33.4
+[beat] setup_s12_dead 17146/19334 (89%, 9.6 min, eta 1.2 min) ms_per_step=33.4
+[beat] setup_s32_dead 17077/19334 (88%, 9.6 min, eta 1.3 min) ms_per_step=33.5
+[beat] setup_s32_dead 17976/19334 (93%, 10.1 min, eta 0.8 min) ms_per_step=33.5
+[beat] setup_s12_dead 18046/19334 (93%, 10.1 min, eta 0.7 min) ms_per_step=33.4
+[beat] setup_s12_live 18044/19334 (93%, 10.1 min, eta 0.7 min) ms_per_step=33.4
+[beat] setup_s12_live 18945/19334 (98%, 10.6 min, eta 0.2 min) ms_per_step=33.4
+[beat] setup_s12_dead 18948/19334 (98%, 10.6 min, eta 0.2 min) ms_per_step=33.4
+[beat] setup_s32_dead 18878/19334 (98%, 10.6 min, eta 0.3 min) ms_per_step=33.5
+[beat] setup_s12_dead 19334/19334 (100%, 10.9 min, eta 0.0 min) gain=[0.714, 0.698, 0.618, 0.671, 0.782] r2=[0.547, 0.381, 0.315, 0.382, 0.524]
+{"setup": "s12_dead", "alpha": 316.2277660168379, "edit_gain": [0.714, 0.698, 0.618, 0.671, 0.782], "phase31_gain": [0.666, 0.628, 0.606, 0.629, 0.697], "affine_gain": [0.717, 0.719, 0.613, 0.646, 0.82], "affine_icpt": [-0.00087, -0.00047, -0.00178, -0.01879, -0.00098], "stand_imu": [-0.0003000000142492354, 0.0019099999917671084, -0.0003100000030826777, -0.06285999715328217, -0.004579999949783087, -0.998009979724884], "mean_rate_hz": 22.71, "teacher_parity_max_diff": 6.882523987172817e-06, "held_out_rmse": [0.604, 0.717, 0.716, 0.702, 0.475], "held_out_r2": [0.547, 0.381, 0.315, 0.382, 0.524]}
+[beat] setup_s12_live 19334/19334 (100%, 10.9 min, eta 0.0 min) gain=[0.633, 0.63, 0.532, 0.561, 0.622] r2=[0.504, 0.297, 0.264, 0.311, 0.424]
+{"setup": "s12_live", "alpha": 316.2277660168379, "edit_gain": [0.633, 0.63, 0.532, 0.561, 0.622], "phase31_gain": [0.666, 0.628, 0.606, 0.629, 0.697], "affine_gain": [0.647, 0.626, 0.537, 0.597, 0.635], "affine_icpt": [-0.00075, -0.00175, -0.00195, -0.02245, -0.00149], "stand_imu": [-0.0003000000142492354, 0.0019099999917671084, -0.0003100000030826777, -0.06285999715328217, -0.004579999949783087, -0.998009979724884], "mean_rate_hz": 24.79, "teacher_parity_max_diff": 6.882523987172817e-06, "held_out_rmse": [0.616, 0.779, 0.799, 0.801, 0.544], "held_out_r2": [0.504, 0.297, 0.264, 0.311, 0.424]}
+[beat] setup_s32_dead 19334/19334 (100%, 10.9 min, eta 0.0 min) gain=[0.907, 0.921, 0.89, 0.845, 0.846] r2=[0.699, 0.6, 0.442, 0.43, 0.565]
+{"setup": "s32_dead", "alpha": 316.2277660168379, "edit_gain": [0.907, 0.921, 0.89, 0.845, 0.846], "phase31_gain": [0.881, 0.938, 0.943, 0.839, 0.915], "affine_gain": [0.902, 0.926, 0.917, 0.854, 0.841], "affine_icpt": [-0.00094, -0.00071, 0.00047, -0.00779, -0.00077], "stand_imu": [-0.0003000000142492354, 0.0019099999917671084, -0.0003100000030826777, -0.06285999715328217, -0.004579999949783087, -0.998009979724884], "mean_rate_hz": 68.52, "teacher_parity_max_diff": 6.882523987172817e-06, "held_out_rmse": [0.432, 0.494, 0.578, 0.567, 0.405], "held_out_r2": [0.699, 0.6, 0.442, 0.43, 0.565]}
+[beat] setup_s32_live 1/19334 (0%, 0.1 min, eta 1140.6 min) ms_per_step=97.7
+[beat] setup_s32_live 2012/19334 (10%, 0.6 min, eta 4.8 min) ms_per_step=15.0
+[beat] setup_s32_live 3938/19334 (20%, 1.1 min, eta 4.1 min) ms_per_step=15.3
+[beat] setup_s32_live 5924/19334 (31%, 1.6 min, eta 3.5 min) ms_per_step=15.2
+[beat] setup_s32_live 7915/19334 (41%, 2.1 min, eta 3.0 min) ms_per_step=15.2
+[beat] setup_s32_live 9951/19334 (51%, 2.6 min, eta 2.4 min) ms_per_step=15.1
+[beat] setup_s32_live 11940/19334 (62%, 3.1 min, eta 1.9 min) ms_per_step=15.1
+[beat] setup_s32_live 13919/19334 (72%, 3.6 min, eta 1.4 min) ms_per_step=15.1
+[beat] setup_s32_live 15897/19334 (82%, 4.1 min, eta 0.9 min) ms_per_step=15.1
+[beat] setup_s32_live 17927/19334 (93%, 4.6 min, eta 0.4 min) ms_per_step=15.1
+[beat] setup_s32_live 19334/19334 (100%, 5.0 min, eta 0.0 min) gain=[0.872, 0.927, 0.904, 0.78, 0.788] r2=[0.681, 0.572, 0.42, 0.415, 0.547]
+{"setup": "s32_live", "alpha": 316.2277660168379, "edit_gain": [0.872, 0.927, 0.904, 0.78, 0.788], "phase31_gain": [0.881, 0.938, 0.943, 0.839, 0.915], "affine_gain": [0.877, 0.937, 0.918, 0.839, 0.842], "affine_icpt": [-0.00103, -0.00074, -0.0001, -0.00826, -0.00091], "stand_imu": [-0.0003000000142492354, 0.0019099999917671084, -0.0003100000030826777, -0.06285999715328217, -0.004579999949783087, -0.998009979724884], "mean_rate_hz": 65.96, "teacher_parity_max_diff": 6.882523987172817e-06, "held_out_rmse": [0.482, 0.488, 0.552, 0.592, 0.432], "held_out_r2": [0.681, 0.572, 0.42, 0.415, 0.547]}
+[beat] s12_culture_edit_9110 0.0/10 (0%, 0.1 min, eta ?) seed=9110
+[beat] s12_culture_edit_9120 0.0/10 (0%, 0.1 min, eta ?) seed=9120
+[beat] s12_culture_edit_9100 0.0/10 (0%, 0.1 min, eta ?) seed=9100
+[beat] s12_culture_edit_9100 1/10 (10%, 0.2 min, eta 2.2 min) seed=9100 survived=5.4
+[beat] s12_culture_edit_9100 2/10 (20%, 0.5 min, eta 1.9 min) seed=9101 survived=8.0
+[beat] s12_culture_edit_9110 1/10 (10%, 0.6 min, eta 5.1 min) seed=9110 survived=16.62
+[beat] s12_culture_edit_9120 0.886/10 (9%, 0.6 min, eta 6.1 min) seed=9120
+[beat] s12_culture_edit_9120 1/10 (10%, 0.7 min, eta 5.9 min) seed=9120 survived=20.0
+[beat] s12_culture_edit_9100 2.868/10 (29%, 1.0 min, eta 2.4 min) seed=9102
+[beat] s12_culture_edit_9100 3/10 (30%, 1.1 min, eta 2.5 min) seed=9102 survived=20.0
+[beat] s12_culture_edit_9110 1.867/10 (19%, 1.1 min, eta 4.6 min) seed=9111
+[beat] s12_culture_edit_9110 2/10 (20%, 1.1 min, eta 4.6 min) seed=9111 survived=20.0
+[beat] s12_culture_edit_9120 1.867/10 (19%, 1.2 min, eta 5.1 min) seed=9121
+[beat] s12_culture_edit_9120 2/10 (20%, 1.2 min, eta 4.9 min) seed=9121 survived=20.0
+[beat] s12_culture_edit_9110 3/10 (30%, 1.5 min, eta 3.4 min) seed=9112 survived=11.6
+[beat] s12_culture_edit_9120 3/10 (30%, 1.5 min, eta 3.5 min) seed=9122 survived=8.58
+[beat] s12_culture_edit_9100 3.878/10 (39%, 1.6 min, eta 2.5 min) seed=9103
+[beat] s12_culture_edit_9100 4/10 (40%, 1.6 min, eta 2.4 min) seed=9103 survived=20.0
+[beat] s12_culture_edit_9120 4/10 (40%, 1.7 min, eta 2.6 min) seed=9123 survived=8.58
+[beat] s12_culture_edit_9100 5/10 (50%, 1.8 min, eta 1.8 min) seed=9104 survived=7.48
+[beat] s12_culture_edit_9110 3.896/10 (39%, 2.0 min, eta 3.1 min) seed=9113
+[beat] s12_culture_edit_9100 6/10 (60%, 2.0 min, eta 1.3 min) seed=9105 survived=5.64
+[beat] s12_culture_edit_9110 4/10 (40%, 2.0 min, eta 3.1 min) seed=9113 survived=20.0
+[beat] s12_culture_edit_9100 7/10 (70%, 2.2 min, eta 0.9 min) seed=9106 survived=6.88
+[beat] s12_culture_edit_9120 4.897/10 (49%, 2.2 min, eta 2.3 min) seed=9124
+[beat] s12_culture_edit_9120 5/10 (50%, 2.3 min, eta 2.3 min) seed=9124 survived=20.0
+[beat] s12_culture_edit_9120 6/10 (60%, 2.4 min, eta 1.6 min) seed=9125 survived=5.36
+[beat] s12_culture_edit_9110 4.896/10 (49%, 2.5 min, eta 2.6 min) seed=9114
+[beat] s12_culture_edit_9110 5/10 (50%, 2.6 min, eta 2.6 min) seed=9114 survived=20.0
+[beat] s12_culture_edit_9100 7.894/10 (79%, 2.7 min, eta 0.7 min) seed=9107
+[beat] s12_culture_edit_9100 8/10 (80%, 2.8 min, eta 0.7 min) seed=9107 survived=20.0
+[beat] s12_culture_edit_9120 6.893/10 (69%, 2.9 min, eta 1.3 min) seed=9126
+[beat] s12_culture_edit_9120 7/10 (70%, 3.0 min, eta 1.3 min) seed=9126 survived=20.0
+[beat] s12_culture_edit_9110 5.894/10 (59%, 3.1 min, eta 2.2 min) seed=9115
+[beat] s12_culture_edit_9110 6/10 (60%, 3.2 min, eta 2.1 min) seed=9115 survived=20.0
+[beat] s12_culture_edit_9100 8.897/10 (89%, 3.3 min, eta 0.4 min) seed=9108
+[beat] s12_culture_edit_9100 9/10 (90%, 3.3 min, eta 0.4 min) seed=9108 survived=20.0
+[beat] s12_culture_edit_9120 7.898/10 (79%, 3.5 min, eta 0.9 min) seed=9127
+[beat] s12_culture_edit_9120 8/10 (80%, 3.6 min, eta 0.9 min) seed=9127 survived=20.0
+[beat] s12_culture_edit_9100 10/10 (100%, 3.6 min, eta 0.0 min) seed=9109 survived=8.64
+[beat] s12_culture_edit_9110 7/10 (70%, 3.6 min, eta 1.5 min) seed=9116 survived=17.18
+[beat] s12_culture_edit_9130 0.0/10 (0%, 0.1 min, eta ?) seed=9130
+[beat] s12_culture_edit_9120 9/10 (90%, 3.8 min, eta 0.4 min) seed=9128 survived=8.02
+[beat] s12_culture_edit_9130 1/10 (10%, 0.4 min, eta 3.7 min) seed=9130 survived=12.44
+[beat] s12_culture_edit_9110 7.914/10 (79%, 4.1 min, eta 1.1 min) seed=9117
+[beat] s12_culture_edit_9130 2/10 (20%, 0.6 min, eta 2.3 min) seed=9131 survived=5.38
+[beat] s12_culture_edit_9110 8/10 (80%, 4.2 min, eta 1.0 min) seed=9117 survived=20.0
+[beat] s12_culture_edit_9120 9.9/10 (99%, 4.3 min, eta 0.0 min) seed=9129
+[beat] s12_culture_edit_9120 10/10 (100%, 4.3 min, eta 0.0 min) seed=9129 survived=20.0
+[beat] s12_culture_plain_9100 0.0/10 (0%, 0.1 min, eta ?) seed=9100
+[beat] s12_culture_plain_9100 1/10 (10%, 0.2 min, eta 1.6 min) seed=9100 survived=3.96
+[beat] s12_culture_plain_9100 2/10 (20%, 0.3 min, eta 1.0 min) seed=9101 survived=2.7
+[beat] s12_culture_edit_9130 2.9459999999999997/10 (29%, 1.1 min, eta 2.5 min) seed=9132
+[beat] s12_culture_edit_9110 8.943/10 (89%, 4.7 min, eta 0.5 min) seed=9118
+[beat] s12_culture_edit_9130 3/10 (30%, 1.1 min, eta 2.5 min) seed=9132 survived=20.0
+[beat] s12_culture_edit_9110 9/10 (90%, 4.7 min, eta 0.5 min) seed=9118 survived=20.0
+[beat] s12_culture_plain_9100 3/10 (30%, 0.4 min, eta 0.8 min) seed=9102 survived=3.6
+[beat] s12_culture_plain_9100 4/10 (40%, 0.5 min, eta 0.7 min) seed=9103 survived=4.06
+[beat] s12_culture_plain_9100 5/10 (50%, 0.6 min, eta 0.6 min) seed=9104 survived=3.22
+[beat] s12_culture_plain_9100 6/10 (60%, 0.7 min, eta 0.4 min) seed=9105 survived=2.9
+[beat] s12_culture_plain_9100 7/10 (70%, 0.8 min, eta 0.3 min) seed=9106 survived=4.2
+[beat] s12_culture_edit_9130 3.9/10 (39%, 1.6 min, eta 2.5 min) seed=9133
+[beat] s12_culture_edit_9110 9.898/10 (99%, 5.2 min, eta 0.1 min) seed=9119
+[beat] s12_culture_edit_9130 4/10 (40%, 1.6 min, eta 2.5 min) seed=9133 survived=20.0
+[beat] s12_culture_edit_9110 10/10 (100%, 5.2 min, eta 0.0 min) seed=9119 survived=20.0
+[beat] s12_culture_plain_9100 8/10 (80%, 0.9 min, eta 0.2 min) seed=9107 survived=5.3
+[beat] s12_culture_plain_9100 9/10 (90%, 1.0 min, eta 0.1 min) seed=9108 survived=2.94
+[beat] s12_culture_plain_9110 0.0/10 (0%, 0.1 min, eta ?) seed=9110
+[beat] s12_culture_plain_9110 1/10 (10%, 0.1 min, eta 1.3 min) seed=9110 survived=2.88
+[beat] s12_culture_plain_9100 10/10 (100%, 1.1 min, eta 0.0 min) seed=9109 survived=3.08
+[beat] s12_culture_plain_9110 2/10 (20%, 0.2 min, eta 0.8 min) seed=9111 survived=2.62
+[beat] s12_culture_plain_9120 0.0/10 (0%, 0.1 min, eta ?) seed=9120
+[beat] s12_culture_plain_9110 3/10 (30%, 0.3 min, eta 0.6 min) seed=9112 survived=2.82
+[beat] s12_culture_plain_9120 1/10 (10%, 0.2 min, eta 1.7 min) seed=9120 survived=4.3
+[beat] s12_culture_plain_9110 4/10 (40%, 0.4 min, eta 0.6 min) seed=9113 survived=3.24
+[beat] s12_culture_edit_9130 5/10 (50%, 2.1 min, eta 2.1 min) seed=9134 survived=20.0
+[beat] s12_culture_plain_9120 2/10 (20%, 0.3 min, eta 1.1 min) seed=9121 survived=3.2
+[beat] s12_culture_plain_9110 5/10 (50%, 0.5 min, eta 0.5 min) seed=9114 survived=3.32
+[beat] s12_culture_plain_9120 3/10 (30%, 0.4 min, eta 0.8 min) seed=9122 survived=2.62
+[beat] s12_culture_plain_9110 6/10 (60%, 0.6 min, eta 0.4 min) seed=9115 survived=4.28
+[beat] s12_culture_plain_9120 4/10 (40%, 0.4 min, eta 0.7 min) seed=9123 survived=3.14
+[beat] s12_culture_plain_9110 7/10 (70%, 0.7 min, eta 0.3 min) seed=9116 survived=3.02
+[beat] s12_culture_plain_9120 5/10 (50%, 0.5 min, eta 0.5 min) seed=9124 survived=3.28
+[beat] s12_culture_plain_9110 8/10 (80%, 0.8 min, eta 0.2 min) seed=9117 survived=4.54
+[beat] s12_culture_plain_9120 6/10 (60%, 0.7 min, eta 0.4 min) seed=9125 survived=4.26
+[beat] s12_culture_plain_9120 7/10 (70%, 0.7 min, eta 0.3 min) seed=9126 survived=2.4
+[beat] s12_culture_plain_9110 9/10 (90%, 0.9 min, eta 0.1 min) seed=9118 survived=4.04
+[beat] s12_culture_edit_9130 5.912/10 (59%, 2.6 min, eta 1.8 min) seed=9135
+[beat] s12_culture_plain_9120 8/10 (80%, 0.8 min, eta 0.2 min) seed=9127 survived=2.62
+[beat] s12_culture_edit_9130 6/10 (60%, 2.7 min, eta 1.8 min) seed=9135 survived=20.0
+[beat] s12_culture_plain_9110 10/10 (100%, 1.0 min, eta 0.0 min) seed=9119 survived=2.62
+[beat] s12_culture_plain_9120 9/10 (90%, 0.9 min, eta 0.1 min) seed=9128 survived=3.44
+[beat] s12_culture_plain_9130 0.0/10 (0%, 0.1 min, eta ?) seed=9130
+[beat] s12_culture_plain_9120 10/10 (100%, 1.0 min, eta 0.0 min) seed=9129 survived=2.98
+[beat] s12_culture_plain_9130 1/10 (10%, 0.1 min, eta 1.3 min) seed=9130 survived=2.92
+[beat] s12_culture_edit_9130 7/10 (70%, 2.9 min, eta 1.2 min) seed=9136 survived=8.08
+[beat] s12_dead_edit_9100 0.0/10 (0%, 0.1 min, eta ?) seed=9100
+[beat] s12_culture_plain_9130 2/10 (20%, 0.2 min, eta 0.9 min) seed=9131 survived=3.56
+[beat] s12_dead_edit_9100 1/10 (10%, 0.2 min, eta 1.6 min) seed=9100 survived=3.9
+[beat] s12_culture_plain_9130 3/10 (30%, 0.5 min, eta 1.1 min) seed=9132 survived=8.1
+[beat] s12_culture_plain_9130 4/10 (40%, 0.5 min, eta 0.8 min) seed=9133 survived=3.2
+[beat] s12_culture_edit_9130 7.927/10 (79%, 3.4 min, eta 0.9 min) seed=9137
+[beat] s12_culture_plain_9130 5/10 (50%, 0.7 min, eta 0.7 min) seed=9134 survived=3.6
+[beat] s12_culture_edit_9130 8/10 (80%, 3.4 min, eta 0.9 min) seed=9137 survived=20.0
+[beat] s12_culture_plain_9130 6/10 (60%, 0.7 min, eta 0.5 min) seed=9135 survived=2.5
+[beat] s12_dead_edit_9100 1.9/10 (19%, 0.7 min, eta 2.9 min) seed=9101
+[beat] s12_culture_plain_9130 7/10 (70%, 0.8 min, eta 0.4 min) seed=9136 survived=3.68
+[beat] s12_culture_edit_9130 9/10 (90%, 3.6 min, eta 0.4 min) seed=9138 survived=5.64
+[beat] s12_dead_edit_9100 2/10 (20%, 0.7 min, eta 2.9 min) seed=9101 survived=20.0
+[beat] s12_culture_plain_9130 8/10 (80%, 0.9 min, eta 0.2 min) seed=9137 survived=3.5
+[beat] s12_culture_plain_9130 9/10 (90%, 1.1 min, eta 0.1 min) seed=9138 survived=4.3
+[beat] s12_culture_plain_9130 10/10 (100%, 1.1 min, eta 0.0 min) seed=9139 survived=2.9
+[beat] s12_dead_edit_9110 0.0/10 (0%, 0.1 min, eta ?) seed=9110
+[beat] s12_culture_edit_9130 9.955/10 (100%, 4.1 min, eta 0.0 min) seed=9139
+[beat] s12_dead_edit_9100 2.953/10 (30%, 1.2 min, eta 2.9 min) seed=9102
+[beat] s12_culture_edit_9130 10/10 (100%, 4.1 min, eta 0.0 min) seed=9139 survived=20.0
+[beat] s12_dead_edit_9100 3/10 (30%, 1.2 min, eta 2.9 min) seed=9102 survived=20.0
+[beat] s12_dead_edit_9120 0.0/10 (0%, 0.1 min, eta ?) seed=9120
+[beat] s12_dead_edit_9110 0.958/10 (10%, 0.6 min, eta 5.4 min) seed=9110
+[beat] s12_dead_edit_9110 1/10 (10%, 0.6 min, eta 5.3 min) seed=9110 survived=20.0
+[beat] s12_dead_edit_9100 3.934/10 (39%, 1.7 min, eta 2.7 min) seed=9103
+[beat] s12_dead_edit_9100 4/10 (40%, 1.8 min, eta 2.7 min) seed=9103 survived=20.0
+[beat] s12_dead_edit_9120 0.904/10 (9%, 0.6 min, eta 5.7 min) seed=9120
+[beat] s12_dead_edit_9120 1/10 (10%, 0.6 min, eta 5.6 min) seed=9120 survived=20.0
+[beat] s12_dead_edit_9110 1.891/10 (19%, 1.1 min, eta 4.7 min) seed=9111
+[beat] s12_dead_edit_9110 2/10 (20%, 1.2 min, eta 4.6 min) seed=9111 survived=20.0
+[beat] s12_dead_edit_9100 4.891/10 (49%, 2.3 min, eta 2.4 min) seed=9104
+[beat] s12_dead_edit_9100 5/10 (50%, 2.3 min, eta 2.3 min) seed=9104 survived=20.0
+[beat] s12_dead_edit_9120 1.8900000000000001/10 (19%, 1.1 min, eta 4.8 min) seed=9121
+[beat] s12_dead_edit_9120 2/10 (20%, 1.2 min, eta 4.7 min) seed=9121 survived=20.0
+[beat] s12_dead_edit_9110 2.902/10 (29%, 1.7 min, eta 4.0 min) seed=9112
+[beat] s12_dead_edit_9110 3/10 (30%, 1.7 min, eta 4.0 min) seed=9112 survived=20.0
+[beat] s12_dead_edit_9100 6/10 (60%, 2.8 min, eta 1.9 min) seed=9105 survived=17.24
+[beat] s12_dead_edit_9120 2.899/10 (29%, 1.7 min, eta 4.1 min) seed=9122
+[beat] s12_dead_edit_9120 3/10 (30%, 1.7 min, eta 4.0 min) seed=9122 survived=20.0
+[beat] s12_dead_edit_9120 4/10 (40%, 1.9 min, eta 2.9 min) seed=9123 survived=7.5
+[beat] s12_dead_edit_9110 3.903/10 (39%, 2.2 min, eta 3.4 min) seed=9113
+[beat] s12_dead_edit_9110 4/10 (40%, 2.3 min, eta 3.4 min) seed=9113 survived=20.0
+[beat] s12_dead_edit_9100 6.901/10 (69%, 3.3 min, eta 1.5 min) seed=9106
+[beat] s12_dead_edit_9100 7/10 (70%, 3.4 min, eta 1.4 min) seed=9106 survived=20.0
+[beat] s12_dead_edit_9120 4.892/10 (49%, 2.4 min, eta 2.6 min) seed=9124
+[beat] s12_dead_edit_9120 5/10 (50%, 2.5 min, eta 2.5 min) seed=9124 survived=20.0
+[beat] s12_dead_edit_9110 4.896/10 (49%, 2.8 min, eta 2.9 min) seed=9114
+[beat] s12_dead_edit_9110 5/10 (50%, 2.8 min, eta 2.8 min) seed=9114 survived=20.0
+[beat] s12_dead_edit_9100 7.897/10 (79%, 3.9 min, eta 1.0 min) seed=9107
+[beat] s12_dead_edit_9100 8/10 (80%, 3.9 min, eta 1.0 min) seed=9107 survived=20.0
+[beat] s12_dead_edit_9120 5.891/10 (59%, 3.0 min, eta 2.1 min) seed=9125
+[beat] s12_dead_edit_9120 6/10 (60%, 3.1 min, eta 2.0 min) seed=9125 survived=20.0
+[beat] s12_dead_edit_9110 5.891/10 (59%, 3.3 min, eta 2.3 min) seed=9115
+[beat] s12_dead_edit_9110 6/10 (60%, 3.4 min, eta 2.2 min) seed=9115 survived=20.0
+[beat] s12_dead_edit_9100 8.894/10 (89%, 4.4 min, eta 0.6 min) seed=9108
+[beat] s12_dead_edit_9100 9/10 (90%, 4.5 min, eta 0.5 min) seed=9108 survived=20.0
+[beat] s12_dead_edit_9120 6.893/10 (69%, 3.6 min, eta 1.6 min) seed=9126
+[beat] s12_dead_edit_9120 7/10 (70%, 3.6 min, eta 1.6 min) seed=9126 survived=20.0
+[beat] s12_dead_edit_9110 6.891/10 (69%, 3.9 min, eta 1.7 min) seed=9116
+[beat] s12_dead_edit_9100 10/10 (100%, 4.9 min, eta 0.0 min) seed=9109 survived=14.96
+[beat] s12_dead_edit_9110 7/10 (70%, 3.9 min, eta 1.7 min) seed=9116 survived=20.0
+[beat] s12_dead_edit_9130 0.0/10 (0%, 0.1 min, eta ?) seed=9130
+[beat] s12_dead_edit_9120 8/10 (80%, 4.1 min, eta 1.0 min) seed=9127 survived=16.2
+[beat] s12_dead_edit_9110 7.915/10 (79%, 4.4 min, eta 1.2 min) seed=9117
+[beat] s12_dead_edit_9110 8/10 (80%, 4.5 min, eta 1.1 min) seed=9117 survived=20.0
+[beat] s12_dead_edit_9130 0.904/10 (9%, 0.6 min, eta 5.7 min) seed=9130
+[beat] s12_dead_edit_9130 1/10 (10%, 0.6 min, eta 5.6 min) seed=9130 survived=20.0
+[beat] s12_dead_edit_9120 8.896/10 (89%, 4.6 min, eta 0.6 min) seed=9128
+[beat] s12_dead_edit_9120 9/10 (90%, 4.6 min, eta 0.5 min) seed=9128 survived=20.0
+[beat] s12_dead_edit_9110 9/10 (90%, 4.8 min, eta 0.5 min) seed=9118 survived=13.52
+[beat] s12_dead_edit_9130 1.8940000000000001/10 (19%, 1.1 min, eta 4.8 min) seed=9131
+[beat] s12_dead_edit_9130 2/10 (20%, 1.2 min, eta 4.7 min) seed=9131 survived=20.0
+[beat] s12_dead_edit_9120 10/10 (100%, 5.1 min, eta 0.0 min) seed=9129 survived=16.54
+[beat] s12_dead_edit_9110 9.927/10 (99%, 5.3 min, eta 0.0 min) seed=9119
+[beat] s12_dead_edit_9110 10/10 (100%, 5.4 min, eta 0.0 min) seed=9119 survived=20.0
+[beat] s32_culture_edit_9100 0.0/10 (0%, 0.1 min, eta ?) seed=9100
+[beat] s32_culture_edit_9110 0.0/10 (0%, 0.1 min, eta ?) seed=9110
+[beat] s12_dead_edit_9130 3/10 (30%, 1.7 min, eta 3.9 min) seed=9132 survived=20.0
+[beat] s32_culture_edit_9100 0.938/10 (9%, 0.6 min, eta 5.5 min) seed=9100
+[beat] s32_culture_edit_9100 1/10 (10%, 0.6 min, eta 5.4 min) seed=9100 survived=20.0
+[beat] s32_culture_edit_9110 0.899/10 (9%, 0.6 min, eta 5.7 min) seed=9110
+[beat] s32_culture_edit_9110 1/10 (10%, 0.6 min, eta 5.6 min) seed=9110 survived=20.0
+[beat] s12_dead_edit_9130 3.89/10 (39%, 2.2 min, eta 3.4 min) seed=9133
+[beat] s12_dead_edit_9130 4/10 (40%, 2.2 min, eta 3.4 min) seed=9133 survived=20.0
+[beat] s32_culture_edit_9100 1.8940000000000001/10 (19%, 1.1 min, eta 4.7 min) seed=9101
+[beat] s32_culture_edit_9100 2/10 (20%, 1.2 min, eta 4.6 min) seed=9101 survived=20.0
+[beat] s32_culture_edit_9110 1.895/10 (19%, 1.1 min, eta 4.8 min) seed=9111
+[beat] s32_culture_edit_9110 2/10 (20%, 1.2 min, eta 4.7 min) seed=9111 survived=20.0
+[beat] s12_dead_edit_9130 4.9/10 (49%, 2.7 min, eta 2.8 min) seed=9134
+[beat] s12_dead_edit_9130 5/10 (50%, 2.8 min, eta 2.8 min) seed=9134 survived=20.0
+[beat] s32_culture_edit_9100 2.886/10 (29%, 1.7 min, eta 4.1 min) seed=9102
+[beat] s32_culture_edit_9100 3/10 (30%, 1.7 min, eta 4.0 min) seed=9102 survived=20.0
+[beat] s32_culture_edit_9110 2.886/10 (29%, 1.7 min, eta 4.1 min) seed=9112
+[beat] s32_culture_edit_9110 3/10 (30%, 1.7 min, eta 4.1 min) seed=9112 survived=20.0
+[beat] s12_dead_edit_9130 5.886/10 (59%, 3.3 min, eta 2.3 min) seed=9135
+[beat] s12_dead_edit_9130 6/10 (60%, 3.4 min, eta 2.2 min) seed=9135 survived=20.0
+[beat] s32_culture_edit_9100 3.887/10 (39%, 2.2 min, eta 3.5 min) seed=9103
+[beat] s32_culture_edit_9100 4/10 (40%, 2.3 min, eta 3.4 min) seed=9103 survived=20.0
+[beat] s32_culture_edit_9110 3.8890000000000002/10 (39%, 2.2 min, eta 3.5 min) seed=9113
+[beat] s32_culture_edit_9110 4/10 (40%, 2.3 min, eta 3.5 min) seed=9113 survived=20.0
+[beat] s12_dead_edit_9130 6.89/10 (69%, 3.9 min, eta 1.7 min) seed=9136
+[beat] s12_dead_edit_9130 7/10 (70%, 3.9 min, eta 1.7 min) seed=9136 survived=19.94
+[beat] s32_culture_edit_9100 4.891/10 (49%, 2.8 min, eta 2.9 min) seed=9104
+[beat] s32_culture_edit_9100 5/10 (50%, 2.8 min, eta 2.8 min) seed=9104 survived=20.0
+[beat] s32_culture_edit_9110 4.886/10 (49%, 2.8 min, eta 2.9 min) seed=9114
+[beat] s32_culture_edit_9110 5/10 (50%, 2.9 min, eta 2.9 min) seed=9114 survived=20.0
+[beat] s12_dead_edit_9130 7.886/10 (79%, 4.4 min, eta 1.2 min) seed=9137
+[beat] s12_dead_edit_9130 8/10 (80%, 4.5 min, eta 1.1 min) seed=9137 survived=20.0
+[beat] s32_culture_edit_9100 5.886/10 (59%, 3.3 min, eta 2.3 min) seed=9105
+[beat] s32_culture_edit_9100 6/10 (60%, 3.4 min, eta 2.3 min) seed=9105 survived=20.0
+[beat] s32_culture_edit_9110 5.888/10 (59%, 3.4 min, eta 2.4 min) seed=9115
+[beat] s32_culture_edit_9110 6/10 (60%, 3.4 min, eta 2.3 min) seed=9115 survived=20.0
+[beat] s12_dead_edit_9130 8.892/10 (89%, 5.0 min, eta 0.6 min) seed=9138
+[beat] s12_dead_edit_9130 9/10 (90%, 5.0 min, eta 0.6 min) seed=9138 survived=20.0
+[beat] s32_culture_edit_9100 6.889/10 (69%, 3.9 min, eta 1.8 min) seed=9106
+[beat] s32_culture_edit_9100 7/10 (70%, 4.0 min, eta 1.7 min) seed=9106 survived=20.0
+[beat] s32_culture_edit_9110 6.891/10 (69%, 3.9 min, eta 1.8 min) seed=9116
+[beat] s32_culture_edit_9110 7/10 (70%, 4.0 min, eta 1.7 min) seed=9116 survived=20.0
+[beat] s12_dead_edit_9130 9.891/10 (99%, 5.5 min, eta 0.1 min) seed=9139
+[beat] s12_dead_edit_9130 10/10 (100%, 5.6 min, eta 0.0 min) seed=9139 survived=20.0
+[beat] s32_culture_edit_9120 0.0/10 (0%, 0.1 min, eta ?) seed=9120
+[beat] s32_culture_edit_9100 7.946/10 (79%, 4.5 min, eta 1.2 min) seed=9107
+[beat] s32_culture_edit_9100 8/10 (80%, 4.5 min, eta 1.1 min) seed=9107 survived=20.0
+[beat] s32_culture_edit_9110 7.949/10 (79%, 4.5 min, eta 1.2 min) seed=9117
+[beat] s32_culture_edit_9110 8/10 (80%, 4.5 min, eta 1.1 min) seed=9117 survived=20.0
+[beat] s32_culture_edit_9120 0.905/10 (9%, 0.6 min, eta 5.7 min) seed=9120
+[beat] s32_culture_edit_9120 1/10 (10%, 0.6 min, eta 5.6 min) seed=9120 survived=20.0
+[beat] s32_culture_edit_9100 8.888/10 (89%, 5.0 min, eta 0.6 min) seed=9108
+[beat] s32_culture_edit_9100 9/10 (90%, 5.1 min, eta 0.6 min) seed=9108 survived=20.0
+[beat] s32_culture_edit_9110 8.886/10 (89%, 5.0 min, eta 0.6 min) seed=9118
+[beat] s32_culture_edit_9110 9/10 (90%, 5.1 min, eta 0.6 min) seed=9118 survived=20.0
+[beat] s32_culture_edit_9120 1.893/10 (19%, 1.1 min, eta 4.8 min) seed=9121
+[beat] s32_culture_edit_9120 2/10 (20%, 1.2 min, eta 4.7 min) seed=9121 survived=20.0
+[beat] s32_culture_edit_9100 9.893/10 (99%, 5.6 min, eta 0.1 min) seed=9109
+[beat] s32_culture_edit_9100 10/10 (100%, 5.6 min, eta 0.0 min) seed=9109 survived=20.0
+[beat] s32_culture_edit_9110 9.913/10 (99%, 5.6 min, eta 0.0 min) seed=9119
+[beat] s32_culture_edit_9110 10/10 (100%, 5.6 min, eta 0.0 min) seed=9119 survived=20.0
+[beat] s32_culture_edit_9130 0.0/10 (0%, 0.1 min, eta ?) seed=9130
+[beat] s32_culture_plain_9100 0.0/10 (0%, 0.1 min, eta ?) seed=9100
+[beat] s32_culture_edit_9120 2.9939999999999998/10 (30%, 1.7 min, eta 3.9 min) seed=9122
+[beat] s32_culture_edit_9120 3/10 (30%, 1.7 min, eta 3.9 min) seed=9122 survived=20.0
+[beat] s32_culture_edit_9130 0.939/10 (9%, 0.6 min, eta 5.5 min) seed=9130
+[beat] s32_culture_edit_9130 1/10 (10%, 0.6 min, eta 5.4 min) seed=9130 survived=20.0
+[beat] s32_culture_plain_9100 0.895/10 (9%, 0.6 min, eta 5.7 min) seed=9100
+[beat] s32_culture_plain_9100 1/10 (10%, 0.6 min, eta 5.6 min) seed=9100 survived=20.0
+[beat] s32_culture_edit_9120 3.884/10 (39%, 2.2 min, eta 3.4 min) seed=9123
+[beat] s32_culture_edit_9120 4/10 (40%, 2.2 min, eta 3.4 min) seed=9123 survived=20.0
+[beat] s32_culture_edit_9130 1.883/10 (19%, 1.1 min, eta 4.7 min) seed=9131
+[beat] s32_culture_edit_9130 2/10 (20%, 1.2 min, eta 4.7 min) seed=9131 survived=20.0
+[beat] s32_culture_plain_9100 1.8820000000000001/10 (19%, 1.1 min, eta 4.8 min) seed=9101
+[beat] s32_culture_plain_9100 2/10 (20%, 1.2 min, eta 4.8 min) seed=9101 survived=20.0
+[beat] s32_culture_edit_9120 4.884/10 (49%, 2.7 min, eta 2.9 min) seed=9124
+[beat] s32_culture_edit_9120 5/10 (50%, 2.8 min, eta 2.8 min) seed=9124 survived=20.0
+[beat] s32_culture_edit_9130 2.893/10 (29%, 1.7 min, eta 4.1 min) seed=9132
+[beat] s32_culture_edit_9130 3/10 (30%, 1.7 min, eta 4.0 min) seed=9132 survived=20.0
+[beat] s32_culture_plain_9100 2.898/10 (29%, 1.7 min, eta 4.1 min) seed=9102
+[beat] s32_culture_plain_9100 3/10 (30%, 1.7 min, eta 4.1 min) seed=9102 survived=20.0
+[beat] s32_culture_edit_9120 5.896/10 (59%, 3.3 min, eta 2.3 min) seed=9125
+[beat] s32_culture_edit_9120 6/10 (60%, 3.4 min, eta 2.2 min) seed=9125 survived=20.0
+[beat] s32_culture_edit_9130 3.884/10 (39%, 2.2 min, eta 3.5 min) seed=9133
+[beat] s32_culture_edit_9130 4/10 (40%, 2.3 min, eta 3.4 min) seed=9133 survived=20.0
+[beat] s32_culture_plain_9100 3.884/10 (39%, 2.2 min, eta 3.5 min) seed=9103
+[beat] s32_culture_plain_9100 4/10 (40%, 2.3 min, eta 3.5 min) seed=9103 survived=20.0
+[beat] s32_culture_edit_9120 6.885/10 (69%, 3.9 min, eta 1.8 min) seed=9126
+[beat] s32_culture_edit_9120 7/10 (70%, 3.9 min, eta 1.7 min) seed=9126 survived=20.0
+[beat] s32_culture_edit_9130 4.884/10 (49%, 2.8 min, eta 2.9 min) seed=9134
+[beat] s32_culture_edit_9130 5/10 (50%, 2.9 min, eta 2.9 min) seed=9134 survived=20.0
+[beat] s32_culture_plain_9100 4.881/10 (49%, 2.8 min, eta 2.9 min) seed=9104
+[beat] s32_culture_plain_9100 5/10 (50%, 2.9 min, eta 2.9 min) seed=9104 survived=20.0
+[beat] s32_culture_edit_9120 7.885/10 (79%, 4.4 min, eta 1.2 min) seed=9127
+[beat] s32_culture_edit_9120 8/10 (80%, 4.5 min, eta 1.1 min) seed=9127 survived=20.0
+[beat] s32_culture_edit_9130 5.888/10 (59%, 3.4 min, eta 2.3 min) seed=9135
+[beat] s32_culture_edit_9130 6/10 (60%, 3.4 min, eta 2.3 min) seed=9135 survived=20.0
+[beat] s32_culture_plain_9100 5.884/10 (59%, 3.4 min, eta 2.4 min) seed=9105
+[beat] s32_culture_plain_9100 6/10 (60%, 3.4 min, eta 2.3 min) seed=9105 survived=20.0
+[beat] s32_culture_edit_9120 8.884/10 (89%, 5.0 min, eta 0.6 min) seed=9128
+[beat] s32_culture_edit_9120 9/10 (90%, 5.1 min, eta 0.6 min) seed=9128 survived=20.0
+[beat] s32_culture_edit_9130 6.896/10 (69%, 3.9 min, eta 1.8 min) seed=9136
+[beat] s32_culture_edit_9130 7/10 (70%, 4.0 min, eta 1.7 min) seed=9136 survived=20.0
+[beat] s32_culture_plain_9100 6.898/10 (69%, 3.9 min, eta 1.8 min) seed=9106
+[beat] s32_culture_plain_9100 7/10 (70%, 4.0 min, eta 1.7 min) seed=9106 survived=20.0
+[beat] s32_culture_edit_9120 9.893/10 (99%, 5.6 min, eta 0.1 min) seed=9129
+[beat] s32_culture_edit_9120 10/10 (100%, 5.6 min, eta 0.0 min) seed=9129 survived=20.0
+[beat] s32_culture_plain_9110 0.0/10 (0%, 0.1 min, eta ?) seed=9110
+[beat] s32_culture_edit_9130 7.941/10 (79%, 4.5 min, eta 1.2 min) seed=9137
+[beat] s32_culture_edit_9130 8/10 (80%, 4.5 min, eta 1.1 min) seed=9137 survived=20.0
+[beat] s32_culture_plain_9100 7.944/10 (79%, 4.5 min, eta 1.2 min) seed=9107
+[beat] s32_culture_plain_9100 8/10 (80%, 4.5 min, eta 1.1 min) seed=9107 survived=20.0
+[beat] s32_culture_plain_9110 0.903/10 (9%, 0.6 min, eta 5.7 min) seed=9110
+[beat] s32_culture_plain_9110 1/10 (10%, 0.6 min, eta 5.6 min) seed=9110 survived=20.0
+[beat] s32_culture_edit_9130 8.891/10 (89%, 5.0 min, eta 0.6 min) seed=9138
+[beat] s32_culture_edit_9130 9/10 (90%, 5.1 min, eta 0.6 min) seed=9138 survived=20.0
+[beat] s32_culture_plain_9100 8.893/10 (89%, 5.0 min, eta 0.6 min) seed=9108
+[beat] s32_culture_plain_9100 9/10 (90%, 5.1 min, eta 0.6 min) seed=9108 survived=20.0
+[beat] s32_culture_plain_9100 10/10 (100%, 5.2 min, eta 0.0 min) seed=9109 survived=4.6
+[beat] s32_culture_plain_9110 1.913/10 (19%, 1.1 min, eta 4.7 min) seed=9111
+[beat] s32_culture_plain_9110 2/10 (20%, 1.2 min, eta 4.6 min) seed=9111 survived=20.0
+[beat] s32_culture_plain_9120 0.0/10 (0%, 0.1 min, eta ?) seed=9120
+[beat] s32_culture_edit_9130 9.948/10 (99%, 5.6 min, eta 0.0 min) seed=9139
+[beat] s32_culture_edit_9130 10/10 (100%, 5.6 min, eta 0.0 min) seed=9139 survived=20.0
+[beat] s32_culture_plain_9130 0.0/10 (0%, 0.1 min, eta ?) seed=9130
+[beat] s32_culture_plain_9110 2.948/10 (29%, 1.7 min, eta 4.0 min) seed=9112
+[beat] s32_culture_plain_9120 0.953/10 (10%, 0.6 min, eta 5.4 min) seed=9120
+[beat] s32_culture_plain_9110 3/10 (30%, 1.7 min, eta 3.9 min) seed=9112 survived=20.0
+[beat] s32_culture_plain_9120 1/10 (10%, 0.6 min, eta 5.3 min) seed=9120 survived=20.0
+[beat] s32_culture_plain_9130 0.895/10 (9%, 0.6 min, eta 5.8 min) seed=9130
+[beat] s32_culture_plain_9130 1/10 (10%, 0.6 min, eta 5.6 min) seed=9130 survived=20.0
+[beat] s32_culture_plain_9110 3.886/10 (39%, 2.2 min, eta 3.4 min) seed=9113
+[beat] s32_culture_plain_9120 1.881/10 (19%, 1.1 min, eta 4.7 min) seed=9121
+[beat] s32_culture_plain_9110 4/10 (40%, 2.2 min, eta 3.4 min) seed=9113 survived=20.0
+[beat] s32_culture_plain_9120 2/10 (20%, 1.2 min, eta 4.6 min) seed=9121 survived=20.0
+[beat] s32_culture_plain_9130 1.8860000000000001/10 (19%, 1.1 min, eta 4.8 min) seed=9131
+[beat] s32_culture_plain_9130 2/10 (20%, 1.2 min, eta 4.8 min) seed=9131 survived=20.0
+[beat] s32_culture_plain_9110 4.885/10 (49%, 2.7 min, eta 2.9 min) seed=9114
+[beat] s32_culture_plain_9120 2.882/10 (29%, 1.7 min, eta 4.1 min) seed=9122
+[beat] s32_culture_plain_9110 5/10 (50%, 2.8 min, eta 2.8 min) seed=9114 survived=20.0
+[beat] s32_culture_plain_9120 3/10 (30%, 1.7 min, eta 4.0 min) seed=9122 survived=20.0
+[beat] s32_culture_plain_9130 2.888/10 (29%, 1.7 min, eta 4.2 min) seed=9132
+[beat] s32_culture_plain_9130 3/10 (30%, 1.8 min, eta 4.1 min) seed=9132 survived=20.0
+[beat] s32_culture_plain_9110 5.891/10 (59%, 3.3 min, eta 2.3 min) seed=9115
+[beat] s32_culture_plain_9120 3.884/10 (39%, 2.2 min, eta 3.5 min) seed=9123
+[beat] s32_culture_plain_9130 4/10 (40%, 2.0 min, eta 2.9 min) seed=9133 survived=7.2
+[beat] s32_culture_plain_9110 6/10 (60%, 3.4 min, eta 2.2 min) seed=9115 survived=20.0
+[beat] s32_culture_plain_9120 4/10 (40%, 2.3 min, eta 3.4 min) seed=9123 survived=20.0
+[beat] s32_culture_plain_9130 4.886/10 (49%, 2.5 min, eta 2.6 min) seed=9134
+[beat] s32_culture_plain_9110 6.882/10 (69%, 3.9 min, eta 1.8 min) seed=9116
+[beat] s32_culture_plain_9120 4.88/10 (49%, 2.8 min, eta 2.9 min) seed=9124
+[beat] s32_culture_plain_9130 5/10 (50%, 2.5 min, eta 2.5 min) seed=9134 survived=20.0
+[beat] s32_culture_plain_9110 7/10 (70%, 3.9 min, eta 1.7 min) seed=9116 survived=20.0
+[beat] s32_culture_plain_9120 5/10 (50%, 2.8 min, eta 2.8 min) seed=9124 survived=20.0
+[beat] s32_culture_plain_9130 5.884/10 (59%, 3.0 min, eta 2.1 min) seed=9135
+[beat] s32_culture_plain_9110 7.881/10 (79%, 4.4 min, eta 1.2 min) seed=9117
+[beat] s32_culture_plain_9120 5.878/10 (59%, 3.3 min, eta 2.3 min) seed=9125
+[beat] s32_culture_plain_9130 6/10 (60%, 3.1 min, eta 2.1 min) seed=9135 survived=20.0
+[beat] s32_culture_plain_9110 8/10 (80%, 4.5 min, eta 1.1 min) seed=9117 survived=20.0
+[beat] s32_culture_plain_9120 6/10 (60%, 3.4 min, eta 2.3 min) seed=9125 survived=20.0
+[beat] s32_culture_plain_9130 6.8870000000000005/10 (69%, 3.6 min, eta 1.6 min) seed=9136
+[beat] s32_culture_plain_9110 8.883/10 (89%, 5.0 min, eta 0.6 min) seed=9118
+[beat] s32_culture_plain_9120 6.883/10 (69%, 3.9 min, eta 1.8 min) seed=9126
+[beat] s32_culture_plain_9130 7/10 (70%, 3.6 min, eta 1.6 min) seed=9136 survived=20.0
+[beat] s32_culture_plain_9110 9/10 (90%, 5.1 min, eta 0.6 min) seed=9118 survived=20.0
+[beat] s32_culture_plain_9120 7/10 (70%, 4.0 min, eta 1.7 min) seed=9126 survived=20.0
+[beat] s32_culture_plain_9130 7.889/10 (79%, 4.1 min, eta 1.1 min) seed=9137
+[beat] s32_culture_plain_9110 9.882/10 (99%, 5.6 min, eta 0.1 min) seed=9119
+[beat] s32_culture_plain_9120 7.884/10 (79%, 4.5 min, eta 1.2 min) seed=9127
+[beat] s32_culture_plain_9130 8/10 (80%, 4.2 min, eta 1.1 min) seed=9137 survived=20.0
+[beat] s32_culture_plain_9110 10/10 (100%, 5.6 min, eta 0.0 min) seed=9119 survived=20.0
+[beat] s32_culture_plain_9120 8/10 (80%, 4.5 min, eta 1.1 min) seed=9127 survived=20.0
+[beat] s32_dead_edit_9100 0.0/10 (0%, 0.1 min, eta ?) seed=9100
+[beat] s32_culture_plain_9130 8.938/10 (89%, 4.7 min, eta 0.6 min) seed=9138
+[beat] s32_culture_plain_9120 8.918/10 (89%, 5.0 min, eta 0.6 min) seed=9128
+[beat] s32_culture_plain_9130 9/10 (90%, 4.7 min, eta 0.5 min) seed=9138 survived=20.0
+[beat] s32_culture_plain_9120 9/10 (90%, 5.1 min, eta 0.6 min) seed=9128 survived=20.0
+[beat] s32_dead_edit_9100 0.896/10 (9%, 0.6 min, eta 5.7 min) seed=9100
+[beat] s32_dead_edit_9100 1/10 (10%, 0.6 min, eta 5.6 min) seed=9100 survived=20.0
+[beat] s32_culture_plain_9130 9.885/10 (99%, 5.2 min, eta 0.1 min) seed=9139
+[beat] s32_culture_plain_9120 9.885/10 (99%, 5.6 min, eta 0.1 min) seed=9129
+[beat] s32_culture_plain_9130 10/10 (100%, 5.3 min, eta 0.0 min) seed=9139 survived=20.0
+[beat] s32_culture_plain_9120 10/10 (100%, 5.6 min, eta 0.0 min) seed=9129 survived=20.0
+[beat] s32_dead_edit_9100 1.955/10 (20%, 1.1 min, eta 4.6 min) seed=9101
+[beat] s32_dead_edit_9100 2/10 (20%, 1.1 min, eta 4.5 min) seed=9101 survived=20.0
+[beat] s32_dead_edit_9110 0.0/10 (0%, 0.1 min, eta ?) seed=9110
+[beat] s32_dead_edit_9120 0.0/10 (0%, 0.1 min, eta ?) seed=9120
+[beat] s32_dead_edit_9100 2.912/10 (29%, 1.6 min, eta 4.0 min) seed=9102
+[beat] s32_dead_edit_9110 0.909/10 (9%, 0.6 min, eta 5.7 min) seed=9110
+[beat] s32_dead_edit_9100 3/10 (30%, 1.7 min, eta 3.9 min) seed=9102 survived=20.0
+[beat] s32_dead_edit_9120 0.897/10 (9%, 0.6 min, eta 5.8 min) seed=9120
+[beat] s32_dead_edit_9110 1/10 (10%, 0.6 min, eta 5.6 min) seed=9110 survived=20.0
+[beat] s32_dead_edit_9120 1/10 (10%, 0.6 min, eta 5.4 min) seed=9120 survived=19.06
+[beat] s32_dead_edit_9100 3.899/10 (39%, 2.2 min, eta 3.4 min) seed=9103
+[beat] s32_dead_edit_9110 1.8940000000000001/10 (19%, 1.1 min, eta 4.8 min) seed=9111
+[beat] s32_dead_edit_9120 1.888/10 (19%, 1.1 min, eta 4.7 min) seed=9121
+[beat] s32_dead_edit_9100 4/10 (40%, 2.2 min, eta 3.4 min) seed=9103 survived=20.0
+[beat] s32_dead_edit_9110 2/10 (20%, 1.2 min, eta 4.7 min) seed=9111 survived=20.0
+[beat] s32_dead_edit_9120 2/10 (20%, 1.2 min, eta 4.6 min) seed=9121 survived=20.0
+[beat] s32_dead_edit_9100 4.886/10 (49%, 2.7 min, eta 2.9 min) seed=9104
+[beat] s32_dead_edit_9110 2.884/10 (29%, 1.7 min, eta 4.1 min) seed=9112
+[beat] s32_dead_edit_9120 2.882/10 (29%, 1.7 min, eta 4.1 min) seed=9122
+[beat] s32_dead_edit_9100 5/10 (50%, 2.8 min, eta 2.8 min) seed=9104 survived=20.0
+[beat] s32_dead_edit_9110 3/10 (30%, 1.7 min, eta 4.1 min) seed=9112 survived=20.0
+[beat] s32_dead_edit_9120 3/10 (30%, 1.7 min, eta 4.0 min) seed=9122 survived=20.0
+[beat] s32_dead_edit_9100 5.889/10 (59%, 3.3 min, eta 2.3 min) seed=9105
+[beat] s32_dead_edit_9110 3.887/10 (39%, 2.2 min, eta 3.5 min) seed=9113
+[beat] s32_dead_edit_9120 3.882/10 (39%, 2.2 min, eta 3.5 min) seed=9123
+[beat] s32_dead_edit_9100 6/10 (60%, 3.4 min, eta 2.2 min) seed=9105 survived=20.0
+[beat] s32_dead_edit_9110 4/10 (40%, 2.3 min, eta 3.4 min) seed=9113 survived=20.0
+[beat] s32_dead_edit_9120 4/10 (40%, 2.3 min, eta 3.4 min) seed=9123 survived=20.0
+[beat] s32_dead_edit_9100 6.902/10 (69%, 3.9 min, eta 1.7 min) seed=9106
+[beat] s32_dead_edit_9110 4.9/10 (49%, 2.8 min, eta 2.9 min) seed=9114
+[beat] s32_dead_edit_9120 4.896/10 (49%, 2.8 min, eta 2.9 min) seed=9124
+[beat] s32_dead_edit_9100 7/10 (70%, 3.9 min, eta 1.7 min) seed=9106 survived=20.0
+[beat] s32_dead_edit_9110 5/10 (50%, 2.9 min, eta 2.9 min) seed=9114 survived=20.0
+[beat] s32_dead_edit_9120 5/10 (50%, 2.8 min, eta 2.8 min) seed=9124 survived=20.0
+[beat] s32_dead_edit_9100 7.8870000000000005/10 (79%, 4.4 min, eta 1.2 min) seed=9107
+[beat] s32_dead_edit_9110 5.884/10 (59%, 3.4 min, eta 2.3 min) seed=9115
+[beat] s32_dead_edit_9120 5.881/10 (59%, 3.3 min, eta 2.3 min) seed=9125
+[beat] s32_dead_edit_9100 8/10 (80%, 4.5 min, eta 1.1 min) seed=9107 survived=20.0
+[beat] s32_dead_edit_9110 6/10 (60%, 3.4 min, eta 2.3 min) seed=9115 survived=20.0
+[beat] s32_dead_edit_9120 6/10 (60%, 3.4 min, eta 2.3 min) seed=9125 survived=20.0
+[beat] s32_dead_edit_9100 8.893/10 (89%, 5.0 min, eta 0.6 min) seed=9108
+[beat] s32_dead_edit_9110 6.893/10 (69%, 3.9 min, eta 1.8 min) seed=9116
+[beat] s32_dead_edit_9120 6.889/10 (69%, 3.9 min, eta 1.8 min) seed=9126
+[beat] s32_dead_edit_9100 9/10 (90%, 5.0 min, eta 0.6 min) seed=9108 survived=20.0
+[beat] s32_dead_edit_9110 7/10 (70%, 4.0 min, eta 1.7 min) seed=9116 survived=20.0
+[beat] s32_dead_edit_9120 7/10 (70%, 4.0 min, eta 1.7 min) seed=9126 survived=20.0
+[beat] s32_dead_edit_9100 9.886/10 (99%, 5.5 min, eta 0.1 min) seed=9109
+[beat] s32_dead_edit_9110 7.886/10 (79%, 4.5 min, eta 1.2 min) seed=9117
+[beat] s32_dead_edit_9120 7.882/10 (79%, 4.5 min, eta 1.2 min) seed=9127
+[beat] s32_dead_edit_9100 10/10 (100%, 5.6 min, eta 0.0 min) seed=9109 survived=20.0
+[beat] s32_dead_edit_9110 8/10 (80%, 4.5 min, eta 1.1 min) seed=9117 survived=20.0
+[beat] s32_dead_edit_9120 8/10 (80%, 4.5 min, eta 1.1 min) seed=9127 survived=20.0
+[beat] s32_dead_edit_9130 0.0/10 (0%, 0.1 min, eta ?) seed=9130
+[beat] s32_dead_edit_9110 8.927/10 (89%, 5.0 min, eta 0.6 min) seed=9118
+[beat] s32_dead_edit_9120 8.909/10 (89%, 5.0 min, eta 0.6 min) seed=9128
+[beat] s32_dead_edit_9110 9/10 (90%, 5.1 min, eta 0.6 min) seed=9118 survived=20.0
+[beat] s32_dead_edit_9120 9/10 (90%, 5.1 min, eta 0.6 min) seed=9128 survived=20.0
+[beat] s32_dead_edit_9130 0.898/10 (9%, 0.6 min, eta 5.7 min) seed=9130
+[beat] s32_dead_edit_9130 1/10 (10%, 0.6 min, eta 5.6 min) seed=9130 survived=20.0
+[beat] s32_dead_edit_9130 2/10 (20%, 0.8 min, eta 3.0 min) seed=9131 survived=4.38
+[beat] s32_dead_edit_9110 9.894/10 (99%, 5.6 min, eta 0.1 min) seed=9119
+[beat] s32_dead_edit_9120 9.89/10 (99%, 5.6 min, eta 0.1 min) seed=9129
+[beat] s32_dead_edit_9110 10/10 (100%, 5.6 min, eta 0.0 min) seed=9119 survived=20.0
+[beat] s32_dead_edit_9120 10/10 (100%, 5.6 min, eta 0.0 min) seed=9129 survived=20.0
+[beat] s12_silenced_9100 0.0/10 (0%, 0.1 min, eta ?) seed=9100
+[beat] s12_silenced_9100 1/10 (10%, 0.1 min, eta 0.8 min) seed=9100 survived=0.98
+[beat] s12_silenced_9110 0.0/10 (0%, 0.1 min, eta ?) seed=9110
+[beat] s12_silenced_9110 1/10 (10%, 0.1 min, eta 0.9 min) seed=9110 survived=0.96
+[beat] s12_silenced_9100 2/10 (20%, 0.1 min, eta 0.5 min) seed=9101 survived=1.02
+[beat] s32_dead_edit_9130 3/10 (30%, 1.2 min, eta 2.9 min) seed=9132 survived=20.0
+[beat] s12_silenced_9110 2/10 (20%, 0.1 min, eta 0.5 min) seed=9111 survived=1.08
+[beat] s12_silenced_9100 3/10 (30%, 0.2 min, eta 0.4 min) seed=9102 survived=0.9
+[beat] s12_silenced_9110 3/10 (30%, 0.2 min, eta 0.4 min) seed=9112 survived=0.9
+[beat] s12_silenced_9100 4/10 (40%, 0.2 min, eta 0.3 min) seed=9103 survived=1.0
+[beat] s12_silenced_9110 4/10 (40%, 0.2 min, eta 0.3 min) seed=9113 survived=0.96
+[beat] s12_silenced_9100 5/10 (50%, 0.2 min, eta 0.2 min) seed=9104 survived=0.96
+[beat] s12_silenced_9110 5/10 (50%, 0.2 min, eta 0.2 min) seed=9114 survived=0.96
+[beat] s12_silenced_9100 6/10 (60%, 0.2 min, eta 0.2 min) seed=9105 survived=1.0
+[beat] s12_silenced_9110 6/10 (60%, 0.2 min, eta 0.2 min) seed=9115 survived=0.98
+[beat] s12_silenced_9100 7/10 (70%, 0.3 min, eta 0.1 min) seed=9106 survived=1.02
+[beat] s12_silenced_9110 7/10 (70%, 0.3 min, eta 0.1 min) seed=9116 survived=0.96
+[beat] s12_silenced_9100 8/10 (80%, 0.3 min, eta 0.1 min) seed=9107 survived=1.02
+[beat] s32_dead_edit_9130 4/10 (40%, 1.4 min, eta 2.2 min) seed=9133 survived=7.4
+[beat] s12_silenced_9110 8/10 (80%, 0.3 min, eta 0.1 min) seed=9117 survived=1.0
+[beat] s12_silenced_9100 9/10 (90%, 0.3 min, eta 0.0 min) seed=9108 survived=1.02
+[beat] s12_silenced_9110 9/10 (90%, 0.3 min, eta 0.0 min) seed=9118 survived=0.96
+[beat] s12_silenced_9100 10/10 (100%, 0.4 min, eta 0.0 min) seed=9109 survived=1.06
+[beat] s12_silenced_9110 10/10 (100%, 0.4 min, eta 0.0 min) seed=9119 survived=1.0
+[beat] s12_silenced_9120 0.0/10 (0%, 0.1 min, eta ?) seed=9120
+[beat] s12_silenced_9130 0.0/10 (0%, 0.1 min, eta ?) seed=9130
+[beat] s12_silenced_9120 1/10 (10%, 0.1 min, eta 0.9 min) seed=9120 survived=1.02
+[beat] s12_silenced_9130 1/10 (10%, 0.1 min, eta 0.9 min) seed=9130 survived=1.06
+[beat] s12_silenced_9120 2/10 (20%, 0.1 min, eta 0.5 min) seed=9121 survived=1.0
+[beat] s12_silenced_9130 2/10 (20%, 0.1 min, eta 0.5 min) seed=9131 survived=1.06
+[beat] s12_silenced_9120 3/10 (30%, 0.2 min, eta 0.4 min) seed=9122 survived=0.98
+[beat] s12_silenced_9130 3/10 (30%, 0.2 min, eta 0.4 min) seed=9132 survived=0.92
+[beat] s12_silenced_9120 4/10 (40%, 0.2 min, eta 0.3 min) seed=9123 survived=1.08
+[beat] s12_silenced_9130 4/10 (40%, 0.2 min, eta 0.3 min) seed=9133 survived=1.04
+[beat] s12_silenced_9120 5/10 (50%, 0.2 min, eta 0.2 min) seed=9124 survived=1.02
+[beat] s12_silenced_9130 5/10 (50%, 0.2 min, eta 0.2 min) seed=9134 survived=1.02
+[beat] s12_silenced_9120 6/10 (60%, 0.3 min, eta 0.2 min) seed=9125 survived=1.0
+[beat] s12_silenced_9130 6/10 (60%, 0.3 min, eta 0.2 min) seed=9135 survived=1.04
+[beat] s12_silenced_9120 7/10 (70%, 0.3 min, eta 0.1 min) seed=9126 survived=0.98
+[beat] s12_silenced_9130 7/10 (70%, 0.3 min, eta 0.1 min) seed=9136 survived=1.08
+[beat] s12_silenced_9120 8/10 (80%, 0.3 min, eta 0.1 min) seed=9127 survived=1.02
+[beat] s12_silenced_9130 8/10 (80%, 0.3 min, eta 0.1 min) seed=9137 survived=1.16
+[beat] s12_silenced_9120 9/10 (90%, 0.3 min, eta 0.0 min) seed=9128 survived=1.02
+[beat] s12_silenced_9130 9/10 (90%, 0.4 min, eta 0.0 min) seed=9138 survived=1.0
+[beat] s12_silenced_9120 10/10 (100%, 0.4 min, eta 0.0 min) seed=9129 survived=1.02
+[beat] s32_dead_edit_9130 5/10 (50%, 1.9 min, eta 1.9 min) seed=9134 survived=20.0
+[beat] s12_silenced_9130 10/10 (100%, 0.4 min, eta 0.0 min) seed=9139 survived=1.0
+[beat] s32_silenced_9100 0.0/10 (0%, 0.1 min, eta ?) seed=9100
+[beat] s32_silenced_9100 1/10 (10%, 0.1 min, eta 0.8 min) seed=9100 survived=0.76
+[beat] s32_silenced_9110 0.0/10 (0%, 0.1 min, eta ?) seed=9110
+[beat] s32_silenced_9100 2/10 (20%, 0.1 min, eta 0.4 min) seed=9101 survived=0.84
+[beat] s32_silenced_9110 1/10 (10%, 0.1 min, eta 0.8 min) seed=9110 survived=0.86
+[beat] s32_silenced_9100 3/10 (30%, 0.1 min, eta 0.3 min) seed=9102 survived=0.86
+[beat] s32_silenced_9110 2/10 (20%, 0.1 min, eta 0.5 min) seed=9111 survived=0.84
+[beat] s32_silenced_9100 4/10 (40%, 0.2 min, eta 0.2 min) seed=9103 survived=0.86
+[beat] s32_silenced_9110 3/10 (30%, 0.1 min, eta 0.3 min) seed=9112 survived=0.76
+[beat] s32_silenced_9100 5/10 (50%, 0.2 min, eta 0.2 min) seed=9104 survived=0.86
+[beat] s32_silenced_9110 4/10 (40%, 0.2 min, eta 0.3 min) seed=9113 survived=0.86
+[beat] s32_silenced_9100 6/10 (60%, 0.2 min, eta 0.1 min) seed=9105 survived=0.74
+[beat] s32_silenced_9110 5/10 (50%, 0.2 min, eta 0.2 min) seed=9114 survived=0.88
+[beat] s32_silenced_9100 7/10 (70%, 0.2 min, eta 0.1 min) seed=9106 survived=0.64
+[beat] s32_silenced_9110 6/10 (60%, 0.2 min, eta 0.1 min) seed=9115 survived=0.64
+[beat] s32_silenced_9100 8/10 (80%, 0.3 min, eta 0.1 min) seed=9107 survived=0.76
+[beat] s32_silenced_9110 7/10 (70%, 0.2 min, eta 0.1 min) seed=9116 survived=0.74
+[beat] s32_silenced_9100 9/10 (90%, 0.3 min, eta 0.0 min) seed=9108 survived=0.8
+[beat] s32_silenced_9110 8/10 (80%, 0.3 min, eta 0.1 min) seed=9117 survived=0.86
+[beat] s32_silenced_9100 10/10 (100%, 0.3 min, eta 0.0 min) seed=9109 survived=0.86
+[beat] s32_silenced_9110 9/10 (90%, 0.3 min, eta 0.0 min) seed=9118 survived=0.76
+[beat] s32_silenced_9110 10/10 (100%, 0.3 min, eta 0.0 min) seed=9119 survived=0.8
+[beat] s32_dead_edit_9130 6/10 (60%, 2.3 min, eta 1.5 min) seed=9135 survived=20.0
+[beat] s32_silenced_9120 0.0/10 (0%, 0.1 min, eta ?) seed=9120
+[beat] s32_silenced_9120 1/10 (10%, 0.1 min, eta 0.8 min) seed=9120 survived=0.74
+[beat] s32_silenced_9130 0.0/10 (0%, 0.1 min, eta ?) seed=9130
+[beat] s32_silenced_9120 2/10 (20%, 0.1 min, eta 0.5 min) seed=9121 survived=0.88
+[beat] s32_silenced_9130 1/10 (10%, 0.1 min, eta 0.8 min) seed=9130 survived=0.8
+[beat] s32_silenced_9120 3/10 (30%, 0.1 min, eta 0.3 min) seed=9122 survived=0.8
+[beat] s32_silenced_9130 2/10 (20%, 0.1 min, eta 0.5 min) seed=9131 survived=0.76
+[beat] s32_silenced_9120 4/10 (40%, 0.2 min, eta 0.2 min) seed=9123 survived=0.74
+[beat] s32_silenced_9130 3/10 (30%, 0.1 min, eta 0.3 min) seed=9132 survived=0.88
+[beat] s32_silenced_9120 5/10 (50%, 0.2 min, eta 0.2 min) seed=9124 survived=0.74
+[beat] s32_silenced_9130 4/10 (40%, 0.2 min, eta 0.3 min) seed=9133 survived=0.82
+[beat] s32_silenced_9120 6/10 (60%, 0.2 min, eta 0.1 min) seed=9125 survived=0.78
+[beat] s32_silenced_9130 5/10 (50%, 0.2 min, eta 0.2 min) seed=9134 survived=0.78
+[beat] s32_silenced_9120 7/10 (70%, 0.2 min, eta 0.1 min) seed=9126 survived=0.86
+[beat] s32_silenced_9130 6/10 (60%, 0.2 min, eta 0.1 min) seed=9135 survived=0.74
+[beat] s32_silenced_9120 8/10 (80%, 0.3 min, eta 0.1 min) seed=9127 survived=0.64
+[beat] s32_silenced_9130 7/10 (70%, 0.2 min, eta 0.1 min) seed=9136 survived=0.74
+[beat] s32_silenced_9120 9/10 (90%, 0.3 min, eta 0.0 min) seed=9128 survived=0.76
+[beat] s32_silenced_9130 8/10 (80%, 0.3 min, eta 0.1 min) seed=9137 survived=0.76
+[beat] s32_silenced_9120 10/10 (100%, 0.3 min, eta 0.0 min) seed=9129 survived=0.7
+[beat] s32_silenced_9130 9/10 (90%, 0.3 min, eta 0.0 min) seed=9138 survived=0.7
+[beat] s32_silenced_9130 10/10 (100%, 0.3 min, eta 0.0 min) seed=9139 survived=0.78
+[beat] none_ideal_imu_9100 0.0/10 (0%, 0.0 min, eta ?) seed=9100
+[beat] none_ideal_imu_9100 1/10 (10%, 0.0 min, eta 0.2 min) seed=9100 survived=20.0
+[beat] none_ideal_imu_9100 2/10 (20%, 0.0 min, eta 0.1 min) seed=9101 survived=20.0
+[beat] none_ideal_imu_9100 3/10 (30%, 0.0 min, eta 0.1 min) seed=9102 survived=20.0
+[beat] none_ideal_imu_9110 0.0/10 (0%, 0.0 min, eta ?) seed=9110
+[beat] none_ideal_imu_9100 4/10 (40%, 0.1 min, eta 0.1 min) seed=9103 survived=20.0
+[beat] none_ideal_imu_9110 1/10 (10%, 0.0 min, eta 0.2 min) seed=9110 survived=20.0
+[beat] none_ideal_imu_9100 5/10 (50%, 0.1 min, eta 0.1 min) seed=9104 survived=20.0
+[beat] none_ideal_imu_9110 2/10 (20%, 0.0 min, eta 0.1 min) seed=9111 survived=20.0
+[beat] none_ideal_imu_9100 6/10 (60%, 0.1 min, eta 0.0 min) seed=9105 survived=20.0
+[beat] none_ideal_imu_9110 3/10 (30%, 0.0 min, eta 0.1 min) seed=9112 survived=20.0
+[beat] none_ideal_imu_9100 7/10 (70%, 0.1 min, eta 0.0 min) seed=9106 survived=20.0
+[beat] none_ideal_imu_9110 4/10 (40%, 0.1 min, eta 0.1 min) seed=9113 survived=20.0
+[beat] none_ideal_imu_9100 8/10 (80%, 0.1 min, eta 0.0 min) seed=9107 survived=20.0
+[beat] none_ideal_imu_9110 5/10 (50%, 0.1 min, eta 0.1 min) seed=9114 survived=20.0
+[beat] none_ideal_imu_9100 9/10 (90%, 0.1 min, eta 0.0 min) seed=9108 survived=20.0
+[beat] none_ideal_imu_9110 6/10 (60%, 0.1 min, eta 0.0 min) seed=9115 survived=20.0
+[beat] none_ideal_imu_9100 10/10 (100%, 0.1 min, eta 0.0 min) seed=9109 survived=20.0
+[beat] none_ideal_imu_9110 7/10 (70%, 0.1 min, eta 0.0 min) seed=9116 survived=20.0
+[beat] none_ideal_imu_9110 8/10 (80%, 0.1 min, eta 0.0 min) seed=9117 survived=20.0
+[beat] s32_dead_edit_9130 7/10 (70%, 2.7 min, eta 1.2 min) seed=9136 survived=20.0
+[beat] none_ideal_imu_9110 9/10 (90%, 0.1 min, eta 0.0 min) seed=9118 survived=20.0
+[beat] none_ideal_imu_9110 10/10 (100%, 0.1 min, eta 0.0 min) seed=9119 survived=20.0
+[beat] none_ideal_imu_9120 0.0/10 (0%, 0.0 min, eta ?) seed=9120
+[beat] none_ideal_imu_9120 1/10 (10%, 0.0 min, eta 0.2 min) seed=9120 survived=20.0
+[beat] none_ideal_imu_9120 2/10 (20%, 0.0 min, eta 0.1 min) seed=9121 survived=20.0
+[beat] none_ideal_imu_9120 3/10 (30%, 0.0 min, eta 0.1 min) seed=9122 survived=20.0
+[beat] none_ideal_imu_9130 0.0/10 (0%, 0.0 min, eta ?) seed=9130
+[beat] none_ideal_imu_9120 4/10 (40%, 0.1 min, eta 0.1 min) seed=9123 survived=20.0
+[beat] none_ideal_imu_9130 1/10 (10%, 0.0 min, eta 0.2 min) seed=9130 survived=20.0
+[beat] none_ideal_imu_9120 5/10 (50%, 0.1 min, eta 0.1 min) seed=9124 survived=20.0
+[beat] none_ideal_imu_9130 2/10 (20%, 0.0 min, eta 0.1 min) seed=9131 survived=20.0
+[beat] none_ideal_imu_9120 6/10 (60%, 0.1 min, eta 0.0 min) seed=9125 survived=20.0
+[beat] none_ideal_imu_9130 3/10 (30%, 0.0 min, eta 0.1 min) seed=9132 survived=20.0
+[beat] none_ideal_imu_9120 7/10 (70%, 0.1 min, eta 0.0 min) seed=9126 survived=20.0
+[beat] none_ideal_imu_9130 4/10 (40%, 0.1 min, eta 0.1 min) seed=9133 survived=20.0
+[beat] none_ideal_imu_9120 8/10 (80%, 0.1 min, eta 0.0 min) seed=9127 survived=20.0
+[beat] none_ideal_imu_9130 5/10 (50%, 0.1 min, eta 0.1 min) seed=9134 survived=20.0
+[beat] none_ideal_imu_9120 9/10 (90%, 0.1 min, eta 0.0 min) seed=9128 survived=20.0
+[beat] none_ideal_imu_9130 6/10 (60%, 0.1 min, eta 0.0 min) seed=9135 survived=20.0
+[beat] none_ideal_imu_9120 10/10 (100%, 0.1 min, eta 0.0 min) seed=9129 survived=20.0
+[beat] none_ideal_imu_9130 7/10 (70%, 0.1 min, eta 0.0 min) seed=9136 survived=20.0
+[beat] none_ideal_imu_9130 8/10 (80%, 0.1 min, eta 0.0 min) seed=9137 survived=20.0
+[beat] none_ideal_imu_9130 9/10 (90%, 0.1 min, eta 0.0 min) seed=9138 survived=20.0
+[beat] none_ideal_imu_9130 10/10 (100%, 0.1 min, eta 0.0 min) seed=9139 survived=20.0
+[beat] none_zero_action_9100 0.0/10 (0%, 0.0 min, eta ?) seed=9100
+[beat] none_zero_action_9100 1/10 (10%, 0.0 min, eta 0.2 min) seed=9100 survived=4.32
+[beat] none_zero_action_9100 2/10 (20%, 0.0 min, eta 0.1 min) seed=9101 survived=4.62
+[beat] none_zero_action_9100 3/10 (30%, 0.0 min, eta 0.1 min) seed=9102 survived=4.04
+[beat] none_zero_action_9100 4/10 (40%, 0.0 min, eta 0.1 min) seed=9103 survived=4.38
+[beat] none_zero_action_9100 5/10 (50%, 0.0 min, eta 0.0 min) seed=9104 survived=4.12
+[beat] none_zero_action_9100 6/10 (60%, 0.0 min, eta 0.0 min) seed=9105 survived=5.12
+[beat] none_zero_action_9100 7/10 (70%, 0.0 min, eta 0.0 min) seed=9106 survived=4.26
+[beat] none_zero_action_9100 8/10 (80%, 0.1 min, eta 0.0 min) seed=9107 survived=4.54
+[beat] none_zero_action_9110 0.0/10 (0%, 0.0 min, eta ?) seed=9110
+[beat] none_zero_action_9110 1/10 (10%, 0.0 min, eta 0.2 min) seed=9110 survived=4.38
+[beat] none_zero_action_9100 9/10 (90%, 0.1 min, eta 0.0 min) seed=9108 survived=4.16
+[beat] none_zero_action_9110 2/10 (20%, 0.0 min, eta 0.1 min) seed=9111 survived=4.08
+[beat] none_zero_action_9100 10/10 (100%, 0.1 min, eta 0.0 min) seed=9109 survived=4.54
+[beat] none_zero_action_9110 3/10 (30%, 0.0 min, eta 0.1 min) seed=9112 survived=4.52
+[beat] none_zero_action_9110 4/10 (40%, 0.0 min, eta 0.1 min) seed=9113 survived=7.16
+[beat] none_zero_action_9110 5/10 (50%, 0.0 min, eta 0.0 min) seed=9114 survived=4.44
+[beat] none_zero_action_9110 6/10 (60%, 0.0 min, eta 0.0 min) seed=9115 survived=4.24
+[beat] none_zero_action_9110 7/10 (70%, 0.0 min, eta 0.0 min) seed=9116 survived=4.38
+[beat] s32_dead_edit_9130 8/10 (80%, 2.9 min, eta 0.7 min) seed=9137 survived=16.24
+[beat] none_zero_action_9110 8/10 (80%, 0.1 min, eta 0.0 min) seed=9117 survived=7.18
+[beat] none_zero_action_9110 9/10 (90%, 0.1 min, eta 0.0 min) seed=9118 survived=4.36
+[beat] none_zero_action_9110 10/10 (100%, 0.1 min, eta 0.0 min) seed=9119 survived=6.9
+[beat] none_zero_action_9120 0.0/10 (0%, 0.0 min, eta ?) seed=9120
+[beat] none_zero_action_9120 1/10 (10%, 0.0 min, eta 0.2 min) seed=9120 survived=4.54
+[beat] none_zero_action_9120 2/10 (20%, 0.0 min, eta 0.1 min) seed=9121 survived=4.1
+[beat] none_zero_action_9120 3/10 (30%, 0.0 min, eta 0.1 min) seed=9122 survived=4.18
+[beat] none_zero_action_9120 4/10 (40%, 0.0 min, eta 0.1 min) seed=9123 survived=4.52
+[beat] none_zero_action_9120 5/10 (50%, 0.0 min, eta 0.0 min) seed=9124 survived=4.86
+[beat] none_zero_action_9120 6/10 (60%, 0.0 min, eta 0.0 min) seed=9125 survived=4.6
+[beat] none_zero_action_9120 7/10 (70%, 0.0 min, eta 0.0 min) seed=9126 survived=4.14
+[beat] none_zero_action_9120 8/10 (80%, 0.0 min, eta 0.0 min) seed=9127 survived=4.48
+[beat] none_zero_action_9130 0.0/10 (0%, 0.0 min, eta ?) seed=9130
+[beat] none_zero_action_9130 1/10 (10%, 0.0 min, eta 0.2 min) seed=9130 survived=4.36
+[beat] none_zero_action_9120 9/10 (90%, 0.1 min, eta 0.0 min) seed=9128 survived=4.44
+[beat] none_zero_action_9130 2/10 (20%, 0.0 min, eta 0.1 min) seed=9131 survived=5.06
+[beat] none_zero_action_9120 10/10 (100%, 0.1 min, eta 0.0 min) seed=9129 survived=4.26
+[beat] none_zero_action_9130 3/10 (30%, 0.0 min, eta 0.1 min) seed=9132 survived=4.44
+[beat] none_zero_action_9130 4/10 (40%, 0.0 min, eta 0.1 min) seed=9133 survived=4.56
+[beat] none_zero_action_9130 5/10 (50%, 0.0 min, eta 0.0 min) seed=9134 survived=4.4
+[beat] none_zero_action_9130 6/10 (60%, 0.0 min, eta 0.0 min) seed=9135 survived=4.2
+[beat] none_zero_action_9130 7/10 (70%, 0.0 min, eta 0.0 min) seed=9136 survived=4.96
+[beat] none_zero_action_9130 8/10 (80%, 0.0 min, eta 0.0 min) seed=9137 survived=4.02
+[beat] none_zero_action_9130 9/10 (90%, 0.1 min, eta 0.0 min) seed=9138 survived=4.1
+[beat] none_zero_action_9130 10/10 (100%, 0.1 min, eta 0.0 min) seed=9139 survived=4.78
+[beat] s32_dead_edit_9130 9/10 (90%, 3.2 min, eta 0.4 min) seed=9138 survived=20.0
+[beat] s32_dead_edit_9130 10/10 (100%, 3.4 min, eta 0.0 min) seed=9139 survived=20.0
+{"cfg": "s12", "arm": "culture_edit", "n": 40, "full": 23, "mean_s": 15.24, "se_s": 0.96, "closed_loop_gain_median": [0.579, 0.548, 0.41, 0.573, 0.518], "closed_loop_noise_median": [0.523, 0.632, 0.591, 0.616, 0.46], "rate_hz_per_electrode_median": 24.51}
+{"cfg": "s12", "arm": "culture_plain", "n": 40, "full": 0, "mean_s": 3.5, "se_s": 0.16, "closed_loop_gain_median": [0.567, 0.462, 0.464, 0.607, 0.756], "closed_loop_noise_median": [0.502, 0.598, 0.573, 0.542, 0.433], "rate_hz_per_electrode_median": 23.6}
+{"cfg": "s12", "arm": "silenced", "n": 40, "full": 0, "mean_s": 1.01, "se_s": 0.01, "rate_hz_per_electrode_median": 0.84}
+{"cfg": "s12", "arm": "dead_edit", "n": 40, "full": 32, "mean_s": 18.75, "se_s": 0.54, "closed_loop_gain_median": [0.641, 0.603, 0.456, 0.634, 0.74], "closed_loop_noise_median": [0.51, 0.6, 0.595, 0.603, 0.421], "rate_hz_per_electrode_median": 22.76}
+{"cfg": "s32", "arm": "culture_edit", "n": 40, "full": 40, "mean_s": 20.0, "se_s": 0.0, "closed_loop_gain_median": [0.828, 0.881, 0.788, 0.835, 0.812], "closed_loop_noise_median": [0.448, 0.464, 0.54, 0.54, 0.397], "rate_hz_per_electrode_median": 66.25}
+{"cfg": "s32", "arm": "culture_plain", "n": 40, "full": 38, "mean_s": 19.29, "se_s": 0.49, "closed_loop_gain_median": [0.853, 0.87, 0.786, 0.841, 0.813], "closed_loop_noise_median": [0.445, 0.47, 0.54, 0.545, 0.393], "rate_hz_per_electrode_median": 66.19}
+{"cfg": "s32", "arm": "silenced", "n": 40, "full": 0, "mean_s": 0.78, "se_s": 0.01, "rate_hz_per_electrode_median": 4.14}
+{"cfg": "s32", "arm": "dead_edit", "n": 40, "full": 36, "mean_s": 19.18, "se_s": 0.5, "closed_loop_gain_median": [0.846, 0.893, 0.835, 0.878, 0.834], "closed_loop_noise_median": [0.435, 0.46, 0.519, 0.51, 0.388], "rate_hz_per_electrode_median": 68.52}
+{"cfg": "none", "arm": "ideal_imu", "n": 40, "full": 40, "mean_s": 20.0, "se_s": 0.0}
+{"cfg": "none", "arm": "zero_action", "n": 40, "full": 0, "mean_s": 4.62, "se_s": 0.12}
+{"gate_A1": {"culture_edit_full": "23/40", "silenced_full": "0/40", "bar": ">= 34/40 and 0/40", "complete": true, "pass": false}, "dead_vs_live": {"s12": {"live_full": "23/40", "dead_full": "32/40", "live_minus_dead_mean_s": -3.51}, "s32": {"live_full": "40/40", "dead_full": "36/40", "live_minus_dead_mean_s": 0.82}}}

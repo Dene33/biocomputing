@@ -62,6 +62,7 @@ The robot's balance loop runs at 50 Hz. A dish in that loop may add at most ~40 
 | The cart-pole organoid protocol, step by step | can't be tested on this model. Electrode selection by first-order connectivity works: specific pairs (own 0.80–1.00, crossed 0–0.04). Once the decoder is calibrated under stimulation, one of three cultures balances the pole with no training at all (90th percentile 34.6 s, bar 20.85 s): the selected pairs act as a reflex. Training never beat no training. With plasticity on, the culture runs away under the task's stimulation: rates rise 2–7× (6 → 13–45 Hz per electrode) within 20 s to 10 min, and the input with the slightly stronger response takes over both outputs (cross gain up to 24.6 spikes per pulse vs 2–3 for its own). That holds for every strength tried (×1 to ×0.03) and also for weight-dependent STDP. Scaling total input doesn't stop it: weights shift onto inputs that fire together | `cartpole_replication.py` a51c67a |
 | Does inhibitory plasticity fix the model? | no, not within one time-boxed attempt. Vogels-type inhibitory plasticity, each neuron's target its resting rate, cuts the runaway from 45 to ~9 Hz per electrode, but rates settle at 1.5–1.7× rest (gate 1.5×) while inhibitory weights keep climbing (4–9× their start, rarely at the cap), and the inputs' evoked responses fade to 0.5–1.5 spikes per pulse. No setting is specific and steady (5 settings, 10 min each). Untested guess: the rule also strengthens inhibitory→inhibitory synapses, partly silencing the inhibition | `cartpole_replication.py --drift` 6cd83c4 |
 | Does an outside model hold up? bl1 (github.com/m9h/bl1: JAX, Wagenaar-calibrated, STDP + homeostatic scaling) | no. Same drift test on bl1's own code, as shipped and with two of its five bugs fixed, 5 cultures, 600 s, two pulse lengths. Nothing runs away (its STDP is depression-dominated), but the gate is never passed except by running down. Per-neuron synaptic scaling alone holds the non-stimulated electrodes at their resting rate (1.00–1.01× in every culture). With STDP on it holds neither rates (realistic 0.5 ms pulses: 1.25× the no-plasticity arm, still climbing) nor pathways (each decoder's own gain moves ~2 spikes per pulse within 10 minutes, 5 of 10 pathways beyond 2 SE). A potentiation-dominated control shows the test catches upward drift. The port is spike-for-spike bl1's code (`bl1_checks.py`) | `bl1_drift.py`, `bl1_checks.py`, `bl1_rep_analysis.py` 1e3f994 |
+| The culture in the robot's loop (track A1): only the IMU through the dish, decoder and weight edit fixed beforehand | not on a CL1-sized well. 1 well × 12 electrodes: 0/40 with the planned 1/gain edit, 23/40 with an edit that also removes the decoder's offset (gate ≥ 34/40). 1 × 32: 40/40. Silenced dish 0/40, ideal IMU 40/40. A dead culture does as well or better (1 × 12: 32/40), so the dish relays and computes nothing. The planned edit failed because the robot stands leaning 3.6° forward, not upright: the decoder's offset turned into a false lean of 2.35 spreads. Phase 3.1's channel model had no offset and couldn't show it. The remaining 1 × 12 falls follow pushes from the front: the relay reads the pitch rate too high during the recovery, the forward lean grows past the encoder's input limit (4 replay SDs), and past it the teacher's view of the tilt stops changing | `closed_loop_vestibular.py`, `closed_loop_falls.py` |
 
 ## The routes
 
@@ -197,6 +198,9 @@ This is Phase 3.3 of [next-steps.md](next-steps.md#33-closed-loop), and route 3 
     ideal IMU; dead culture (recurrent synapses removed) with its own refitted decoder and edit; zero action.
   - **Gate:** the culture arm reaches ≥ 34/40 full 20 s runs, and the silenced dish 0/40. The dead culture will
     probably match the live one. If so, we report it plainly: the dish relays and computes nothing.
+  - **Result (24 November 2026): not passed on 1 × 12.** 0/40 with the 1/gain edit, 23/40 with an affine edit
+    (designed after the first run, scored on fresh seeds). 1 × 32 passes: 40/40, silenced 0/40. The dead culture
+    does as well or better. Details in the simulation table above and in `closed_loop_vestibular.py`.
 - **A2. Sessions and drift.**
   - Between "sessions", age the culture (`aging.py`: 1, 3 and 7 days), and add a fresh culture seed to stand for a
     new dish.
@@ -240,7 +244,7 @@ the track with a write-up, and learning questions wait for a dish.
 
 ### Order
 
-1. A1 on the GPU, with B0 alongside (CPU and network). B0 done.
+1. A1 on the GPU, with B0 alongside (CPU and network). Done.
 2. A2.
 3. B1, then B2, B3 and B4, each behind its gate.
 

@@ -1,0 +1,113 @@
+{
+ "cfg": "s12",
+ "dish": "dead",
+ "n_stim": 12,
+ "replay_steps": 19334,
+ "split": 15587,
+ "channels_recorded": 256,
+ "decoder_features": 768,
+ "alpha": 316.2277660168379,
+ "cv_r2_train": 0.551,
+ "held_out": {
+  "steps": 3747,
+  "in_range": 1406,
+  "r2": [
+   0.547,
+   0.381,
+   0.315,
+   0.382,
+   0.524
+  ],
+  "gain": [
+   0.714,
+   0.698,
+   0.618,
+   0.671,
+   0.782
+  ],
+  "noise": [
+   0.548,
+   0.618,
+   0.615,
+   0.607,
+   0.448
+  ],
+  "tau": [
+   1.18,
+   1.19,
+   0.94,
+   1.78,
+   2.05
+  ],
+  "rmse_over_spread": [
+   0.604,
+   0.717,
+   0.716,
+   0.702,
+   0.475
+  ]
+ },
+ "edit_gain": [
+  0.714,
+  0.698,
+  0.618,
+  0.671,
+  0.782
+ ],
+ "edit_input_scale": [
+  1.401,
+  1.433,
+  1.618,
+  1.49,
+  1.279
+ ],
+ "phase31_gain": [
+  0.666,
+  0.628,
+  0.606,
+  0.629,
+  0.697
+ ],
+ "mean_rate_hz": 22.71,
+ "teacher_parity_max_diff": 6.882523987172817e-06,
+ "setup": {
+  "culture": "gpu_20k",
+  "culture_overrides": {},
+  "mea": "grid256",
+  "mea_overrides": {
+   "stim_length_um": 120.0
+  },
+  "n_stim": 12,
+  "n_feedback": 0,
+  "encoding": "amplitude",
+  "encoder_gain": 0.5,
+  "projection": "axis",
+  "slots_ms": [
+   0.0,
+   5.0,
+   10.0,
+   15.0
+  ],
+  "bins": 2,
+  "taus_ms": [
+   40.0,
+   160.0
+  ],
+  "wells": 1,
+  "diverse_wells": false,
+  "efference": false,
+  "select_dims": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "select_spread": 1.0,
+  "silent_inputs": false,
+  "source": "dead",
+  "seed": 0
+ },
+ "smoke": false
+}

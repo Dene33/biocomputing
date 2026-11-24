@@ -6,8 +6,10 @@
 **Status, 24 November 2026.**
 - **Done:** Phase 1.1 and Gate G1; the Phase 2 harness (2.1) and track (a); Phase 3.1; Phase 4's simulation tests
   ([route-to-computation.md](route-to-computation.md)).
-- **Next:** Phase 3.3, the culture in the robot's loop. It is track A of the route doc's
-  [Order of work without a dish](route-to-computation.md#order-of-work-without-a-dish).
+- **Run:** Phase 3.3, the culture in the robot's loop: step A1 of track A in the route doc's
+  [Order of work without a dish](route-to-computation.md#order-of-work-without-a-dish). Its gate wasn't reached on
+  the CL1-sized well; results in [3.3](#33-closed-loop).
+- **Next:** A2, sessions and drift.
 - **Waiting:** Phase 4's learning questions, behind track B's gates in the same section.
 - **Parked:** Phase 5 and every real-robot step. There is no dish and no robot for now.
 - **Open, not in the current plan:** Phase 2 track (b).
@@ -252,9 +254,34 @@ Zero action on the hidden test: 4.4 s, 0/40. With the dish silenced, every teach
 
 ### 3.3 Closed loop
 
-**Status: next.** This is track A of the route doc
+**Status: run (24 November 2026), success not reached on the CL1-sized well.** This is track A of the route doc
 ([Order of work without a dish](route-to-computation.md#order-of-work-without-a-dish)): step A1 is the closed loop
-below, step A2 adds sessions and drift.
+below, step A2 adds sessions and drift. Results (`scripts/closed_loop_vestibular.py`), full runs of 40:
+
+| Arm | 1 × 12, 1/gain edit | 1 × 12, affine edit | 1 × 32, affine edit |
+|---|---|---|---|
+| Culture, edited teacher | 0/40 | **23/40** | **40/40** |
+| Culture, unchanged teacher | 0/40 | 0/40 | 38/40 |
+| Dish silenced | 0/40 | 0/40 | 0/40 |
+| Dead culture, own decoder and edit | 23/40 | 32/40 | 36/40 |
+
+Ideal IMU 40/40, zero action 0/40. The 1/gain edit (planned) fails because the robot stands at grav_x = −0.063, not
+0: the decoder's offset becomes a false lean. The affine edit undoes the offset as well; it was designed after the
+first run, so it was scored on fresh seeds. The dead culture is as good or better throughout: a relay.
+
+Why the 1 × 12 well still falls with the affine edit: it falls after pushes from the front. In the live culture
+12 of 41 such pushes lead to a fall, against 2 of 52 in the dead one; sideways pushes cost both about the same
+(5/96, 6/119), and pushes from behind cost neither. Step-by-step traces of three such falls
+(`scripts/closed_loop_falls.py`) show the mechanism:
+- The recovery leans the robot forward. In the second after the push, the relay reads the pitch rate 2.4–2.5
+  spreads too high (dead culture 1.1–1.9; the same dish decoding beside a teacher that acts on the true IMU, −0.3 to
+  +0.6), so the teacher corrects too weakly and the lean keeps growing.
+- About 1 s after the push, the lean passes the encoder's input limit (4 replay standard deviations, 7.9 spreads).
+  Past it the stimulation no longer changes, so the teacher sees about 9 spreads while the true lean reaches 33–42,
+  and the robot falls about 1 s later.
+
+With the true IMU, the same pushes peak at 2.5–4.5 spreads. The dead culture passed the limit once (12 spreads) and
+recovered, so the limit makes recovery harder rather than impossible.
 
 The dish plus the Phase 2 controller, on 40 fresh seeds. The decoder and the weight edit are fixed before the first
 closed-loop seed, and plasticity is off. Main configuration: 1 well × 12 electrodes (CL1-sized); comparison 1 × 32.
@@ -312,7 +339,7 @@ It counts as computation only if:
 
 1. **Phase 1.1**, then Gate G1: done.
 2. **Phase 2** harness and track (a), **Phase 3.1**: done. Track (b) is open and not in the current plan.
-3. **Phase 3.3**: next, as track A (A1, then A2).
+3. **Phase 3.3**: run as track A. A1's gate wasn't reached on the CL1-sized well (see 3.3); A2 next.
 4. **Phase 4**: simulation tests done. Learning questions run in simulation only if track B's gates pass.
 5. **Phase 5** and every real-robot step: parked until access. The channel test can start as soon as a dish is
    available.

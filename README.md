@@ -22,7 +22,7 @@ The culture drives **all 23 joints of Asimov 1 at 50 Hz** in MuJoCo. Two ways to
 | `src/biocompute/loop.py` | The closed loop. The culture needs 20 ms of its own time to answer, so an action applies one step late. |
 | `src/biocompute/train/` | Tasks, DAgger (serial, and `parallel.py`: several copies of the same dish in worker processes), feedback sessions |
 | `scripts/` | `characterise_culture.py`, `baselines.py`, `train_reservoir.py`, `train_dagger.py` (parallel DAgger, ridge or MLP decoder), `eval_readout.py` (many seeds, ablations), `train_feedback.py`, `evaluate.py`, `view.py`, `train_expert.py` / `program_expert.py` (stance-only balance experts: they cannot pass `stand_push`) |
-| `scripts/` (experiments) | `reflex_oracle.py`, `blind_teacher.py`, `no_imu_student.py`, `vestibular_probe.py`, `trigger_probe.py`, `adaptation_slot.py`, `struggle_signal.py`, `coach_probe.py`, `dish_regimes.py`, `burst_probe.py`, `cartpole_replication.py`, `cebra_probe.py`, `bl1_drift.py` (with `bl1_checks.py`, `bl1_rep_analysis.py`; runs in bl1's own venv), `public_data_targets.py`: one experiment each; results in [docs/route-to-computation.md](docs/route-to-computation.md) and the commit log |
+| `scripts/` (experiments) | `reflex_oracle.py`, `blind_teacher.py`, `no_imu_student.py`, `vestibular_probe.py`, `trigger_probe.py`, `adaptation_slot.py`, `struggle_signal.py`, `coach_probe.py`, `dish_regimes.py`, `burst_probe.py`, `cartpole_replication.py`, `cebra_probe.py`, `bl1_drift.py` (with `bl1_checks.py`, `bl1_rep_analysis.py`; runs in bl1's own venv), `closed_loop_vestibular.py`, `public_data_targets.py`: one experiment each; results in [docs/route-to-computation.md](docs/route-to-computation.md) and the commit log |
 | `scripts/launch.py`, `scripts/watch.py`, `src/biocompute/runguard.py` | Guarded long runs: smoke test, detached systemd unit, in-run checks, watchdog |
 | `src/biocompute/eval/dish_channel.py` | A dish as a statistical channel (delay, update rate, noise, gain), the stand-in for the culture in Phases 2 and 3.1 |
 | `wsp/controller/` | Weight-space programming of the robot-side controller (Phase 2). `track_a.py` needs `teacher_weights.npz`, written from the teacher's ONNX by `export_teacher.py` |
@@ -188,6 +188,15 @@ unchanged teacher up in 58–60/60 runs; 1 × 12 in 20/60.
 brings the CL1-sized channel to 58/60 (validation) and 40/40 (hidden test; unchanged teacher 16/40). These are
 statistical channel models; the closed loop with the culture itself is Phase 3.3.
 
+**Phase 3.3, the culture in the loop** (track A1, `scripts/closed_loop_vestibular.py`, 40 fresh seeds per arm). The
+simulated culture now carries the IMU inside the robot's loop, with its decoder and weight edit fixed beforehand.
+On a CL1-sized well (12 stimulation electrodes) the gate (≥ 34/40) is not reached. The planned 1/gain edit gives
+0/40, because the robot stands leaning 3.6° forward and the decoder's offset becomes a false lean. An edit that
+also removes the offset gives 23/40. The other 17 fall after pushes from the front: the relay misreads the pitch rate
+during the recovery, and the forward lean grows past the encoder's input limit (`closed_loop_falls.py`). A well with
+32 electrodes reaches 40/40. Silencing the dish is fatal (0/40), and a dead culture does as well or better
+(1 × 12: 32/40), so the dish is a necessary relay that computes nothing.
+
 Public data for track B (`scripts/public_data_targets.py`): 81 recordings of 29 dense cortical cultures from
 Wagenaar et al. 2006, and the cart-pole organoids' Zenodo record, give the ranges the model must match.
 
@@ -207,7 +216,8 @@ precedent; a real dish decides), push detection tested open loop alongside it, t
 
 **Next** (24 November 2026). We have no real culture and no physical robot for now, so the work runs in two
 simulated tracks ([Order of work without a dish](docs/route-to-computation.md#order-of-work-without-a-dish)).
-Track A puts the simulated culture in the robot's loop (Phase 3.3 of [docs/next-steps.md](docs/next-steps.md)).
+Track A puts the simulated culture in the robot's loop (Phase 3.3 of [docs/next-steps.md](docs/next-steps.md));
+its first step has run (above).
 Track B tries to make the culture model good enough to ask learning questions of, behind gates fixed in advance.
 Real-dish and real-robot steps are parked. Ideas behind it: [docs/organoid-control-ideas.md](docs/organoid-control-ideas.md).
 
