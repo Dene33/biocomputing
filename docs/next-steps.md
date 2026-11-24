@@ -6,10 +6,10 @@
 **Status, 24 November 2026.**
 - **Done:** Phase 1.1 and Gate G1; the Phase 2 harness (2.1) and track (a); Phase 3.1; Phase 4's simulation tests
   ([route-to-computation.md](route-to-computation.md)).
-- **Run:** Phase 3.3, the culture in the robot's loop: step A1 of track A in the route doc's
-  [Order of work without a dish](route-to-computation.md#order-of-work-without-a-dish). Its gate wasn't reached on
-  the CL1-sized well; results in [3.3](#33-closed-loop).
-- **Next:** A2, sessions and drift.
+- **Run:** Phase 3.3, the culture in the robot's loop: track A (A1 and A2) of the route doc's
+  [Order of work without a dish](route-to-computation.md#order-of-work-without-a-dish). Neither gate passed on its
+  main configuration; results in [3.3](#33-closed-loop).
+- **Next:** track B, starting with B1.
 - **Waiting:** Phase 4's learning questions, behind track B's gates in the same section.
 - **Parked:** Phase 5 and every real-robot step. There is no dish and no robot for now.
 - **Open, not in the current plan:** Phase 2 track (b).
@@ -254,7 +254,8 @@ Zero action on the hidden test: 4.4 s, 0/40. With the dish silenced, every teach
 
 ### 3.3 Closed loop
 
-**Status: run (24 November 2026), success not reached on the CL1-sized well.** This is track A of the route doc
+**Status: run (24 November 2026). A1 not reached on the CL1-sized well; A2 short by one episode.** This is track A
+of the route doc
 ([Order of work without a dish](route-to-computation.md#order-of-work-without-a-dish)): step A1 is the closed loop
 below, step A2 adds sessions and drift. Results (`scripts/closed_loop_vestibular.py`), full runs of 40:
 
@@ -282,6 +283,23 @@ Why the 1 × 12 well still falls with the affine edit: it falls after pushes fro
 
 With the true IMU, the same pushes peak at 2.5–4.5 spreads. The dead culture passed the limit once (12 spreads) and
 recovered, so the limit makes recovery harder rather than impossible.
+
+A2, sessions and drift (`scripts/closed_loop_sessions.py`, 1 × 32, affine edit, seeds 9200–9239). Between sessions
+the culture ages (`aging.py`) or a new dish replaces it. The stale arm keeps the A1 decoder and edit; the
+recalibrated arm refits both from 60 s of open-loop replay. Full runs of 40:
+
+| Session | Neurons alive | Stale | Recalibrated (60 s) |
+|---|---|---|---|
+| Day 0 | 100% | 39/40 | 36/40 |
+| Day 1 | 98% | 36/40 | 36/40 |
+| Day 3 | 94% | 39/40 | **33/40** |
+| Day 7 | 87% | 39/40 | 37/40 |
+| New dish | 100% | **0/40** | 36/40 |
+
+Ideal IMU 40/40, zero action 0/40. The gate (recalibrated ≥ 34/40 in every session) fails by one episode at day 3.
+Only the new dish breaks the stale relay, and recalibration restores it. Aging at the model's rates doesn't, so the
+gate's real test is that one session. The 60 s decoder is the weak link: it scores 36/40 even at day 0, and in closed
+loop it reads grav_x with noise 0.84–0.89 spreads, against 0.53–0.55 for the decoder fitted on 312 s.
 
 The dish plus the Phase 2 controller, on 40 fresh seeds. The decoder and the weight edit are fixed before the first
 closed-loop seed, and plasticity is off. Main configuration: 1 well × 12 electrodes (CL1-sized); comparison 1 × 32.
@@ -339,7 +357,7 @@ It counts as computation only if:
 
 1. **Phase 1.1**, then Gate G1: done.
 2. **Phase 2** harness and track (a), **Phase 3.1**: done. Track (b) is open and not in the current plan.
-3. **Phase 3.3**: run as track A. A1's gate wasn't reached on the CL1-sized well (see 3.3); A2 next.
+3. **Phase 3.3**: run as track A (A1, A2). Neither gate passed on its main configuration (see 3.3).
 4. **Phase 4**: simulation tests done. Learning questions run in simulation only if track B's gates pass.
 5. **Phase 5** and every real-robot step: parked until access. The channel test can start as soon as a dish is
    available.

@@ -197,6 +197,11 @@ during the recovery, and the forward lean grows past the encoder's input limit (
 32 electrodes reaches 40/40. Silencing the dish is fatal (0/40), and a dead culture does as well or better
 (1 × 12: 32/40), so the dish is a necessary relay that computes nothing.
 
+**Sessions and drift** (track A2, `scripts/closed_loop_sessions.py`, 1 × 32). A new dish breaks the old decoder
+completely (0/40), and one 60 s open-loop calibration plus one weight edit brings it back to 36/40. Aging the
+culture by up to 7 days doesn't break the old decoder (36–39/40), so the gate (recalibration ≥ 34/40 in every
+session) was tested only on the new dish. It fails by one episode at day 3 (33/40). The 60 s decoder is noisier than
+the one fitted on 5 minutes (36/40 even at day 0), so the calibration's length is the weak point, not the aging.
 Public data for track B (`scripts/public_data_targets.py`): 81 recordings of 29 dense cortical cultures from
 Wagenaar et al. 2006, and the cart-pole organoids' Zenodo record, give the ranges the model must match.
 
@@ -217,7 +222,7 @@ precedent; a real dish decides), push detection tested open loop alongside it, t
 **Next** (24 November 2026). We have no real culture and no physical robot for now, so the work runs in two
 simulated tracks ([Order of work without a dish](docs/route-to-computation.md#order-of-work-without-a-dish)).
 Track A puts the simulated culture in the robot's loop (Phase 3.3 of [docs/next-steps.md](docs/next-steps.md));
-its first step has run (above).
+its two steps have run (above).
 Track B tries to make the culture model good enough to ask learning questions of, behind gates fixed in advance.
 Real-dish and real-robot steps are parked. Ideas behind it: [docs/organoid-control-ideas.md](docs/organoid-control-ideas.md).
 

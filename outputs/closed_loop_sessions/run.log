@@ -1,0 +1,909 @@
+{"start": "2026-11-24 11:15:56", "configs": ["s32"], "conds": ["day0", "day1", "day3", "day7", "newdish"], "arms": ["stale", "recal", "ideal_imu", "zero_action"], "seeds": [9200, 9239], "seconds": 20.0, "workers": 3, "smoke": false}
+[beat] session_s32_day3 1/3000 (0%, 0.1 min, eta 272.8 min) ms_per_step=107.1
+[beat] session_s32_day1 1/3000 (0%, 0.1 min, eta 274.5 min) ms_per_step=112.2
+[beat] session_s32_day0 1/3000 (0%, 0.1 min, eta 275.1 min) ms_per_step=109.1
+[beat] session_s32_day3 904/3000 (30%, 0.6 min, eta 1.4 min) ms_per_step=33.3
+[beat] session_s32_day0 904/3000 (30%, 0.6 min, eta 1.4 min) ms_per_step=33.3
+[beat] session_s32_day1 901/3000 (30%, 0.6 min, eta 1.4 min) ms_per_step=33.5
+[beat] session_s32_day0 1801/3000 (60%, 1.1 min, eta 0.7 min) ms_per_step=33.4
+[beat] session_s32_day3 1802/3000 (60%, 1.1 min, eta 0.7 min) ms_per_step=33.4
+[beat] session_s32_day1 1794/3000 (60%, 1.1 min, eta 0.7 min) ms_per_step=33.5
+{"stopped": ["session s32_day0 at replay step 2197/3000 (redone on resume)", "session s32_day1 at replay step 2190/3000 (redone on resume)", "session s32_day3 at replay step 2201/3000 (redone on resume)", "session s32_day7 before start", "session s32_newdish before start"], "resume": "run the same command again"}
+{"start": "2026-11-24 11:19:08", "configs": ["s32"], "conds": ["day0", "day1", "day3", "day7", "newdish"], "arms": ["stale", "recal", "ideal_imu", "zero_action"], "seeds": [9200, 9239], "seconds": 20.0, "workers": 3, "smoke": false}
+[beat] session_s32_day1 1/3000 (0%, 0.1 min, eta 253.2 min) ms_per_step=132.2
+[beat] session_s32_day3 1/3000 (0%, 0.1 min, eta 269.3 min) ms_per_step=106.9
+[beat] session_s32_day0 1/3000 (0%, 0.1 min, eta 271.4 min) ms_per_step=109.9
+[beat] session_s32_day1 900/3000 (30%, 0.6 min, eta 1.4 min) ms_per_step=33.5
+[beat] session_s32_day0 901/3000 (30%, 0.6 min, eta 1.4 min) ms_per_step=33.4
+[beat] session_s32_day3 899/3000 (30%, 0.6 min, eta 1.4 min) ms_per_step=33.5
+[beat] session_s32_day1 1795/3000 (60%, 1.1 min, eta 0.7 min) ms_per_step=33.5
+[beat] session_s32_day3 1796/3000 (60%, 1.1 min, eta 0.7 min) ms_per_step=33.5
+[beat] session_s32_day0 1801/3000 (60%, 1.1 min, eta 0.7 min) ms_per_step=33.4
+[beat] session_s32_day1 2691/3000 (90%, 1.6 min, eta 0.2 min) ms_per_step=33.5
+[beat] session_s32_day3 2694/3000 (90%, 1.6 min, eta 0.2 min) ms_per_step=33.5
+[beat] session_s32_day0 2698/3000 (90%, 1.6 min, eta 0.2 min) ms_per_step=33.4
+[beat] session_s32_day1 3000/3000 (100%, 1.8 min, eta 0.0 min) 
+{"session": "s32_day1", "alive_vs_day0": 0.98, "exc_sd": 0.498, "rate_hz": 64.63, "stale_gain": [0.874, 0.904, 0.876, 0.784, 0.822], "stale_bias": [-0.036, -0.027, -0.013, 0.004, 0.088], "recal_gain": [0.683, 0.757, 0.876, 0.806, 0.645], "recal_cv_r2": 0.452}
+[beat] session_s32_day0 3000/3000 (100%, 1.8 min, eta 0.0 min) 
+{"session": "s32_day0", "alive_vs_day0": 1.0, "exc_sd": 0.0, "rate_hz": 65.99, "stale_gain": [0.876, 0.938, 0.901, 0.803, 0.827], "stale_bias": [-0.033, 0.003, -0.014, 0.006, 0.001], "recal_gain": [0.681, 0.776, 0.933, 0.831, 0.641], "recal_cv_r2": 0.447}
+[beat] session_s32_day3 3000/3000 (100%, 1.8 min, eta 0.0 min) 
+{"session": "s32_day3", "alive_vs_day0": 0.9412, "exc_sd": 0.863, "rate_hz": 62.82, "stale_gain": [0.812, 0.9, 0.856, 0.818, 0.776], "stale_bias": [0.021, -0.072, 0.052, 0.035, -0.069], "recal_gain": [0.641, 0.752, 0.893, 0.817, 0.646], "recal_cv_r2": 0.444}
+[beat] session_s32_day7 1/3000 (0%, 0.1 min, eta 190.1 min) ms_per_step=125.9
+[beat] session_s32_newdish 1/3000 (0%, 0.1 min, eta 302.8 min) ms_per_step=106.9
+[beat] session_s32_day7 1343/3000 (45%, 0.6 min, eta 0.7 min) ms_per_step=22.4
+[beat] session_s32_newdish 1351/3000 (45%, 0.6 min, eta 0.7 min) ms_per_step=22.3
+[beat] session_s32_day7 2659/3000 (89%, 1.1 min, eta 0.1 min) ms_per_step=22.6
+[beat] session_s32_newdish 2676/3000 (89%, 1.1 min, eta 0.1 min) ms_per_step=22.5
+[beat] session_s32_day7 3000/3000 (100%, 1.2 min, eta 0.0 min) 
+{"session": "s32_day7", "alive_vs_day0": 0.8681, "exc_sd": 1.318, "rate_hz": 58.51, "stale_gain": [0.783, 0.856, 0.801, 0.767, 0.768], "stale_bias": [-0.424, -0.161, 0.133, -0.011, -0.033], "recal_gain": [0.622, 0.738, 0.854, 0.842, 0.61], "recal_cv_r2": 0.432}
+[beat] session_s32_newdish 3000/3000 (100%, 1.2 min, eta 0.0 min) 
+{"session": "s32_newdish", "alive_vs_day0": 1.0, "exc_sd": 0.0, "rate_hz": 66.77, "stale_gain": [0.674, 0.72, 0.824, 0.619, 0.76], "stale_bias": [-1.007, -1.029, 2.489, -0.406, -0.142], "recal_gain": [0.672, 0.706, 0.897, 0.55, 0.735], "recal_cv_r2": 0.444}
+[beat] s32_day0_stale_9210 0.0/10 (0%, 0.1 min, eta ?) seed=9210
+[beat] s32_day0_stale_9200 0.0/10 (0%, 0.1 min, eta ?) seed=9200
+[beat] s32_day0_stale_9220 0.0/10 (0%, 0.1 min, eta ?) seed=9220
+[beat] s32_day0_stale_9200 0.875/10 (9%, 0.6 min, eta 6.1 min) seed=9200
+[beat] s32_day0_stale_9210 0.876/10 (9%, 0.6 min, eta 6.1 min) seed=9210
+[beat] s32_day0_stale_9220 0.875/10 (9%, 0.6 min, eta 6.1 min) seed=9220
+[beat] s32_day0_stale_9210 1/10 (10%, 0.7 min, eta 5.9 min) seed=9210 survived=20.0
+[beat] s32_day0_stale_9200 1/10 (10%, 0.7 min, eta 5.9 min) seed=9200 survived=20.0
+[beat] s32_day0_stale_9220 1/10 (10%, 0.7 min, eta 5.9 min) seed=9220 survived=20.0
+[beat] s32_day0_stale_9210 1.869/10 (19%, 1.2 min, eta 5.0 min) seed=9211
+[beat] s32_day0_stale_9220 1.867/10 (19%, 1.2 min, eta 5.0 min) seed=9221
+[beat] s32_day0_stale_9200 1.869/10 (19%, 1.2 min, eta 5.0 min) seed=9201
+[beat] s32_day0_stale_9210 2/10 (20%, 1.2 min, eta 4.9 min) seed=9211 survived=20.0
+[beat] s32_day0_stale_9200 2/10 (20%, 1.2 min, eta 4.9 min) seed=9201 survived=20.0
+[beat] s32_day0_stale_9220 2/10 (20%, 1.2 min, eta 4.9 min) seed=9221 survived=20.0
+[beat] s32_day0_stale_9210 2.864/10 (29%, 1.7 min, eta 4.3 min) seed=9212
+[beat] s32_day0_stale_9200 2.865/10 (29%, 1.7 min, eta 4.3 min) seed=9202
+[beat] s32_day0_stale_9220 2.863/10 (29%, 1.7 min, eta 4.3 min) seed=9222
+[beat] s32_day0_stale_9200 3/10 (30%, 1.8 min, eta 4.2 min) seed=9202 survived=20.0
+[beat] s32_day0_stale_9210 3/10 (30%, 1.8 min, eta 4.2 min) seed=9212 survived=20.0
+[beat] s32_day0_stale_9220 3/10 (30%, 1.8 min, eta 4.2 min) seed=9222 survived=20.0
+[beat] s32_day0_stale_9200 3.864/10 (39%, 2.3 min, eta 3.7 min) seed=9203
+[beat] s32_day0_stale_9210 3.864/10 (39%, 2.3 min, eta 3.7 min) seed=9213
+[beat] s32_day0_stale_9220 3.863/10 (39%, 2.3 min, eta 3.7 min) seed=9223
+[beat] s32_day0_stale_9210 4/10 (40%, 2.4 min, eta 3.6 min) seed=9213 survived=20.0
+[beat] s32_day0_stale_9200 4/10 (40%, 2.4 min, eta 3.6 min) seed=9203 survived=20.0
+[beat] s32_day0_stale_9220 4/10 (40%, 2.4 min, eta 3.6 min) seed=9223 survived=20.0
+[beat] s32_day0_stale_9200 4.87/10 (49%, 2.9 min, eta 3.0 min) seed=9204
+[beat] s32_day0_stale_9210 4.868/10 (49%, 2.9 min, eta 3.0 min) seed=9214
+[beat] s32_day0_stale_9220 4.87/10 (49%, 2.9 min, eta 3.0 min) seed=9224
+[beat] s32_day0_stale_9200 5/10 (50%, 3.0 min, eta 3.0 min) seed=9204 survived=20.0
+[beat] s32_day0_stale_9220 5/10 (50%, 3.0 min, eta 3.0 min) seed=9224 survived=20.0
+[beat] s32_day0_stale_9210 5/10 (50%, 3.0 min, eta 3.0 min) seed=9214 survived=20.0
+[beat] s32_day0_stale_9200 5.869/10 (59%, 3.5 min, eta 2.4 min) seed=9205
+[beat] s32_day0_stale_9220 5.871/10 (59%, 3.5 min, eta 2.4 min) seed=9225
+[beat] s32_day0_stale_9210 5.871/10 (59%, 3.5 min, eta 2.4 min) seed=9215
+[beat] s32_day0_stale_9210 6/10 (60%, 3.5 min, eta 2.4 min) seed=9215 survived=20.0
+[beat] s32_day0_stale_9200 6/10 (60%, 3.5 min, eta 2.4 min) seed=9205 survived=20.0
+[beat] s32_day0_stale_9220 6/10 (60%, 3.5 min, eta 2.4 min) seed=9225 survived=20.0
+[beat] s32_day0_stale_9200 6.8629999999999995/10 (69%, 4.0 min, eta 1.8 min) seed=9206
+[beat] s32_day0_stale_9220 6.8629999999999995/10 (69%, 4.0 min, eta 1.8 min) seed=9226
+[beat] s32_day0_stale_9210 6.8629999999999995/10 (69%, 4.0 min, eta 1.8 min) seed=9216
+[beat] s32_day0_stale_9210 7/10 (70%, 4.1 min, eta 1.8 min) seed=9216 survived=20.0
+[beat] s32_day0_stale_9220 7/10 (70%, 4.1 min, eta 1.8 min) seed=9226 survived=20.0
+[beat] s32_day0_stale_9200 7/10 (70%, 4.1 min, eta 1.8 min) seed=9206 survived=20.0
+[beat] s32_day0_stale_9220 7.868/10 (79%, 4.6 min, eta 1.3 min) seed=9227
+[beat] s32_day0_stale_9210 7.867/10 (79%, 4.6 min, eta 1.3 min) seed=9217
+[beat] s32_day0_stale_9200 7.869/10 (79%, 4.6 min, eta 1.2 min) seed=9207
+[beat] s32_day0_stale_9200 8/10 (80%, 4.7 min, eta 1.2 min) seed=9207 survived=20.0
+[beat] s32_day0_stale_9220 8/10 (80%, 4.7 min, eta 1.2 min) seed=9227 survived=20.0
+[beat] s32_day0_stale_9210 8/10 (80%, 4.7 min, eta 1.2 min) seed=9217 survived=20.0
+[beat] s32_day0_stale_9200 8.867/10 (89%, 5.2 min, eta 0.7 min) seed=9208
+[beat] s32_day0_stale_9210 8.865/10 (89%, 5.2 min, eta 0.7 min) seed=9218
+[beat] s32_day0_stale_9220 8.866/10 (89%, 5.2 min, eta 0.7 min) seed=9228
+[beat] s32_day0_stale_9200 9/10 (90%, 5.3 min, eta 0.6 min) seed=9208 survived=20.0
+[beat] s32_day0_stale_9220 9/10 (90%, 5.3 min, eta 0.6 min) seed=9228 survived=20.0
+[beat] s32_day0_stale_9210 9/10 (90%, 5.3 min, eta 0.6 min) seed=9218 survived=20.0
+{"stopped": ["s32/day0/stale seed 9209 at step 504 (redone on resume)", "s32/day0/stale seed 9219 at step 499 (redone on resume)", "s32/day0/stale seed 9229 at step 501 (redone on resume)", "s32/day0/stale before start", "s32/day0/recal before start", "s32/day0/recal before start", "s32/day0/recal before start", "s32/day0/recal before start", "s32/day1/stale before start", "s32/day1/stale before start", "s32/day1/stale before start", "s32/day1/stale before start", "s32/day1/recal before start", "s32/day1/recal before start", "s32/day1/recal before start", "s32/day1/recal before start", "s32/day3/stale before start", "s32/day3/stale before start", "s32/day3/stale before start", "s32/day3/stale before start", "s32/day3/recal before start", "s32/day3/recal before start", "s32/day3/recal before start", "s32/day3/recal before start", "s32/day7/stale before start", "s32/day7/stale before start", "s32/day7/stale before start", "s32/day7/stale before start", "s32/day7/recal before start", "s32/day7/recal before start", "s32/day7/recal before start", "s32/day7/recal before start", "s32/newdish/stale before start", "s32/newdish/stale before start", "s32/newdish/stale before start", "s32/newdish/stale before start", "s32/newdish/recal before start", "s32/newdish/recal before start", "s32/newdish/recal before start", "s32/newdish/recal before start", "none/none/ideal_imu before start", "none/none/ideal_imu before start", "none/none/ideal_imu before start", "none/none/ideal_imu before start", "none/none/zero_action before start", "none/none/zero_action before start", "none/none/zero_action before start", "none/none/zero_action before start"], "resume": "run the same command again"}
+{"start": "2026-11-24 11:29:59", "configs": ["s32"], "conds": ["day0", "day1", "day3", "day7", "newdish"], "arms": ["stale", "recal", "ideal_imu", "zero_action"], "seeds": [9200, 9239], "seconds": 20.0, "workers": 3, "smoke": false}
+[beat] s32_day0_recal_9200 0.0/10 (0%, 0.1 min, eta ?) seed=9200
+[beat] s32_day0_stale_9209 0.0/10 (0%, 0.1 min, eta ?) seed=9209
+[beat] s32_day0_stale_9237 0.0/3 (0%, 0.1 min, eta ?) seed=9237
+[beat] s32_day0_recal_9200 0.877/10 (9%, 0.6 min, eta 6.1 min) seed=9200
+[beat] s32_day0_stale_9209 0.878/10 (9%, 0.6 min, eta 6.1 min) seed=9209
+[beat] s32_day0_stale_9237 0.878/3 (29%, 0.6 min, eta 1.4 min) seed=9237
+[beat] s32_day0_recal_9200 1/10 (10%, 0.7 min, eta 5.9 min) seed=9200 survived=20.0
+[beat] s32_day0_stale_9209 1/10 (10%, 0.7 min, eta 5.9 min) seed=9209 survived=20.0
+[beat] s32_day0_stale_9237 1/3 (33%, 0.7 min, eta 1.3 min) seed=9237 survived=20.0
+[beat] s32_day0_recal_9200 1.857/10 (19%, 1.2 min, eta 5.1 min) seed=9201
+[beat] s32_day0_stale_9209 1.858/10 (19%, 1.2 min, eta 5.1 min) seed=9219
+[beat] s32_day0_stale_9237 1.858/3 (62%, 1.2 min, eta 0.7 min) seed=9238
+[beat] s32_day0_recal_9200 2/10 (20%, 1.2 min, eta 4.9 min) seed=9201 survived=20.0
+[beat] s32_day0_stale_9209 2/10 (20%, 1.2 min, eta 4.9 min) seed=9219 survived=20.0
+[beat] s32_day0_stale_9237 2/3 (67%, 1.2 min, eta 0.6 min) seed=9238 survived=20.0
+[beat] s32_day0_recal_9200 2.863/10 (29%, 1.7 min, eta 4.3 min) seed=9202
+[beat] s32_day0_stale_9209 2.863/10 (29%, 1.7 min, eta 4.3 min) seed=9229
+[beat] s32_day0_stale_9237 2.864/3 (95%, 1.7 min, eta 0.1 min) seed=9239
+[beat] s32_day0_recal_9200 3/10 (30%, 1.8 min, eta 4.2 min) seed=9202 survived=20.0
+[beat] s32_day0_stale_9209 3/10 (30%, 1.8 min, eta 4.2 min) seed=9229 survived=20.0
+[beat] s32_day0_stale_9237 3/3 (100%, 1.8 min, eta 0.0 min) seed=9239 survived=20.0
+[beat] s32_day0_recal_9210 0.0/10 (0%, 0.1 min, eta ?) seed=9210
+[beat] s32_day0_recal_9210 1/10 (10%, 0.4 min, eta 4.0 min) seed=9210 survived=12.94
+[beat] s32_day0_recal_9200 3.917/10 (39%, 2.3 min, eta 3.6 min) seed=9203
+[beat] s32_day0_stale_9209 3.917/10 (39%, 2.3 min, eta 3.6 min) seed=9230
+[beat] s32_day0_recal_9200 4/10 (40%, 2.4 min, eta 3.5 min) seed=9203 survived=20.0
+[beat] s32_day0_stale_9209 4/10 (40%, 2.4 min, eta 3.5 min) seed=9230 survived=20.0
+[beat] s32_day0_recal_9200 5/10 (50%, 2.7 min, eta 2.7 min) seed=9204 survived=12.9
+[beat] s32_day0_recal_9210 1.879/10 (19%, 0.9 min, eta 4.1 min) seed=9211
+[beat] s32_day0_recal_9210 2/10 (20%, 1.0 min, eta 4.0 min) seed=9211 survived=20.0
+[beat] s32_day0_stale_9209 4.88/10 (49%, 2.9 min, eta 3.0 min) seed=9231
+[beat] s32_day0_stale_9209 5/10 (50%, 2.9 min, eta 2.9 min) seed=9231 survived=20.0
+[beat] s32_day0_recal_9200 5.874/10 (59%, 3.2 min, eta 2.3 min) seed=9205
+[beat] s32_day0_recal_9200 6/10 (60%, 3.3 min, eta 2.2 min) seed=9205 survived=20.0
+[beat] s32_day0_recal_9210 2.8689999999999998/10 (29%, 1.5 min, eta 3.7 min) seed=9212
+[beat] s32_day0_recal_9210 3/10 (30%, 1.6 min, eta 3.7 min) seed=9212 survived=20.0
+[beat] s32_day0_stale_9209 5.867/10 (59%, 3.4 min, eta 2.4 min) seed=9232
+[beat] s32_day0_stale_9209 6/10 (60%, 3.5 min, eta 2.3 min) seed=9232 survived=20.0
+[beat] s32_day0_recal_9200 6.864/10 (69%, 3.8 min, eta 1.7 min) seed=9206
+[beat] s32_day0_recal_9200 7/10 (70%, 3.9 min, eta 1.7 min) seed=9206 survived=20.0
+[beat] s32_day0_recal_9210 3.865/10 (39%, 2.1 min, eta 3.3 min) seed=9213
+[beat] s32_day0_recal_9210 4/10 (40%, 2.2 min, eta 3.2 min) seed=9213 survived=20.0
+[beat] s32_day0_stale_9209 6.866/10 (69%, 4.0 min, eta 1.8 min) seed=9233
+[beat] s32_day0_stale_9209 7/10 (70%, 4.1 min, eta 1.7 min) seed=9233 survived=20.0
+[beat] s32_day0_recal_9200 7.87/10 (79%, 4.4 min, eta 1.2 min) seed=9207
+[beat] s32_day0_recal_9200 8/10 (80%, 4.5 min, eta 1.1 min) seed=9207 survived=20.0
+[beat] s32_day0_recal_9210 4.87/10 (49%, 2.7 min, eta 2.8 min) seed=9214
+[beat] s32_day0_recal_9210 5/10 (50%, 2.7 min, eta 2.7 min) seed=9214 survived=20.0
+[beat] s32_day0_stale_9209 7.872/10 (79%, 4.6 min, eta 1.2 min) seed=9234
+[beat] s32_day0_stale_9209 8/10 (80%, 4.7 min, eta 1.2 min) seed=9234 survived=20.0
+[beat] s32_day0_recal_9200 8.873/10 (89%, 5.0 min, eta 0.6 min) seed=9208
+[beat] s32_day0_recal_9200 9/10 (90%, 5.0 min, eta 0.6 min) seed=9208 survived=20.0
+[beat] s32_day0_recal_9210 5.874/10 (59%, 3.2 min, eta 2.3 min) seed=9215
+[beat] s32_day0_recal_9210 6/10 (60%, 3.3 min, eta 2.2 min) seed=9215 survived=20.0
+[beat] s32_day0_stale_9209 8.871/10 (89%, 5.2 min, eta 0.7 min) seed=9235
+[beat] s32_day0_stale_9209 9/10 (90%, 5.2 min, eta 0.6 min) seed=9235 survived=20.0
+[beat] s32_day0_recal_9210 7/10 (70%, 3.5 min, eta 1.5 min) seed=9216 survived=7.22
+[beat] s32_day0_recal_9200 9.879/10 (99%, 5.5 min, eta 0.1 min) seed=9209
+[beat] s32_day0_recal_9200 10/10 (100%, 5.6 min, eta 0.0 min) seed=9209 survived=20.0
+[beat] s32_day0_recal_9220 0.0/10 (0%, 0.1 min, eta ?) seed=9220
+[beat] s32_day0_stale_9209 9.937/10 (99%, 5.7 min, eta 0.0 min) seed=9236
+[beat] s32_day0_stale_9209 10/10 (100%, 5.7 min, eta 0.0 min) seed=9236 survived=19.08
+[beat] s32_day0_recal_9230 0.0/10 (0%, 0.1 min, eta ?) seed=9230
+[beat] s32_day0_recal_9210 7.994/10 (80%, 4.0 min, eta 1.0 min) seed=9217
+[beat] s32_day0_recal_9210 8/10 (80%, 4.0 min, eta 1.0 min) seed=9217 survived=20.0
+[beat] s32_day0_recal_9220 0.947/10 (9%, 0.6 min, eta 5.4 min) seed=9220
+[beat] s32_day0_recal_9220 1/10 (10%, 0.6 min, eta 5.4 min) seed=9220 survived=20.0
+[beat] s32_day0_recal_9230 0.897/10 (9%, 0.6 min, eta 5.7 min) seed=9230
+[beat] s32_day0_recal_9210 8.882/10 (89%, 4.5 min, eta 0.6 min) seed=9218
+[beat] s32_day0_recal_9230 1/10 (10%, 0.6 min, eta 5.6 min) seed=9230 survived=20.0
+[beat] s32_day0_recal_9210 9/10 (90%, 4.6 min, eta 0.5 min) seed=9218 survived=20.0
+[beat] s32_day0_recal_9220 1.874/10 (19%, 1.1 min, eta 4.8 min) seed=9221
+[beat] s32_day0_recal_9220 2/10 (20%, 1.2 min, eta 4.7 min) seed=9221 survived=20.0
+[beat] s32_day0_recal_9230 1.874/10 (19%, 1.1 min, eta 4.9 min) seed=9231
+[beat] s32_day0_recal_9210 9.871/10 (99%, 5.1 min, eta 0.1 min) seed=9219
+[beat] s32_day0_recal_9230 2/10 (20%, 1.2 min, eta 4.8 min) seed=9231 survived=20.0
+[beat] s32_day0_recal_9210 10/10 (100%, 5.2 min, eta 0.0 min) seed=9219 survived=20.0
+[beat] s32_day1_stale_9200 0.0/10 (0%, 0.1 min, eta ?) seed=9200
+[beat] s32_day0_recal_9220 2.928/10 (29%, 1.7 min, eta 4.0 min) seed=9222
+[beat] s32_day0_recal_9220 3/10 (30%, 1.7 min, eta 4.0 min) seed=9222 survived=20.0
+[beat] s32_day0_recal_9230 2.94/10 (29%, 1.7 min, eta 4.1 min) seed=9232
+[beat] s32_day0_recal_9230 3/10 (30%, 1.7 min, eta 4.0 min) seed=9232 survived=20.0
+[beat] s32_day1_stale_9200 1/10 (10%, 0.5 min, eta 4.8 min) seed=9200 survived=16.6
+[beat] s32_day0_recal_9220 3.8810000000000002/10 (39%, 2.2 min, eta 3.5 min) seed=9223
+[beat] s32_day0_recal_9220 4/10 (40%, 2.3 min, eta 3.4 min) seed=9223 survived=20.0
+[beat] s32_day0_recal_9230 3.877/10 (39%, 2.2 min, eta 3.5 min) seed=9233
+[beat] s32_day0_recal_9230 4/10 (40%, 2.3 min, eta 3.4 min) seed=9233 survived=20.0
+[beat] s32_day1_stale_9200 1.876/10 (19%, 1.0 min, eta 4.5 min) seed=9201
+[beat] s32_day1_stale_9200 2/10 (20%, 1.1 min, eta 4.4 min) seed=9201 survived=20.0
+[beat] s32_day0_recal_9220 5/10 (50%, 2.8 min, eta 2.8 min) seed=9224 survived=17.12
+[beat] s32_day0_recal_9230 4.881/10 (49%, 2.8 min, eta 2.9 min) seed=9234
+[beat] s32_day0_recal_9230 5/10 (50%, 2.9 min, eta 2.9 min) seed=9234 survived=20.0
+[beat] s32_day1_stale_9200 2.879/10 (29%, 1.6 min, eta 4.0 min) seed=9202
+[beat] s32_day1_stale_9200 3/10 (30%, 1.7 min, eta 3.9 min) seed=9202 survived=20.0
+[beat] s32_day0_recal_9220 5.8870000000000005/10 (59%, 3.3 min, eta 2.3 min) seed=9225
+[beat] s32_day0_recal_9220 6/10 (60%, 3.3 min, eta 2.2 min) seed=9225 survived=20.0
+[beat] s32_day0_recal_9230 5.891/10 (59%, 3.4 min, eta 2.3 min) seed=9235
+[beat] s32_day0_recal_9230 6/10 (60%, 3.4 min, eta 2.3 min) seed=9235 survived=20.0
+[beat] s32_day1_stale_9200 3.895/10 (39%, 2.2 min, eta 3.4 min) seed=9203
+[beat] s32_day1_stale_9200 4/10 (40%, 2.2 min, eta 3.3 min) seed=9203 survived=20.0
+[beat] s32_day0_recal_9220 6.896/10 (69%, 3.8 min, eta 1.7 min) seed=9226
+[beat] s32_day0_recal_9220 7/10 (70%, 3.9 min, eta 1.7 min) seed=9226 survived=20.0
+[beat] s32_day1_stale_9200 5/10 (50%, 2.6 min, eta 2.6 min) seed=9204 survived=14.12
+[beat] s32_day0_recal_9230 6.899/10 (69%, 3.9 min, eta 1.8 min) seed=9236
+[beat] s32_day0_recal_9230 7/10 (70%, 4.0 min, eta 1.7 min) seed=9236 survived=20.0
+[beat] s32_day0_recal_9220 7.883/10 (79%, 4.4 min, eta 1.2 min) seed=9227
+[beat] s32_day0_recal_9220 8/10 (80%, 4.4 min, eta 1.1 min) seed=9227 survived=20.0
+[beat] s32_day1_stale_9200 5.883/10 (59%, 3.1 min, eta 2.2 min) seed=9205
+[beat] s32_day1_stale_9200 6/10 (60%, 3.2 min, eta 2.1 min) seed=9205 survived=20.0
+[beat] s32_day0_recal_9230 7.883/10 (79%, 4.5 min, eta 1.2 min) seed=9237
+[beat] s32_day0_recal_9230 8/10 (80%, 4.5 min, eta 1.1 min) seed=9237 survived=20.0
+[beat] s32_day0_recal_9220 8.886/10 (89%, 4.9 min, eta 0.6 min) seed=9228
+[beat] s32_day0_recal_9220 9/10 (90%, 5.0 min, eta 0.6 min) seed=9228 survived=20.0
+[beat] s32_day1_stale_9200 6.8870000000000005/10 (69%, 3.7 min, eta 1.7 min) seed=9206
+[beat] s32_day1_stale_9200 7/10 (70%, 3.8 min, eta 1.6 min) seed=9206 survived=20.0
+[beat] s32_day0_recal_9230 8.884/10 (89%, 5.0 min, eta 0.6 min) seed=9238
+[beat] s32_day0_recal_9230 9/10 (90%, 5.1 min, eta 0.6 min) seed=9238 survived=20.0
+[beat] s32_day0_recal_9220 9.888/10 (99%, 5.5 min, eta 0.1 min) seed=9229
+[beat] s32_day0_recal_9220 10/10 (100%, 5.6 min, eta 0.0 min) seed=9229 survived=20.0
+[beat] s32_day1_stale_9200 7.928/10 (79%, 4.3 min, eta 1.1 min) seed=9207
+[beat] s32_day1_stale_9210 0.0/10 (0%, 0.1 min, eta ?) seed=9210
+[beat] s32_day1_stale_9200 8/10 (80%, 4.3 min, eta 1.1 min) seed=9207 survived=20.0
+[beat] s32_day0_recal_9230 9.938/10 (99%, 5.6 min, eta 0.0 min) seed=9239
+[beat] s32_day0_recal_9230 10/10 (100%, 5.6 min, eta 0.0 min) seed=9239 survived=20.0
+[beat] s32_day1_stale_9220 0.0/10 (0%, 0.1 min, eta ?) seed=9220
+[beat] s32_day1_stale_9210 0.951/10 (10%, 0.6 min, eta 5.4 min) seed=9210
+[beat] s32_day1_stale_9200 8.932/10 (89%, 4.8 min, eta 0.6 min) seed=9208
+[beat] s32_day1_stale_9210 1/10 (10%, 0.6 min, eta 5.3 min) seed=9210 survived=20.0
+[beat] s32_day1_stale_9200 9/10 (90%, 4.8 min, eta 0.5 min) seed=9208 survived=20.0
+[beat] s32_day1_stale_9210 2/10 (20%, 0.7 min, eta 2.9 min) seed=9211 survived=4.36
+[beat] s32_day1_stale_9220 0.895/10 (9%, 0.6 min, eta 5.8 min) seed=9220
+[beat] s32_day1_stale_9220 1/10 (10%, 0.6 min, eta 5.6 min) seed=9220 survived=20.0
+[beat] s32_day1_stale_9200 9.883/10 (99%, 5.3 min, eta 0.1 min) seed=9209
+[beat] s32_day1_stale_9200 10/10 (100%, 5.4 min, eta 0.0 min) seed=9209 survived=20.0
+[beat] s32_day1_stale_9210 2.904/10 (29%, 1.2 min, eta 3.0 min) seed=9212
+[beat] s32_day1_stale_9210 3/10 (30%, 1.3 min, eta 2.9 min) seed=9212 survived=20.0
+[beat] s32_day1_stale_9230 0.0/10 (0%, 0.1 min, eta ?) seed=9230
+[beat] s32_day1_stale_9220 1.933/10 (19%, 1.1 min, eta 4.7 min) seed=9221
+[beat] s32_day1_stale_9220 2/10 (20%, 1.2 min, eta 4.6 min) seed=9221 survived=20.0
+[beat] s32_day1_stale_9210 3.8890000000000002/10 (39%, 1.8 min, eta 2.8 min) seed=9213
+[beat] s32_day1_stale_9230 0.894/10 (9%, 0.6 min, eta 5.8 min) seed=9230
+[beat] s32_day1_stale_9210 4/10 (40%, 1.8 min, eta 2.7 min) seed=9213 survived=20.0
+[beat] s32_day1_stale_9230 1/10 (10%, 0.6 min, eta 5.6 min) seed=9230 survived=20.0
+[beat] s32_day1_stale_9220 2.883/10 (29%, 1.7 min, eta 4.1 min) seed=9222
+[beat] s32_day1_stale_9220 3/10 (30%, 1.7 min, eta 4.0 min) seed=9222 survived=20.0
+[beat] s32_day1_stale_9210 4.8870000000000005/10 (49%, 2.3 min, eta 2.4 min) seed=9214
+[beat] s32_day1_stale_9230 1.883/10 (19%, 1.1 min, eta 4.8 min) seed=9231
+[beat] s32_day1_stale_9210 5/10 (50%, 2.4 min, eta 2.4 min) seed=9214 survived=20.0
+[beat] s32_day1_stale_9230 2/10 (20%, 1.2 min, eta 4.7 min) seed=9231 survived=20.0
+[beat] s32_day1_stale_9220 3.884/10 (39%, 2.2 min, eta 3.5 min) seed=9223
+[beat] s32_day1_stale_9220 4/10 (40%, 2.3 min, eta 3.4 min) seed=9223 survived=20.0
+[beat] s32_day1_stale_9210 5.88/10 (59%, 2.9 min, eta 2.0 min) seed=9215
+[beat] s32_day1_stale_9230 2.878/10 (29%, 1.7 min, eta 4.2 min) seed=9232
+[beat] s32_day1_stale_9210 6/10 (60%, 3.0 min, eta 2.0 min) seed=9215 survived=20.0
+[beat] s32_day1_stale_9230 3/10 (30%, 1.8 min, eta 4.1 min) seed=9232 survived=20.0
+[beat] s32_day1_stale_9220 4.882/10 (49%, 2.8 min, eta 2.9 min) seed=9224
+[beat] s32_day1_stale_9220 5/10 (50%, 2.9 min, eta 2.9 min) seed=9224 survived=20.0
+[beat] s32_day1_stale_9210 6.879/10 (69%, 3.5 min, eta 1.6 min) seed=9216
+[beat] s32_day1_stale_9230 3.878/10 (39%, 2.3 min, eta 3.6 min) seed=9233
+[beat] s32_day1_stale_9210 7/10 (70%, 3.5 min, eta 1.5 min) seed=9216 survived=20.0
+[beat] s32_day1_stale_9230 4/10 (40%, 2.3 min, eta 3.5 min) seed=9233 survived=20.0
+[beat] s32_day1_stale_9220 5.882/10 (59%, 3.4 min, eta 2.4 min) seed=9225
+[beat] s32_day1_stale_9220 6/10 (60%, 3.4 min, eta 2.3 min) seed=9225 survived=20.0
+[beat] s32_day1_stale_9230 5/10 (50%, 2.4 min, eta 2.4 min) seed=9234 survived=4.08
+[beat] s32_day1_stale_9210 7.9/10 (79%, 4.0 min, eta 1.1 min) seed=9217
+[beat] s32_day1_stale_9210 8/10 (80%, 4.1 min, eta 1.0 min) seed=9217 survived=20.0
+[beat] s32_day1_stale_9220 6.899/10 (69%, 3.9 min, eta 1.8 min) seed=9226
+[beat] s32_day1_stale_9230 5.892/10 (59%, 2.9 min, eta 2.0 min) seed=9235
+[beat] s32_day1_stale_9220 7/10 (70%, 4.0 min, eta 1.7 min) seed=9226 survived=20.0
+[beat] s32_day1_stale_9230 6/10 (60%, 3.0 min, eta 2.0 min) seed=9235 survived=20.0
+[beat] s32_day1_stale_9210 8.889/10 (89%, 4.6 min, eta 0.6 min) seed=9218
+[beat] s32_day1_stale_9210 9/10 (90%, 4.6 min, eta 0.5 min) seed=9218 survived=20.0
+[beat] s32_day1_stale_9220 7.89/10 (79%, 4.5 min, eta 1.2 min) seed=9227
+[beat] s32_day1_stale_9230 6.886/10 (69%, 3.5 min, eta 1.6 min) seed=9236
+[beat] s32_day1_stale_9220 8/10 (80%, 4.5 min, eta 1.1 min) seed=9227 survived=20.0
+[beat] s32_day1_stale_9230 7/10 (70%, 3.6 min, eta 1.5 min) seed=9236 survived=20.0
+[beat] s32_day1_stale_9210 9.88/10 (99%, 5.1 min, eta 0.1 min) seed=9219
+[beat] s32_day1_stale_9210 10/10 (100%, 5.2 min, eta 0.0 min) seed=9219 survived=20.0
+[beat] s32_day1_stale_9220 8.911/10 (89%, 5.0 min, eta 0.6 min) seed=9228
+[beat] s32_day1_stale_9230 7.922/10 (79%, 4.1 min, eta 1.1 min) seed=9237
+[beat] s32_day1_stale_9220 9/10 (90%, 5.1 min, eta 0.6 min) seed=9228 survived=20.0
+[beat] s32_day1_recal_9200 0.0/10 (0%, 0.1 min, eta ?) seed=9200
+[beat] s32_day1_stale_9230 8/10 (80%, 4.1 min, eta 1.0 min) seed=9237 survived=20.0
+[beat] s32_day1_stale_9220 9.882/10 (99%, 5.6 min, eta 0.1 min) seed=9229
+[beat] s32_day1_recal_9200 0.891/10 (9%, 0.6 min, eta 5.8 min) seed=9200
+[beat] s32_day1_stale_9230 8.878/10 (89%, 4.6 min, eta 0.6 min) seed=9238
+[beat] s32_day1_stale_9220 10/10 (100%, 5.6 min, eta 0.0 min) seed=9229 survived=20.0
+[beat] s32_day1_recal_9200 1/10 (10%, 0.6 min, eta 5.6 min) seed=9200 survived=20.0
+[beat] s32_day1_stale_9230 9/10 (90%, 4.7 min, eta 0.5 min) seed=9238 survived=20.0
+[beat] s32_day1_recal_9210 0.0/10 (0%, 0.1 min, eta ?) seed=9210
+[beat] s32_day1_recal_9200 1.9300000000000002/10 (19%, 1.1 min, eta 4.7 min) seed=9201
+[beat] s32_day1_stale_9230 9.921/10 (99%, 5.2 min, eta 0.0 min) seed=9239
+[beat] s32_day1_recal_9200 2/10 (20%, 1.2 min, eta 4.7 min) seed=9201 survived=20.0
+[beat] s32_day1_stale_9230 10/10 (100%, 5.2 min, eta 0.0 min) seed=9239 survived=20.0
+[beat] s32_day1_recal_9210 0.923/10 (9%, 0.6 min, eta 5.5 min) seed=9210
+[beat] s32_day1_recal_9210 1/10 (10%, 0.6 min, eta 5.4 min) seed=9210 survived=20.0
+[beat] s32_day1_recal_9220 0.0/10 (0%, 0.1 min, eta ?) seed=9220
+[beat] s32_day1_recal_9200 2.9379999999999997/10 (29%, 1.7 min, eta 4.0 min) seed=9202
+[beat] s32_day1_recal_9200 3/10 (30%, 1.7 min, eta 4.0 min) seed=9202 survived=20.0
+[beat] s32_day1_recal_9210 1.893/10 (19%, 1.1 min, eta 4.7 min) seed=9211
+[beat] s32_day1_recal_9220 0.897/10 (9%, 0.6 min, eta 5.7 min) seed=9220
+[beat] s32_day1_recal_9210 2/10 (20%, 1.2 min, eta 4.6 min) seed=9211 survived=20.0
+[beat] s32_day1_recal_9220 1/10 (10%, 0.6 min, eta 5.6 min) seed=9220 survived=20.0
+[beat] s32_day1_recal_9200 3.884/10 (39%, 2.2 min, eta 3.5 min) seed=9203
+[beat] s32_day1_recal_9200 4/10 (40%, 2.3 min, eta 3.4 min) seed=9203 survived=20.0
+[beat] s32_day1_recal_9210 2.885/10 (29%, 1.7 min, eta 4.1 min) seed=9212
+[beat] s32_day1_recal_9220 1.8820000000000001/10 (19%, 1.1 min, eta 4.8 min) seed=9221
+[beat] s32_day1_recal_9210 3/10 (30%, 1.7 min, eta 4.0 min) seed=9212 survived=20.0
+[beat] s32_day1_recal_9220 2/10 (20%, 1.2 min, eta 4.7 min) seed=9221 survived=20.0
+[beat] s32_day1_recal_9210 4/10 (40%, 2.1 min, eta 3.1 min) seed=9213 survived=13.14
+[beat] s32_day1_recal_9200 4.8870000000000005/10 (49%, 2.8 min, eta 2.9 min) seed=9204
+[beat] s32_day1_recal_9200 5/10 (50%, 2.8 min, eta 2.8 min) seed=9204 survived=20.0
+[beat] s32_day1_recal_9220 2.882/10 (29%, 1.7 min, eta 4.2 min) seed=9222
+[beat] s32_day1_recal_9220 3/10 (30%, 1.8 min, eta 4.1 min) seed=9222 survived=20.0
+[beat] s32_day1_recal_9210 4.885/10 (49%, 2.6 min, eta 2.7 min) seed=9214
+[beat] s32_day1_recal_9210 5/10 (50%, 2.7 min, eta 2.7 min) seed=9214 survived=20.0
+[beat] s32_day1_recal_9200 5.89/10 (59%, 3.3 min, eta 2.3 min) seed=9205
+[beat] s32_day1_recal_9200 6/10 (60%, 3.4 min, eta 2.3 min) seed=9205 survived=20.0
+[beat] s32_day1_recal_9220 3.892/10 (39%, 2.3 min, eta 3.5 min) seed=9223
+[beat] s32_day1_recal_9220 4/10 (40%, 2.3 min, eta 3.5 min) seed=9223 survived=20.0
+[beat] s32_day1_recal_9210 5.883/10 (59%, 3.2 min, eta 2.2 min) seed=9215
+[beat] s32_day1_recal_9210 6/10 (60%, 3.2 min, eta 2.2 min) seed=9215 survived=20.0
+[beat] s32_day1_recal_9200 6.8870000000000005/10 (69%, 3.9 min, eta 1.8 min) seed=9206
+[beat] s32_day1_recal_9200 7/10 (70%, 3.9 min, eta 1.7 min) seed=9206 survived=20.0
+[beat] s32_day1_recal_9220 5/10 (50%, 2.8 min, eta 2.8 min) seed=9224 survived=16.52
+[beat] s32_day1_recal_9210 6.881/10 (69%, 3.7 min, eta 1.7 min) seed=9216
+[beat] s32_day1_recal_9210 7/10 (70%, 3.8 min, eta 1.6 min) seed=9216 survived=20.0
+[beat] s32_day1_recal_9200 7.882/10 (79%, 4.4 min, eta 1.2 min) seed=9207
+[beat] s32_day1_recal_9220 5.88/10 (59%, 3.3 min, eta 2.3 min) seed=9225
+[beat] s32_day1_recal_9200 8/10 (80%, 4.5 min, eta 1.1 min) seed=9207 survived=20.0
+[beat] s32_day1_recal_9220 6/10 (60%, 3.3 min, eta 2.2 min) seed=9225 survived=20.0
+[beat] s32_day1_recal_9210 7.885/10 (79%, 4.3 min, eta 1.2 min) seed=9217
+[beat] s32_day1_recal_9210 8/10 (80%, 4.4 min, eta 1.1 min) seed=9217 survived=20.0
+[beat] s32_day1_recal_9200 8.888/10 (89%, 5.0 min, eta 0.6 min) seed=9208
+[beat] s32_day1_recal_9220 6.885/10 (69%, 3.8 min, eta 1.7 min) seed=9226
+[beat] s32_day1_recal_9200 9/10 (90%, 5.1 min, eta 0.6 min) seed=9208 survived=20.0
+[beat] s32_day1_recal_9220 7/10 (70%, 3.9 min, eta 1.7 min) seed=9226 survived=20.0
+[beat] s32_day1_recal_9210 8.89/10 (89%, 4.9 min, eta 0.6 min) seed=9218
+[beat] s32_day1_recal_9210 9/10 (90%, 4.9 min, eta 0.5 min) seed=9218 survived=20.0
+[beat] s32_day1_recal_9200 9.888/10 (99%, 5.6 min, eta 0.1 min) seed=9209
+[beat] s32_day1_recal_9220 7.883/10 (79%, 4.4 min, eta 1.2 min) seed=9227
+[beat] s32_day1_recal_9200 10/10 (100%, 5.6 min, eta 0.0 min) seed=9209 survived=20.0
+[beat] s32_day1_recal_9220 8/10 (80%, 4.5 min, eta 1.1 min) seed=9227 survived=20.0
+[beat] s32_day1_recal_9230 0.0/10 (0%, 0.1 min, eta ?) seed=9230
+[beat] s32_day1_recal_9220 9/10 (90%, 4.6 min, eta 0.5 min) seed=9228 survived=3.76
+[beat] s32_day1_recal_9210 9.935/10 (99%, 5.4 min, eta 0.0 min) seed=9219
+[beat] s32_day1_recal_9210 10/10 (100%, 5.5 min, eta 0.0 min) seed=9219 survived=20.0
+[beat] s32_day3_stale_9200 0.0/10 (0%, 0.1 min, eta ?) seed=9200
+[beat] s32_day1_recal_9230 0.947/10 (9%, 0.6 min, eta 5.4 min) seed=9230
+[beat] s32_day1_recal_9230 1/10 (10%, 0.6 min, eta 5.3 min) seed=9230 survived=20.0
+[beat] s32_day1_recal_9220 9.936/10 (99%, 5.1 min, eta 0.0 min) seed=9229
+[beat] s32_day1_recal_9220 10/10 (100%, 5.1 min, eta 0.0 min) seed=9229 survived=20.0
+[beat] s32_day3_stale_9210 0.0/10 (0%, 0.1 min, eta ?) seed=9210
+[beat] s32_day3_stale_9200 0.949/10 (9%, 0.6 min, eta 5.4 min) seed=9200
+[beat] s32_day3_stale_9200 1/10 (10%, 0.6 min, eta 5.3 min) seed=9200 survived=20.0
+[beat] s32_day3_stale_9210 1/10 (10%, 0.4 min, eta 3.9 min) seed=9210 survived=13.0
+[beat] s32_day1_recal_9230 1.94/10 (19%, 1.1 min, eta 4.5 min) seed=9231
+[beat] s32_day1_recal_9230 2/10 (20%, 1.1 min, eta 4.5 min) seed=9231 survived=20.0
+[beat] s32_day3_stale_9200 1.884/10 (19%, 1.1 min, eta 4.7 min) seed=9201
+[beat] s32_day3_stale_9210 1.881/10 (19%, 0.9 min, eta 4.0 min) seed=9211
+[beat] s32_day3_stale_9200 2/10 (20%, 1.2 min, eta 4.6 min) seed=9201 survived=20.0
+[beat] s32_day1_recal_9230 2.882/10 (29%, 1.6 min, eta 4.0 min) seed=9232
+[beat] s32_day3_stale_9210 2/10 (20%, 1.0 min, eta 4.0 min) seed=9211 survived=20.0
+[beat] s32_day1_recal_9230 3/10 (30%, 1.7 min, eta 3.9 min) seed=9232 survived=20.0
+[beat] s32_day3_stale_9200 2.8810000000000002/10 (29%, 1.7 min, eta 4.1 min) seed=9202
+[beat] s32_day3_stale_9210 2.8810000000000002/10 (29%, 1.5 min, eta 3.7 min) seed=9212
+[beat] s32_day3_stale_9200 3/10 (30%, 1.7 min, eta 4.0 min) seed=9202 survived=20.0
+[beat] s32_day1_recal_9230 3.8810000000000002/10 (39%, 2.2 min, eta 3.5 min) seed=9233
+[beat] s32_day3_stale_9210 3/10 (30%, 1.6 min, eta 3.6 min) seed=9212 survived=20.0
+[beat] s32_day1_recal_9230 4/10 (40%, 2.3 min, eta 3.4 min) seed=9233 survived=20.0
+[beat] s32_day3_stale_9200 3.89/10 (39%, 2.2 min, eta 3.5 min) seed=9203
+[beat] s32_day3_stale_9210 3.888/10 (39%, 2.1 min, eta 3.2 min) seed=9213
+[beat] s32_day3_stale_9200 4/10 (40%, 2.3 min, eta 3.4 min) seed=9203 survived=20.0
+[beat] s32_day1_recal_9230 4.8870000000000005/10 (49%, 2.8 min, eta 2.9 min) seed=9234
+[beat] s32_day3_stale_9210 4/10 (40%, 2.1 min, eta 3.2 min) seed=9213 survived=20.0
+[beat] s32_day1_recal_9230 5/10 (50%, 2.8 min, eta 2.8 min) seed=9234 survived=20.0
+[beat] s32_day3_stale_9200 4.881/10 (49%, 2.8 min, eta 2.9 min) seed=9204
+[beat] s32_day3_stale_9210 4.881/10 (49%, 2.6 min, eta 2.7 min) seed=9214
+[beat] s32_day3_stale_9200 5/10 (50%, 2.8 min, eta 2.8 min) seed=9204 survived=20.0
+[beat] s32_day1_recal_9230 5.879/10 (59%, 3.3 min, eta 2.3 min) seed=9235
+[beat] s32_day3_stale_9210 5/10 (50%, 2.7 min, eta 2.7 min) seed=9214 survived=20.0
+[beat] s32_day1_recal_9230 6/10 (60%, 3.4 min, eta 2.3 min) seed=9235 survived=20.0
+[beat] s32_day1_recal_9230 7/10 (70%, 3.7 min, eta 1.6 min) seed=9236 survived=10.66
+[beat] s32_day3_stale_9200 5.883/10 (59%, 3.4 min, eta 2.3 min) seed=9205
+[beat] s32_day3_stale_9210 5.881/10 (59%, 3.2 min, eta 2.2 min) seed=9215
+[beat] s32_day3_stale_9200 6/10 (60%, 3.4 min, eta 2.3 min) seed=9205 survived=20.0
+[beat] s32_day3_stale_9210 6/10 (60%, 3.2 min, eta 2.2 min) seed=9215 survived=20.0
+[beat] s32_day1_recal_9230 7.889/10 (79%, 4.2 min, eta 1.1 min) seed=9237
+[beat] s32_day1_recal_9230 8/10 (80%, 4.3 min, eta 1.1 min) seed=9237 survived=20.0
+[beat] s32_day3_stale_9200 6.892/10 (69%, 3.9 min, eta 1.8 min) seed=9206
+[beat] s32_day3_stale_9210 6.89/10 (69%, 3.8 min, eta 1.7 min) seed=9216
+[beat] s32_day3_stale_9200 7/10 (70%, 4.0 min, eta 1.7 min) seed=9206 survived=20.0
+[beat] s32_day3_stale_9210 7/10 (70%, 3.8 min, eta 1.6 min) seed=9216 survived=20.0
+[beat] s32_day1_recal_9230 8.883/10 (89%, 4.8 min, eta 0.6 min) seed=9238
+[beat] s32_day1_recal_9230 9/10 (90%, 4.8 min, eta 0.5 min) seed=9238 survived=20.0
+[beat] s32_day3_stale_9200 7.888/10 (79%, 4.5 min, eta 1.2 min) seed=9207
+[beat] s32_day3_stale_9210 7.8870000000000005/10 (79%, 4.3 min, eta 1.2 min) seed=9217
+[beat] s32_day3_stale_9200 8/10 (80%, 4.5 min, eta 1.1 min) seed=9207 survived=20.0
+[beat] s32_day3_stale_9210 8/10 (80%, 4.4 min, eta 1.1 min) seed=9217 survived=20.0
+[beat] s32_day1_recal_9230 9.887/10 (99%, 5.3 min, eta 0.1 min) seed=9239
+[beat] s32_day1_recal_9230 10/10 (100%, 5.4 min, eta 0.0 min) seed=9239 survived=20.0
+[beat] s32_day3_stale_9220 0.0/10 (0%, 0.1 min, eta ?) seed=9220
+[beat] s32_day3_stale_9200 8.935/10 (89%, 5.0 min, eta 0.6 min) seed=9208
+[beat] s32_day3_stale_9210 8.933/10 (89%, 4.9 min, eta 0.6 min) seed=9218
+[beat] s32_day3_stale_9200 9/10 (90%, 5.1 min, eta 0.6 min) seed=9208 survived=20.0
+[beat] s32_day3_stale_9210 9/10 (90%, 4.9 min, eta 0.5 min) seed=9218 survived=20.0
+[beat] s32_day3_stale_9220 0.889/10 (9%, 0.6 min, eta 5.8 min) seed=9220
+[beat] s32_day3_stale_9220 1/10 (10%, 0.6 min, eta 5.7 min) seed=9220 survived=20.0
+[beat] s32_day3_stale_9200 9.874/10 (99%, 5.6 min, eta 0.1 min) seed=9209
+[beat] s32_day3_stale_9210 9.872/10 (99%, 5.4 min, eta 0.1 min) seed=9219
+[beat] s32_day3_stale_9200 10/10 (100%, 5.6 min, eta 0.0 min) seed=9209 survived=20.0
+[beat] s32_day3_stale_9210 10/10 (100%, 5.5 min, eta 0.0 min) seed=9219 survived=20.0
+[beat] s32_day3_stale_9230 0.0/10 (0%, 0.1 min, eta ?) seed=9230
+[beat] s32_day3_recal_9200 0.0/10 (0%, 0.1 min, eta ?) seed=9200
+[beat] s32_day3_stale_9220 1.986/10 (20%, 1.1 min, eta 4.6 min) seed=9221
+[beat] s32_day3_stale_9220 2/10 (20%, 1.1 min, eta 4.5 min) seed=9221 survived=20.0
+[beat] s32_day3_stale_9230 0.887/10 (9%, 0.6 min, eta 5.9 min) seed=9230
+[beat] s32_day3_recal_9200 0.876/10 (9%, 0.6 min, eta 6.0 min) seed=9200
+[beat] s32_day3_stale_9230 1/10 (10%, 0.6 min, eta 5.8 min) seed=9230 survived=20.0
+[beat] s32_day3_recal_9200 1/10 (10%, 0.6 min, eta 5.8 min) seed=9200 survived=20.0
+[beat] s32_day3_stale_9220 2.874/10 (29%, 1.6 min, eta 4.1 min) seed=9222
+[beat] s32_day3_stale_9220 3/10 (30%, 1.7 min, eta 4.0 min) seed=9222 survived=20.0
+[beat] s32_day3_stale_9230 1.879/10 (19%, 1.1 min, eta 4.9 min) seed=9231
+[beat] s32_day3_recal_9200 1.877/10 (19%, 1.1 min, eta 5.0 min) seed=9201
+[beat] s32_day3_stale_9230 2/10 (20%, 1.2 min, eta 4.8 min) seed=9231 survived=20.0
+[beat] s32_day3_recal_9200 2/10 (20%, 1.2 min, eta 4.9 min) seed=9201 survived=20.0
+[beat] s32_day3_stale_9220 3.8810000000000002/10 (39%, 2.2 min, eta 3.5 min) seed=9223
+[beat] s32_day3_stale_9220 4/10 (40%, 2.3 min, eta 3.4 min) seed=9223 survived=20.0
+[beat] s32_day3_stale_9230 2.882/10 (29%, 1.7 min, eta 4.2 min) seed=9232
+[beat] s32_day3_recal_9200 2.88/10 (29%, 1.7 min, eta 4.2 min) seed=9202
+[beat] s32_day3_stale_9230 3/10 (30%, 1.8 min, eta 4.1 min) seed=9232 survived=20.0
+[beat] s32_day3_recal_9200 3/10 (30%, 1.8 min, eta 4.2 min) seed=9202 survived=20.0
+[beat] s32_day3_stale_9220 4.884/10 (49%, 2.8 min, eta 2.9 min) seed=9224
+[beat] s32_day3_stale_9220 5/10 (50%, 2.8 min, eta 2.8 min) seed=9224 survived=20.0
+[beat] s32_day3_stale_9230 3.888/10 (39%, 2.3 min, eta 3.6 min) seed=9233
+[beat] s32_day3_recal_9200 3.886/10 (39%, 2.3 min, eta 3.6 min) seed=9203
+[beat] s32_day3_stale_9230 4/10 (40%, 2.3 min, eta 3.5 min) seed=9233 survived=20.0
+[beat] s32_day3_recal_9200 4/10 (40%, 2.3 min, eta 3.5 min) seed=9203 survived=20.0
+[beat] s32_day3_stale_9220 5.888/10 (59%, 3.3 min, eta 2.3 min) seed=9225
+[beat] s32_day3_stale_9220 6/10 (60%, 3.4 min, eta 2.3 min) seed=9225 survived=20.0
+[beat] s32_day3_recal_9200 5/10 (50%, 2.7 min, eta 2.7 min) seed=9204 survived=13.02
+[beat] s32_day3_stale_9230 4.888/10 (49%, 2.8 min, eta 3.0 min) seed=9234
+[beat] s32_day3_stale_9230 5/10 (50%, 2.9 min, eta 2.9 min) seed=9234 survived=20.0
+[beat] s32_day3_stale_9220 6.873/10 (69%, 3.9 min, eta 1.8 min) seed=9226
+[beat] s32_day3_recal_9200 5.87/10 (59%, 3.2 min, eta 2.3 min) seed=9205
+[beat] s32_day3_stale_9220 7/10 (70%, 4.0 min, eta 1.7 min) seed=9226 survived=20.0
+[beat] s32_day3_recal_9200 6/10 (60%, 3.2 min, eta 2.1 min) seed=9205 survived=17.66
+[beat] s32_day3_stale_9230 5.874/10 (59%, 3.4 min, eta 2.4 min) seed=9235
+[beat] s32_day3_stale_9230 6/10 (60%, 3.5 min, eta 2.3 min) seed=9235 survived=20.0
+[beat] s32_day3_stale_9220 7.879/10 (79%, 4.5 min, eta 1.2 min) seed=9227
+[beat] s32_day3_recal_9200 6.878/10 (69%, 3.7 min, eta 1.7 min) seed=9206
+[beat] s32_day3_stale_9220 8/10 (80%, 4.5 min, eta 1.1 min) seed=9227 survived=20.0
+[beat] s32_day3_recal_9200 7/10 (70%, 3.8 min, eta 1.6 min) seed=9206 survived=20.0
+[beat] s32_day3_stale_9230 6.881/10 (69%, 4.0 min, eta 1.8 min) seed=9236
+[beat] s32_day3_stale_9230 7/10 (70%, 4.0 min, eta 1.7 min) seed=9236 survived=20.0
+[beat] s32_day3_stale_9220 8.886/10 (89%, 5.0 min, eta 0.6 min) seed=9228
+[beat] s32_day3_recal_9200 7.882/10 (79%, 4.3 min, eta 1.2 min) seed=9207
+[beat] s32_day3_stale_9220 9/10 (90%, 5.1 min, eta 0.6 min) seed=9228 survived=20.0
+[beat] s32_day3_recal_9200 8/10 (80%, 4.4 min, eta 1.1 min) seed=9207 survived=20.0
+[beat] s32_day3_stale_9230 7.892/10 (79%, 4.5 min, eta 1.2 min) seed=9237
+[beat] s32_day3_stale_9230 8/10 (80%, 4.6 min, eta 1.1 min) seed=9237 survived=20.0
+[beat] s32_day3_stale_9220 9.897/10 (99%, 5.6 min, eta 0.1 min) seed=9229
+[beat] s32_day3_recal_9200 8.892/10 (89%, 4.9 min, eta 0.6 min) seed=9208
+[beat] s32_day3_stale_9220 10/10 (100%, 5.7 min, eta 0.0 min) seed=9229 survived=20.0
+[beat] s32_day3_recal_9200 9/10 (90%, 4.9 min, eta 0.5 min) seed=9208 survived=20.0
+[beat] s32_day3_recal_9210 0.0/10 (0%, 0.1 min, eta ?) seed=9210
+[beat] s32_day3_stale_9230 8.948/10 (89%, 5.1 min, eta 0.6 min) seed=9238
+[beat] s32_day3_stale_9230 9/10 (90%, 5.1 min, eta 0.6 min) seed=9238 survived=20.0
+[beat] s32_day3_recal_9200 10/10 (100%, 5.2 min, eta 0.0 min) seed=9209 survived=10.76
+[beat] s32_day3_recal_9220 0.0/10 (0%, 0.1 min, eta ?) seed=9220
+[beat] s32_day3_recal_9210 0.949/10 (9%, 0.6 min, eta 5.4 min) seed=9210
+[beat] s32_day3_recal_9210 1/10 (10%, 0.6 min, eta 5.3 min) seed=9210 survived=20.0
+[beat] s32_day3_stale_9230 9.937/10 (99%, 5.6 min, eta 0.0 min) seed=9239
+[beat] s32_day3_stale_9230 10/10 (100%, 5.7 min, eta 0.0 min) seed=9239 survived=20.0
+[beat] s32_day3_recal_9230 0.0/10 (0%, 0.1 min, eta ?) seed=9230
+[beat] s32_day3_recal_9220 0.953/10 (10%, 0.6 min, eta 5.4 min) seed=9220
+[beat] s32_day3_recal_9220 1/10 (10%, 0.6 min, eta 5.3 min) seed=9220 survived=20.0
+[beat] s32_day3_recal_9210 1.935/10 (19%, 1.1 min, eta 4.6 min) seed=9211
+[beat] s32_day3_recal_9210 2/10 (20%, 1.1 min, eta 4.5 min) seed=9211 survived=20.0
+[beat] s32_day3_recal_9230 0.898/10 (9%, 0.6 min, eta 5.7 min) seed=9230
+[beat] s32_day3_recal_9230 1/10 (10%, 0.6 min, eta 5.3 min) seed=9230 survived=19.0
+[beat] s32_day3_recal_9220 1.884/10 (19%, 1.1 min, eta 4.7 min) seed=9221
+[beat] s32_day3_recal_9220 2/10 (20%, 1.2 min, eta 4.6 min) seed=9221 survived=19.9
+[beat] s32_day3_recal_9210 2.888/10 (29%, 1.6 min, eta 4.0 min) seed=9212
+[beat] s32_day3_recal_9210 3/10 (30%, 1.7 min, eta 3.9 min) seed=9212 survived=20.0
+[beat] s32_day3_recal_9230 1.8900000000000001/10 (19%, 1.1 min, eta 4.7 min) seed=9231
+[beat] s32_day3_recal_9230 2/10 (20%, 1.2 min, eta 4.6 min) seed=9231 survived=20.0
+[beat] s32_day3_recal_9220 2.887/10 (29%, 1.7 min, eta 4.1 min) seed=9222
+[beat] s32_day3_recal_9220 3/10 (30%, 1.7 min, eta 4.0 min) seed=9222 survived=20.0
+[beat] s32_day3_recal_9210 3.88/10 (39%, 2.2 min, eta 3.5 min) seed=9213
+[beat] s32_day3_recal_9210 4/10 (40%, 2.3 min, eta 3.4 min) seed=9213 survived=20.0
+[beat] s32_day3_recal_9230 2.8890000000000002/10 (29%, 1.7 min, eta 4.1 min) seed=9232
+[beat] s32_day3_recal_9230 3/10 (30%, 1.7 min, eta 4.0 min) seed=9232 survived=20.0
+[beat] s32_day3_recal_9220 3.888/10 (39%, 2.2 min, eta 3.5 min) seed=9223
+[beat] s32_day3_recal_9220 4/10 (40%, 2.3 min, eta 3.4 min) seed=9223 survived=20.0
+[beat] s32_day3_recal_9210 4.89/10 (49%, 2.8 min, eta 2.9 min) seed=9214
+[beat] s32_day3_recal_9210 5/10 (50%, 2.8 min, eta 2.8 min) seed=9214 survived=20.0
+[beat] s32_day3_recal_9230 3.884/10 (39%, 2.2 min, eta 3.5 min) seed=9233
+[beat] s32_day3_recal_9230 4/10 (40%, 2.3 min, eta 3.4 min) seed=9233 survived=20.0
+[beat] s32_day3_recal_9220 4.882/10 (49%, 2.8 min, eta 2.9 min) seed=9224
+[beat] s32_day3_recal_9220 5/10 (50%, 2.8 min, eta 2.8 min) seed=9224 survived=20.0
+[beat] s32_day3_recal_9210 5.891/10 (59%, 3.3 min, eta 2.3 min) seed=9215
+[beat] s32_day3_recal_9210 6/10 (60%, 3.4 min, eta 2.3 min) seed=9215 survived=20.0
+[beat] s32_day3_recal_9230 4.895/10 (49%, 2.8 min, eta 2.9 min) seed=9234
+[beat] s32_day3_recal_9230 5/10 (50%, 2.8 min, eta 2.8 min) seed=9234 survived=20.0
+[beat] s32_day3_recal_9210 7/10 (70%, 3.6 min, eta 1.5 min) seed=9216 survived=7.66
+[beat] s32_day3_recal_9220 5.899/10 (59%, 3.3 min, eta 2.3 min) seed=9225
+[beat] s32_day3_recal_9220 6/10 (60%, 3.4 min, eta 2.3 min) seed=9225 survived=20.0
+[beat] s32_day3_recal_9230 5.888/10 (59%, 3.3 min, eta 2.3 min) seed=9235
+[beat] s32_day3_recal_9210 7.881/10 (79%, 4.1 min, eta 1.1 min) seed=9217
+[beat] s32_day3_recal_9230 6/10 (60%, 3.4 min, eta 2.3 min) seed=9235 survived=20.0
+[beat] s32_day3_recal_9210 8/10 (80%, 4.2 min, eta 1.0 min) seed=9217 survived=20.0
+[beat] s32_day3_recal_9220 6.8870000000000005/10 (69%, 3.9 min, eta 1.8 min) seed=9226
+[beat] s32_day3_recal_9220 7/10 (70%, 4.0 min, eta 1.7 min) seed=9226 survived=20.0
+[beat] s32_day3_recal_9230 6.897/10 (69%, 3.9 min, eta 1.8 min) seed=9236
+[beat] s32_day3_recal_9210 8.893/10 (89%, 4.7 min, eta 0.6 min) seed=9218
+[beat] s32_day3_recal_9230 7/10 (70%, 4.0 min, eta 1.7 min) seed=9236 survived=20.0
+[beat] s32_day3_recal_9210 9/10 (90%, 4.7 min, eta 0.5 min) seed=9218 survived=20.0
+[beat] s32_day3_recal_9220 7.89/10 (79%, 4.5 min, eta 1.2 min) seed=9227
+[beat] s32_day3_recal_9220 8/10 (80%, 4.5 min, eta 1.1 min) seed=9227 survived=20.0
+[beat] s32_day3_recal_9230 7.885/10 (79%, 4.5 min, eta 1.2 min) seed=9237
+[beat] s32_day3_recal_9210 9.882/10 (99%, 5.2 min, eta 0.1 min) seed=9219
+[beat] s32_day3_recal_9230 8/10 (80%, 4.5 min, eta 1.1 min) seed=9237 survived=19.48
+[beat] s32_day3_recal_9210 10/10 (100%, 5.3 min, eta 0.0 min) seed=9219 survived=20.0
+[beat] s32_day3_recal_9220 8.892/10 (89%, 5.0 min, eta 0.6 min) seed=9228
+[beat] s32_day3_recal_9220 9/10 (90%, 5.1 min, eta 0.6 min) seed=9228 survived=20.0
+[beat] s32_day7_stale_9200 0.0/10 (0%, 0.1 min, eta ?) seed=9200
+[beat] s32_day3_recal_9230 8.929/10 (89%, 5.0 min, eta 0.6 min) seed=9238
+[beat] s32_day3_recal_9230 9/10 (90%, 5.0 min, eta 0.6 min) seed=9238 survived=20.0
+[beat] s32_day3_recal_9220 9.885/10 (99%, 5.6 min, eta 0.1 min) seed=9229
+[beat] s32_day7_stale_9200 0.893/10 (9%, 0.6 min, eta 5.8 min) seed=9200
+[beat] s32_day3_recal_9220 10/10 (100%, 5.6 min, eta 0.0 min) seed=9229 survived=20.0
+[beat] s32_day7_stale_9200 1/10 (10%, 0.6 min, eta 5.6 min) seed=9200 survived=20.0
+[beat] s32_day7_stale_9210 0.0/10 (0%, 0.1 min, eta ?) seed=9210
+[beat] s32_day3_recal_9230 9.943/10 (99%, 5.5 min, eta 0.0 min) seed=9239
+[beat] s32_day3_recal_9230 10/10 (100%, 5.6 min, eta 0.0 min) seed=9239 survived=20.0
+[beat] s32_day7_stale_9220 0.0/10 (0%, 0.1 min, eta ?) seed=9220
+[beat] s32_day7_stale_9200 1.966/10 (20%, 1.1 min, eta 4.6 min) seed=9201
+[beat] s32_day7_stale_9200 2/10 (20%, 1.1 min, eta 4.6 min) seed=9201 survived=20.0
+[beat] s32_day7_stale_9210 0.948/10 (9%, 0.6 min, eta 5.4 min) seed=9210
+[beat] s32_day7_stale_9210 1/10 (10%, 0.6 min, eta 5.3 min) seed=9210 survived=20.0
+[beat] s32_day7_stale_9220 0.894/10 (9%, 0.6 min, eta 5.8 min) seed=9220
+[beat] s32_day7_stale_9200 2.8810000000000002/10 (29%, 1.6 min, eta 4.1 min) seed=9202
+[beat] s32_day7_stale_9220 1/10 (10%, 0.6 min, eta 5.6 min) seed=9220 survived=20.0
+[beat] s32_day7_stale_9200 3/10 (30%, 1.7 min, eta 4.0 min) seed=9202 survived=20.0
+[beat] s32_day7_stale_9210 1.884/10 (19%, 1.1 min, eta 4.7 min) seed=9211
+[beat] s32_day7_stale_9210 2/10 (20%, 1.2 min, eta 4.6 min) seed=9211 survived=20.0
+[beat] s32_day7_stale_9220 1.88/10 (19%, 1.1 min, eta 4.9 min) seed=9221
+[beat] s32_day7_stale_9200 3.878/10 (39%, 2.2 min, eta 3.5 min) seed=9203
+[beat] s32_day7_stale_9220 2/10 (20%, 1.2 min, eta 4.8 min) seed=9221 survived=20.0
+[beat] s32_day7_stale_9200 4/10 (40%, 2.3 min, eta 3.4 min) seed=9203 survived=20.0
+[beat] s32_day7_stale_9210 2.884/10 (29%, 1.7 min, eta 4.1 min) seed=9212
+[beat] s32_day7_stale_9210 3/10 (30%, 1.7 min, eta 4.0 min) seed=9212 survived=20.0
+[beat] s32_day7_stale_9220 2.884/10 (29%, 1.7 min, eta 4.2 min) seed=9222
+[beat] s32_day7_stale_9200 5/10 (50%, 2.8 min, eta 2.8 min) seed=9204 survived=16.96
+[beat] s32_day7_stale_9220 3/10 (30%, 1.8 min, eta 4.1 min) seed=9222 survived=20.0
+[beat] s32_day7_stale_9210 3.883/10 (39%, 2.2 min, eta 3.5 min) seed=9213
+[beat] s32_day7_stale_9210 4/10 (40%, 2.3 min, eta 3.4 min) seed=9213 survived=20.0
+[beat] s32_day7_stale_9200 5.886/10 (59%, 3.3 min, eta 2.3 min) seed=9205
+[beat] s32_day7_stale_9220 3.882/10 (39%, 2.3 min, eta 3.6 min) seed=9223
+[beat] s32_day7_stale_9200 6/10 (60%, 3.3 min, eta 2.2 min) seed=9205 survived=20.0
+[beat] s32_day7_stale_9220 4/10 (40%, 2.3 min, eta 3.5 min) seed=9223 survived=20.0
+[beat] s32_day7_stale_9210 4.882/10 (49%, 2.8 min, eta 2.9 min) seed=9214
+[beat] s32_day7_stale_9210 5/10 (50%, 2.9 min, eta 2.9 min) seed=9214 survived=20.0
+[beat] s32_day7_stale_9200 6.883/10 (69%, 3.8 min, eta 1.7 min) seed=9206
+[beat] s32_day7_stale_9220 4.883/10 (49%, 2.8 min, eta 3.0 min) seed=9224
+[beat] s32_day7_stale_9200 7/10 (70%, 3.9 min, eta 1.7 min) seed=9206 survived=20.0
+[beat] s32_day7_stale_9220 5/10 (50%, 2.9 min, eta 2.9 min) seed=9224 survived=20.0
+[beat] s32_day7_stale_9210 5.883/10 (59%, 3.4 min, eta 2.3 min) seed=9215
+[beat] s32_day7_stale_9210 6/10 (60%, 3.4 min, eta 2.3 min) seed=9215 survived=20.0
+[beat] s32_day7_stale_9200 7.889/10 (79%, 4.4 min, eta 1.2 min) seed=9207
+[beat] s32_day7_stale_9220 5.885/10 (59%, 3.4 min, eta 2.4 min) seed=9225
+[beat] s32_day7_stale_9200 8/10 (80%, 4.4 min, eta 1.1 min) seed=9207 survived=20.0
+[beat] s32_day7_stale_9220 6/10 (60%, 3.4 min, eta 2.3 min) seed=9225 survived=20.0
+[beat] s32_day7_stale_9210 6.888/10 (69%, 3.9 min, eta 1.8 min) seed=9216
+[beat] s32_day7_stale_9210 7/10 (70%, 4.0 min, eta 1.7 min) seed=9216 survived=20.0
+[beat] s32_day7_stale_9200 8.894/10 (89%, 4.9 min, eta 0.6 min) seed=9208
+[beat] s32_day7_stale_9220 6.888/10 (69%, 3.9 min, eta 1.8 min) seed=9226
+[beat] s32_day7_stale_9200 9/10 (90%, 5.0 min, eta 0.6 min) seed=9208 survived=20.0
+[beat] s32_day7_stale_9220 7/10 (70%, 4.0 min, eta 1.7 min) seed=9226 survived=20.0
+[beat] s32_day7_stale_9210 7.893/10 (79%, 4.5 min, eta 1.2 min) seed=9217
+[beat] s32_day7_stale_9210 8/10 (80%, 4.5 min, eta 1.1 min) seed=9217 survived=20.0
+[beat] s32_day7_stale_9200 9.885/10 (99%, 5.5 min, eta 0.1 min) seed=9209
+[beat] s32_day7_stale_9220 7.881/10 (79%, 4.5 min, eta 1.2 min) seed=9227
+[beat] s32_day7_stale_9200 10/10 (100%, 5.6 min, eta 0.0 min) seed=9209 survived=20.0
+[beat] s32_day7_stale_9220 8/10 (80%, 4.6 min, eta 1.1 min) seed=9227 survived=20.0
+[beat] s32_day7_stale_9230 0.0/10 (0%, 0.1 min, eta ?) seed=9230
+[beat] s32_day7_stale_9210 8.934/10 (89%, 5.0 min, eta 0.6 min) seed=9218
+[beat] s32_day7_stale_9210 9/10 (90%, 5.1 min, eta 0.6 min) seed=9218 survived=20.0
+[beat] s32_day7_stale_9220 8.911/10 (89%, 5.1 min, eta 0.6 min) seed=9228
+[beat] s32_day7_stale_9220 9/10 (90%, 5.1 min, eta 0.6 min) seed=9228 survived=20.0
+[beat] s32_day7_stale_9230 0.892/10 (9%, 0.6 min, eta 5.8 min) seed=9230
+[beat] s32_day7_stale_9210 9.879/10 (99%, 5.6 min, eta 0.1 min) seed=9219
+[beat] s32_day7_stale_9230 1/10 (10%, 0.6 min, eta 5.6 min) seed=9230 survived=20.0
+[beat] s32_day7_stale_9210 10/10 (100%, 5.6 min, eta 0.0 min) seed=9219 survived=20.0
+[beat] s32_day7_recal_9200 0.0/10 (0%, 0.1 min, eta ?) seed=9200
+[beat] s32_day7_stale_9220 9.938/10 (99%, 5.6 min, eta 0.0 min) seed=9229
+[beat] s32_day7_stale_9220 10/10 (100%, 5.7 min, eta 0.0 min) seed=9229 survived=20.0
+[beat] s32_day7_stale_9230 1.963/10 (20%, 1.1 min, eta 4.6 min) seed=9231
+[beat] s32_day7_stale_9230 2/10 (20%, 1.1 min, eta 4.6 min) seed=9231 survived=20.0
+[beat] s32_day7_recal_9210 0.0/10 (0%, 0.1 min, eta ?) seed=9210
+[beat] s32_day7_recal_9200 0.944/10 (9%, 0.6 min, eta 5.4 min) seed=9200
+[beat] s32_day7_recal_9200 1/10 (10%, 0.6 min, eta 5.4 min) seed=9200 survived=20.0
+[beat] s32_day7_stale_9230 2.894/10 (29%, 1.6 min, eta 4.0 min) seed=9232
+[beat] s32_day7_recal_9210 0.894/10 (9%, 0.6 min, eta 5.8 min) seed=9210
+[beat] s32_day7_stale_9230 3/10 (30%, 1.7 min, eta 4.0 min) seed=9232 survived=20.0
+[beat] s32_day7_recal_9210 1/10 (10%, 0.6 min, eta 5.6 min) seed=9210 survived=20.0
+[beat] s32_day7_recal_9200 1.885/10 (19%, 1.1 min, eta 4.7 min) seed=9201
+[beat] s32_day7_recal_9210 2/10 (20%, 0.7 min, eta 3.0 min) seed=9211 survived=4.18
+[beat] s32_day7_recal_9200 2/10 (20%, 1.2 min, eta 4.6 min) seed=9201 survived=20.0
+[beat] s32_day7_stale_9230 3.89/10 (39%, 2.2 min, eta 3.5 min) seed=9233
+[beat] s32_day7_stale_9230 4/10 (40%, 2.3 min, eta 3.4 min) seed=9233 survived=20.0
+[beat] s32_day7_recal_9210 2.886/10 (29%, 1.2 min, eta 3.1 min) seed=9212
+[beat] s32_day7_recal_9200 2.884/10 (29%, 1.7 min, eta 4.1 min) seed=9202
+[beat] s32_day7_recal_9210 3/10 (30%, 1.3 min, eta 3.1 min) seed=9212 survived=20.0
+[beat] s32_day7_recal_9200 3/10 (30%, 1.7 min, eta 4.0 min) seed=9202 survived=20.0
+[beat] s32_day7_stale_9230 4.886/10 (49%, 2.8 min, eta 2.9 min) seed=9234
+[beat] s32_day7_stale_9230 5/10 (50%, 2.8 min, eta 2.8 min) seed=9234 survived=20.0
+[beat] s32_day7_recal_9210 3.888/10 (39%, 1.8 min, eta 2.8 min) seed=9213
+[beat] s32_day7_recal_9200 3.885/10 (39%, 2.2 min, eta 3.5 min) seed=9203
+[beat] s32_day7_recal_9210 4/10 (40%, 1.9 min, eta 2.8 min) seed=9213 survived=20.0
+[beat] s32_day7_recal_9200 4/10 (40%, 2.3 min, eta 3.4 min) seed=9203 survived=20.0
+[beat] s32_day7_stale_9230 5.897/10 (59%, 3.3 min, eta 2.3 min) seed=9235
+[beat] s32_day7_stale_9230 6/10 (60%, 3.4 min, eta 2.3 min) seed=9235 survived=20.0
+[beat] s32_day7_recal_9210 4.889/10 (49%, 2.4 min, eta 2.5 min) seed=9214
+[beat] s32_day7_recal_9200 4.89/10 (49%, 2.8 min, eta 2.9 min) seed=9204
+[beat] s32_day7_recal_9210 5/10 (50%, 2.4 min, eta 2.4 min) seed=9214 survived=20.0
+[beat] s32_day7_recal_9200 5/10 (50%, 2.8 min, eta 2.8 min) seed=9204 survived=20.0
+[beat] s32_day7_stale_9230 6.893/10 (69%, 3.9 min, eta 1.8 min) seed=9236
+[beat] s32_day7_stale_9230 7/10 (70%, 3.9 min, eta 1.7 min) seed=9236 survived=20.0
+[beat] s32_day7_recal_9210 5.892/10 (59%, 2.9 min, eta 2.0 min) seed=9215
+[beat] s32_day7_recal_9200 5.892/10 (59%, 3.3 min, eta 2.3 min) seed=9205
+[beat] s32_day7_recal_9210 6/10 (60%, 3.0 min, eta 2.0 min) seed=9215 survived=20.0
+[beat] s32_day7_recal_9200 6/10 (60%, 3.4 min, eta 2.3 min) seed=9205 survived=20.0
+[beat] s32_day7_stale_9230 7.894/10 (79%, 4.4 min, eta 1.2 min) seed=9237
+[beat] s32_day7_stale_9230 8/10 (80%, 4.5 min, eta 1.1 min) seed=9237 survived=20.0
+[beat] s32_day7_recal_9210 6.891/10 (69%, 3.5 min, eta 1.6 min) seed=9216
+[beat] s32_day7_recal_9200 6.892/10 (69%, 3.9 min, eta 1.8 min) seed=9206
+[beat] s32_day7_recal_9210 7/10 (70%, 3.6 min, eta 1.5 min) seed=9216 survived=20.0
+[beat] s32_day7_recal_9200 7/10 (70%, 4.0 min, eta 1.7 min) seed=9206 survived=20.0
+[beat] s32_day7_stale_9230 8.887/10 (89%, 5.0 min, eta 0.6 min) seed=9238
+[beat] s32_day7_stale_9230 9/10 (90%, 5.1 min, eta 0.6 min) seed=9238 survived=20.0
+[beat] s32_day7_recal_9210 7.89/10 (79%, 4.1 min, eta 1.1 min) seed=9217
+[beat] s32_day7_recal_9200 7.889/10 (79%, 4.5 min, eta 1.2 min) seed=9207
+[beat] s32_day7_recal_9210 8/10 (80%, 4.1 min, eta 1.0 min) seed=9217 survived=20.0
+[beat] s32_day7_recal_9200 8/10 (80%, 4.5 min, eta 1.1 min) seed=9207 survived=20.0
+[beat] s32_day7_stale_9230 9.883/10 (99%, 5.6 min, eta 0.1 min) seed=9239
+[beat] s32_day7_stale_9230 10/10 (100%, 5.6 min, eta 0.0 min) seed=9239 survived=20.0
+[beat] s32_day7_recal_9220 0.0/10 (0%, 0.1 min, eta ?) seed=9220
+[beat] s32_day7_recal_9210 8.935/10 (89%, 4.6 min, eta 0.6 min) seed=9218
+[beat] s32_day7_recal_9200 8.934/10 (89%, 5.0 min, eta 0.6 min) seed=9208
+[beat] s32_day7_recal_9210 9/10 (90%, 4.7 min, eta 0.5 min) seed=9218 survived=20.0
+[beat] s32_day7_recal_9200 9/10 (90%, 5.1 min, eta 0.6 min) seed=9208 survived=20.0
+[beat] s32_day7_recal_9220 0.901/10 (9%, 0.6 min, eta 5.7 min) seed=9220
+[beat] s32_day7_recal_9210 9.89/10 (99%, 5.2 min, eta 0.1 min) seed=9219
+[beat] s32_day7_recal_9200 9.888/10 (99%, 5.6 min, eta 0.1 min) seed=9209
+[beat] s32_day7_recal_9220 1/10 (10%, 0.6 min, eta 5.6 min) seed=9220 survived=20.0
+[beat] s32_day7_recal_9210 10/10 (100%, 5.2 min, eta 0.0 min) seed=9219 survived=20.0
+[beat] s32_day7_recal_9200 10/10 (100%, 5.6 min, eta 0.0 min) seed=9209 survived=20.0
+[beat] s32_day7_recal_9230 0.0/10 (0%, 0.1 min, eta ?) seed=9230
+[beat] s32_newdish_stale_9200 0.0/10 (0%, 0.1 min, eta ?) seed=9200
+[beat] s32_newdish_stale_9200 1/10 (10%, 0.2 min, eta 1.6 min) seed=9200 survived=2.76
+[beat] s32_newdish_stale_9200 2/10 (20%, 0.3 min, eta 1.1 min) seed=9201 survived=3.48
+[beat] s32_newdish_stale_9200 3/10 (30%, 0.4 min, eta 0.9 min) seed=9202 survived=3.6
+[beat] s32_day7_recal_9220 2/10 (20%, 1.1 min, eta 4.5 min) seed=9221 survived=20.0
+[beat] s32_newdish_stale_9200 4/10 (40%, 0.5 min, eta 0.7 min) seed=9203 survived=3.38
+[beat] s32_day7_recal_9230 0.925/10 (9%, 0.6 min, eta 5.6 min) seed=9230
+[beat] s32_newdish_stale_9200 5/10 (50%, 0.6 min, eta 0.6 min) seed=9204 survived=2.88
+[beat] s32_day7_recal_9230 1/10 (10%, 0.6 min, eta 5.5 min) seed=9230 survived=20.0
+[beat] s32_newdish_stale_9200 6/10 (60%, 0.6 min, eta 0.4 min) seed=9205 survived=2.66
+[beat] s32_newdish_stale_9200 7/10 (70%, 0.7 min, eta 0.3 min) seed=9206 survived=3.3
+[beat] s32_newdish_stale_9200 8/10 (80%, 0.8 min, eta 0.2 min) seed=9207 survived=3.4
+[beat] s32_day7_recal_9220 2.8970000000000002/10 (29%, 1.6 min, eta 4.0 min) seed=9222
+[beat] s32_newdish_stale_9200 9/10 (90%, 0.9 min, eta 0.1 min) seed=9208 survived=2.88
+[beat] s32_day7_recal_9220 3/10 (30%, 1.7 min, eta 3.9 min) seed=9222 survived=20.0
+[beat] s32_newdish_stale_9200 10/10 (100%, 1.0 min, eta 0.0 min) seed=9209 survived=3.5
+[beat] s32_day7_recal_9230 1.942/10 (19%, 1.1 min, eta 4.6 min) seed=9231
+[beat] s32_day7_recal_9230 2/10 (20%, 1.1 min, eta 4.5 min) seed=9231 survived=20.0
+[beat] s32_newdish_stale_9210 0.0/10 (0%, 0.1 min, eta ?) seed=9210
+[beat] s32_newdish_stale_9210 1/10 (10%, 0.2 min, eta 1.7 min) seed=9210 survived=3.3
+[beat] s32_newdish_stale_9210 2/10 (20%, 0.3 min, eta 1.1 min) seed=9211 survived=2.68
+[beat] s32_newdish_stale_9210 3/10 (30%, 0.4 min, eta 0.8 min) seed=9212 survived=3.14
+[beat] s32_day7_recal_9220 3.958/10 (40%, 2.2 min, eta 3.3 min) seed=9223
+[beat] s32_day7_recal_9220 4/10 (40%, 2.2 min, eta 3.3 min) seed=9223 survived=20.0
+[beat] s32_newdish_stale_9210 4/10 (40%, 0.5 min, eta 0.7 min) seed=9213 survived=3.88
+[beat] s32_day7_recal_9230 2.899/10 (29%, 1.6 min, eta 4.0 min) seed=9232
+[beat] s32_newdish_stale_9210 5/10 (50%, 0.6 min, eta 0.6 min) seed=9214 survived=3.5
+[beat] s32_day7_recal_9230 3/10 (30%, 1.7 min, eta 3.9 min) seed=9232 survived=20.0
+[beat] s32_newdish_stale_9210 6/10 (60%, 0.7 min, eta 0.4 min) seed=9215 survived=3.32
+[beat] s32_newdish_stale_9210 7/10 (70%, 0.8 min, eta 0.3 min) seed=9216 survived=3.18
+[beat] s32_newdish_stale_9210 8/10 (80%, 0.9 min, eta 0.2 min) seed=9217 survived=3.02
+[beat] s32_day7_recal_9220 4.9030000000000005/10 (49%, 2.7 min, eta 2.8 min) seed=9224
+[beat] s32_newdish_stale_9210 9/10 (90%, 1.0 min, eta 0.1 min) seed=9218 survived=3.28
+[beat] s32_day7_recal_9220 5/10 (50%, 2.7 min, eta 2.7 min) seed=9224 survived=20.0
+[beat] s32_newdish_stale_9210 10/10 (100%, 1.0 min, eta 0.0 min) seed=9219 survived=3.08
+[beat] s32_day7_recal_9230 3.949/10 (39%, 2.2 min, eta 3.4 min) seed=9233
+[beat] s32_day7_recal_9230 4/10 (40%, 2.2 min, eta 3.3 min) seed=9233 survived=20.0
+[beat] s32_newdish_stale_9220 0.0/10 (0%, 0.1 min, eta ?) seed=9220
+[beat] s32_newdish_stale_9220 1/10 (10%, 0.2 min, eta 1.8 min) seed=9220 survived=3.82
+[beat] s32_newdish_stale_9220 2/10 (20%, 0.3 min, eta 1.2 min) seed=9221 survived=3.2
+[beat] s32_newdish_stale_9220 3/10 (30%, 0.4 min, eta 0.9 min) seed=9222 survived=3.5
+[beat] s32_day7_recal_9220 5.962/10 (60%, 3.2 min, eta 2.2 min) seed=9225
+[beat] s32_day7_recal_9220 6/10 (60%, 3.3 min, eta 2.2 min) seed=9225 survived=20.0
+[beat] s32_newdish_stale_9220 4/10 (40%, 0.5 min, eta 0.7 min) seed=9223 survived=3.18
+[beat] s32_day7_recal_9230 4.897/10 (49%, 2.7 min, eta 2.8 min) seed=9234
+[beat] s32_newdish_stale_9220 5/10 (50%, 0.6 min, eta 0.6 min) seed=9224 survived=3.2
+[beat] s32_day7_recal_9230 5/10 (50%, 2.8 min, eta 2.8 min) seed=9234 survived=20.0
+[beat] s32_newdish_stale_9220 6/10 (60%, 0.7 min, eta 0.5 min) seed=9225 survived=3.62
+[beat] s32_newdish_stale_9220 7/10 (70%, 0.8 min, eta 0.3 min) seed=9226 survived=3.42
+[beat] s32_newdish_stale_9220 8/10 (80%, 0.9 min, eta 0.2 min) seed=9227 survived=3.1
+[beat] s32_day7_recal_9220 6.904/10 (69%, 3.8 min, eta 1.7 min) seed=9226
+[beat] s32_newdish_stale_9220 9/10 (90%, 1.0 min, eta 0.1 min) seed=9228 survived=3.64
+[beat] s32_day7_recal_9220 7/10 (70%, 3.8 min, eta 1.6 min) seed=9226 survived=20.0
+[beat] s32_newdish_stale_9220 10/10 (100%, 1.1 min, eta 0.0 min) seed=9229 survived=3.5
+[beat] s32_day7_recal_9230 5.9350000000000005/10 (59%, 3.3 min, eta 2.2 min) seed=9235
+[beat] s32_day7_recal_9230 6/10 (60%, 3.3 min, eta 2.2 min) seed=9235 survived=20.0
+[beat] s32_newdish_stale_9230 0.0/10 (0%, 0.1 min, eta ?) seed=9230
+[beat] s32_newdish_stale_9230 1/10 (10%, 0.2 min, eta 1.7 min) seed=9230 survived=3.48
+[beat] s32_newdish_stale_9230 2/10 (20%, 0.3 min, eta 1.2 min) seed=9231 survived=3.44
+[beat] s32_day7_recal_9220 7.955/10 (80%, 4.3 min, eta 1.1 min) seed=9227
+[beat] s32_newdish_stale_9230 3/10 (30%, 0.4 min, eta 0.9 min) seed=9232 survived=3.22
+[beat] s32_day7_recal_9220 8/10 (80%, 4.3 min, eta 1.1 min) seed=9227 survived=20.0
+[beat] s32_newdish_stale_9230 4/10 (40%, 0.5 min, eta 0.7 min) seed=9233 survived=3.24
+[beat] s32_day7_recal_9230 6.906/10 (69%, 3.8 min, eta 1.7 min) seed=9236
+[beat] s32_newdish_stale_9230 5/10 (50%, 0.6 min, eta 0.6 min) seed=9234 survived=3.06
+[beat] s32_day7_recal_9230 7/10 (70%, 3.9 min, eta 1.7 min) seed=9236 survived=20.0
+[beat] s32_newdish_stale_9230 6/10 (60%, 0.7 min, eta 0.5 min) seed=9235 survived=3.8
+[beat] s32_newdish_stale_9230 7/10 (70%, 0.8 min, eta 0.3 min) seed=9236 survived=3.18
+[beat] s32_newdish_stale_9230 8/10 (80%, 0.9 min, eta 0.2 min) seed=9237 survived=2.94
+[beat] s32_day7_recal_9220 8.896/10 (89%, 4.8 min, eta 0.6 min) seed=9228
+[beat] s32_day7_recal_9220 9/10 (90%, 4.9 min, eta 0.5 min) seed=9228 survived=20.0
+[beat] s32_newdish_stale_9230 9/10 (90%, 1.0 min, eta 0.1 min) seed=9238 survived=3.88
+[beat] s32_day7_recal_9220 10/10 (100%, 5.0 min, eta 0.0 min) seed=9229 survived=4.26
+[beat] s32_newdish_stale_9230 10/10 (100%, 1.1 min, eta 0.0 min) seed=9239 survived=3.76
+[beat] s32_day7_recal_9230 7.925/10 (79%, 4.4 min, eta 1.1 min) seed=9237
+[beat] s32_day7_recal_9230 8/10 (80%, 4.4 min, eta 1.1 min) seed=9237 survived=18.88
+[beat] s32_newdish_recal_9200 0.0/10 (0%, 0.1 min, eta ?) seed=9200
+[beat] s32_newdish_recal_9210 0.0/10 (0%, 0.1 min, eta ?) seed=9210
+[beat] s32_day7_recal_9230 8.969/10 (90%, 4.9 min, eta 0.6 min) seed=9238
+[beat] s32_day7_recal_9230 9/10 (90%, 4.9 min, eta 0.5 min) seed=9238 survived=20.0
+[beat] s32_newdish_recal_9200 0.902/10 (9%, 0.6 min, eta 6.1 min) seed=9200
+[beat] s32_newdish_recal_9210 0.892/10 (9%, 0.6 min, eta 6.2 min) seed=9210
+[beat] s32_newdish_recal_9200 1/10 (10%, 0.7 min, eta 5.9 min) seed=9200 survived=20.0
+[beat] s32_newdish_recal_9210 1/10 (10%, 0.7 min, eta 6.0 min) seed=9210 survived=20.0
+[beat] s32_newdish_recal_9200 2/10 (20%, 0.9 min, eta 3.4 min) seed=9201 survived=7.06
+[beat] s32_day7_recal_9230 9.898/10 (99%, 5.4 min, eta 0.1 min) seed=9239
+[beat] s32_day7_recal_9230 10/10 (100%, 5.4 min, eta 0.0 min) seed=9239 survived=20.0
+[beat] s32_newdish_recal_9210 1.948/10 (19%, 1.2 min, eta 4.8 min) seed=9211
+[beat] s32_newdish_recal_9220 0.0/10 (0%, 0.1 min, eta ?) seed=9220
+[beat] s32_newdish_recal_9210 2/10 (20%, 1.2 min, eta 4.8 min) seed=9211 survived=20.0
+[beat] s32_newdish_recal_9200 2.945/10 (29%, 1.4 min, eta 3.3 min) seed=9202
+[beat] s32_newdish_recal_9200 3/10 (30%, 1.4 min, eta 3.2 min) seed=9202 survived=20.0
+[beat] s32_newdish_recal_9220 0.891/10 (9%, 0.6 min, eta 6.1 min) seed=9220
+[beat] s32_newdish_recal_9210 2.879/10 (29%, 1.7 min, eta 4.2 min) seed=9212
+[beat] s32_newdish_recal_9220 1/10 (10%, 0.7 min, eta 5.9 min) seed=9220 survived=20.0
+[beat] s32_newdish_recal_9210 3/10 (30%, 1.8 min, eta 4.1 min) seed=9212 survived=20.0
+[beat] s32_newdish_recal_9200 3.88/10 (39%, 1.9 min, eta 3.0 min) seed=9203
+[beat] s32_newdish_recal_9200 4/10 (40%, 2.0 min, eta 2.9 min) seed=9203 survived=20.0
+[beat] s32_newdish_recal_9220 1.885/10 (19%, 1.2 min, eta 5.0 min) seed=9221
+[beat] s32_newdish_recal_9210 3.888/10 (39%, 2.3 min, eta 3.5 min) seed=9213
+[beat] s32_newdish_recal_9220 2/10 (20%, 1.2 min, eta 4.9 min) seed=9221 survived=20.0
+[beat] s32_newdish_recal_9210 4/10 (40%, 2.3 min, eta 3.5 min) seed=9213 survived=20.0
+[beat] s32_newdish_recal_9200 5/10 (50%, 2.4 min, eta 2.4 min) seed=9204 survived=16.14
+[beat] s32_newdish_recal_9220 2.879/10 (29%, 1.7 min, eta 4.3 min) seed=9222
+[beat] s32_newdish_recal_9210 4.879/10 (49%, 2.8 min, eta 3.0 min) seed=9214
+[beat] s32_newdish_recal_9220 3/10 (30%, 1.8 min, eta 4.2 min) seed=9222 survived=20.0
+[beat] s32_newdish_recal_9210 5/10 (50%, 2.9 min, eta 2.9 min) seed=9214 survived=20.0
+[beat] s32_newdish_recal_9200 5.882/10 (59%, 2.9 min, eta 2.0 min) seed=9205
+[beat] s32_newdish_recal_9200 6/10 (60%, 3.0 min, eta 2.0 min) seed=9205 survived=20.0
+[beat] s32_newdish_recal_9220 3.879/10 (39%, 2.3 min, eta 3.6 min) seed=9223
+[beat] s32_newdish_recal_9210 5.878/10 (59%, 3.4 min, eta 2.4 min) seed=9215
+[beat] s32_newdish_recal_9220 4/10 (40%, 2.4 min, eta 3.5 min) seed=9223 survived=20.0
+[beat] s32_newdish_recal_9210 6/10 (60%, 3.4 min, eta 2.3 min) seed=9215 survived=20.0
+[beat] s32_newdish_recal_9200 6.879/10 (69%, 3.5 min, eta 1.6 min) seed=9206
+[beat] s32_newdish_recal_9200 7/10 (70%, 3.5 min, eta 1.5 min) seed=9206 survived=20.0
+[beat] s32_newdish_recal_9220 4.878/10 (49%, 2.9 min, eta 3.0 min) seed=9224
+[beat] s32_newdish_recal_9210 6.877/10 (69%, 3.9 min, eta 1.8 min) seed=9216
+[beat] s32_newdish_recal_9220 5/10 (50%, 2.9 min, eta 2.9 min) seed=9224 survived=20.0
+[beat] s32_newdish_recal_9210 7/10 (70%, 4.0 min, eta 1.7 min) seed=9216 survived=20.0
+[beat] s32_newdish_recal_9200 7.877/10 (79%, 4.0 min, eta 1.1 min) seed=9207
+[beat] s32_newdish_recal_9200 8/10 (80%, 4.1 min, eta 1.0 min) seed=9207 survived=20.0
+[beat] s32_newdish_recal_9220 5.889/10 (59%, 3.4 min, eta 2.4 min) seed=9225
+[beat] s32_newdish_recal_9210 7.8870000000000005/10 (79%, 4.5 min, eta 1.2 min) seed=9217
+[beat] s32_newdish_recal_9220 6/10 (60%, 3.5 min, eta 2.3 min) seed=9225 survived=20.0
+[beat] s32_newdish_recal_9210 8/10 (80%, 4.6 min, eta 1.1 min) seed=9217 survived=20.0
+[beat] s32_newdish_recal_9200 8.885/10 (89%, 4.6 min, eta 0.6 min) seed=9208
+[beat] s32_newdish_recal_9200 9/10 (90%, 4.7 min, eta 0.5 min) seed=9208 survived=20.0
+[beat] s32_newdish_recal_9220 6.879/10 (69%, 4.0 min, eta 1.8 min) seed=9226
+[beat] s32_newdish_recal_9210 8.878/10 (89%, 5.1 min, eta 0.6 min) seed=9218
+[beat] s32_newdish_recal_9220 7/10 (70%, 4.1 min, eta 1.7 min) seed=9226 survived=20.0
+[beat] s32_newdish_recal_9210 9/10 (90%, 5.1 min, eta 0.6 min) seed=9218 survived=20.0
+[beat] s32_newdish_recal_9200 9.878/10 (99%, 5.2 min, eta 0.1 min) seed=9209
+[beat] s32_newdish_recal_9200 10/10 (100%, 5.2 min, eta 0.0 min) seed=9209 survived=20.0
+[beat] s32_newdish_recal_9230 0.0/10 (0%, 0.1 min, eta ?) seed=9230
+[beat] s32_newdish_recal_9220 8/10 (80%, 4.4 min, eta 1.1 min) seed=9227 survived=12.82
+[beat] s32_newdish_recal_9230 1/10 (10%, 0.3 min, eta 2.9 min) seed=9230 survived=7.94
+[beat] s32_newdish_recal_9210 9.949/10 (99%, 5.6 min, eta 0.0 min) seed=9219
+[beat] s32_newdish_recal_9210 10/10 (100%, 5.7 min, eta 0.0 min) seed=9219 survived=20.0
+[beat] none_none_ideal_imu_9200 0.0/10 (0%, 0.0 min, eta ?) seed=9200
+[beat] none_none_ideal_imu_9200 1/10 (10%, 0.0 min, eta 0.2 min) seed=9200 survived=20.0
+[beat] none_none_ideal_imu_9200 2/10 (20%, 0.0 min, eta 0.1 min) seed=9201 survived=20.0
+[beat] none_none_ideal_imu_9200 3/10 (30%, 0.0 min, eta 0.1 min) seed=9202 survived=20.0
+[beat] none_none_ideal_imu_9200 4/10 (40%, 0.0 min, eta 0.1 min) seed=9203 survived=20.0
+[beat] none_none_ideal_imu_9200 5/10 (50%, 0.1 min, eta 0.1 min) seed=9204 survived=20.0
+[beat] none_none_ideal_imu_9200 6/10 (60%, 0.1 min, eta 0.0 min) seed=9205 survived=20.0
+[beat] none_none_ideal_imu_9200 7/10 (70%, 0.1 min, eta 0.0 min) seed=9206 survived=20.0
+[beat] none_none_ideal_imu_9200 8/10 (80%, 0.1 min, eta 0.0 min) seed=9207 survived=20.0
+[beat] none_none_ideal_imu_9200 9/10 (90%, 0.1 min, eta 0.0 min) seed=9208 survived=20.0
+[beat] none_none_ideal_imu_9200 10/10 (100%, 0.1 min, eta 0.0 min) seed=9209 survived=20.0
+[beat] none_none_ideal_imu_9210 0.0/10 (0%, 0.0 min, eta ?) seed=9210
+[beat] none_none_ideal_imu_9210 1/10 (10%, 0.0 min, eta 0.2 min) seed=9210 survived=20.0
+[beat] none_none_ideal_imu_9210 2/10 (20%, 0.0 min, eta 0.1 min) seed=9211 survived=20.0
+[beat] none_none_ideal_imu_9210 3/10 (30%, 0.0 min, eta 0.1 min) seed=9212 survived=20.0
+[beat] none_none_ideal_imu_9210 4/10 (40%, 0.0 min, eta 0.1 min) seed=9213 survived=20.0
+[beat] none_none_ideal_imu_9210 5/10 (50%, 0.1 min, eta 0.1 min) seed=9214 survived=20.0
+[beat] none_none_ideal_imu_9210 6/10 (60%, 0.1 min, eta 0.0 min) seed=9215 survived=20.0
+[beat] none_none_ideal_imu_9210 7/10 (70%, 0.1 min, eta 0.0 min) seed=9216 survived=20.0
+[beat] none_none_ideal_imu_9210 8/10 (80%, 0.1 min, eta 0.0 min) seed=9217 survived=20.0
+[beat] none_none_ideal_imu_9210 9/10 (90%, 0.1 min, eta 0.0 min) seed=9218 survived=20.0
+[beat] none_none_ideal_imu_9210 10/10 (100%, 0.1 min, eta 0.0 min) seed=9219 survived=20.0
+[beat] s32_newdish_recal_9220 9/10 (90%, 4.8 min, eta 0.5 min) seed=9228 survived=20.0
+[beat] none_none_ideal_imu_9220 0.0/10 (0%, 0.0 min, eta ?) seed=9220
+[beat] none_none_ideal_imu_9220 1/10 (10%, 0.0 min, eta 0.2 min) seed=9220 survived=20.0
+[beat] none_none_ideal_imu_9220 2/10 (20%, 0.0 min, eta 0.1 min) seed=9221 survived=20.0
+[beat] none_none_ideal_imu_9220 3/10 (30%, 0.0 min, eta 0.1 min) seed=9222 survived=20.0
+[beat] none_none_ideal_imu_9220 4/10 (40%, 0.1 min, eta 0.1 min) seed=9223 survived=20.0
+[beat] s32_newdish_recal_9230 2/10 (20%, 0.7 min, eta 3.0 min) seed=9231 survived=20.0
+[beat] none_none_ideal_imu_9220 5/10 (50%, 0.1 min, eta 0.1 min) seed=9224 survived=20.0
+[beat] none_none_ideal_imu_9220 6/10 (60%, 0.1 min, eta 0.0 min) seed=9225 survived=20.0
+[beat] none_none_ideal_imu_9220 7/10 (70%, 0.1 min, eta 0.0 min) seed=9226 survived=20.0
+[beat] none_none_ideal_imu_9220 8/10 (80%, 0.1 min, eta 0.0 min) seed=9227 survived=20.0
+[beat] none_none_ideal_imu_9220 9/10 (90%, 0.1 min, eta 0.0 min) seed=9228 survived=20.0
+[beat] none_none_ideal_imu_9220 10/10 (100%, 0.1 min, eta 0.0 min) seed=9229 survived=20.0
+[beat] none_none_ideal_imu_9230 0.0/10 (0%, 0.0 min, eta ?) seed=9230
+[beat] none_none_ideal_imu_9230 1/10 (10%, 0.0 min, eta 0.2 min) seed=9230 survived=20.0
+[beat] none_none_ideal_imu_9230 2/10 (20%, 0.0 min, eta 0.1 min) seed=9231 survived=20.0
+[beat] none_none_ideal_imu_9230 3/10 (30%, 0.0 min, eta 0.1 min) seed=9232 survived=20.0
+[beat] none_none_ideal_imu_9230 4/10 (40%, 0.1 min, eta 0.1 min) seed=9233 survived=20.0
+[beat] none_none_ideal_imu_9230 5/10 (50%, 0.1 min, eta 0.1 min) seed=9234 survived=20.0
+[beat] none_none_ideal_imu_9230 6/10 (60%, 0.1 min, eta 0.0 min) seed=9235 survived=20.0
+[beat] none_none_ideal_imu_9230 7/10 (70%, 0.1 min, eta 0.0 min) seed=9236 survived=20.0
+[beat] none_none_ideal_imu_9230 8/10 (80%, 0.1 min, eta 0.0 min) seed=9237 survived=20.0
+[beat] none_none_ideal_imu_9230 9/10 (90%, 0.1 min, eta 0.0 min) seed=9238 survived=20.0
+[beat] none_none_ideal_imu_9230 10/10 (100%, 0.1 min, eta 0.0 min) seed=9239 survived=20.0
+[beat] none_none_zero_action_9200 0.0/10 (0%, 0.0 min, eta ?) seed=9200
+[beat] none_none_zero_action_9200 1/10 (10%, 0.0 min, eta 0.2 min) seed=9200 survived=4.36
+[beat] none_none_zero_action_9200 2/10 (20%, 0.0 min, eta 0.1 min) seed=9201 survived=4.78
+[beat] none_none_zero_action_9200 3/10 (30%, 0.0 min, eta 0.1 min) seed=9202 survived=7.08
+[beat] none_none_zero_action_9200 4/10 (40%, 0.0 min, eta 0.0 min) seed=9203 survived=4.28
+[beat] none_none_zero_action_9200 5/10 (50%, 0.0 min, eta 0.0 min) seed=9204 survived=7.22
+[beat] none_none_zero_action_9200 6/10 (60%, 0.0 min, eta 0.0 min) seed=9205 survived=4.4
+[beat] none_none_zero_action_9200 7/10 (70%, 0.0 min, eta 0.0 min) seed=9206 survived=4.14
+[beat] none_none_zero_action_9200 8/10 (80%, 0.0 min, eta 0.0 min) seed=9207 survived=4.72
+[beat] none_none_zero_action_9200 9/10 (90%, 0.1 min, eta 0.0 min) seed=9208 survived=4.32
+[beat] none_none_zero_action_9200 10/10 (100%, 0.1 min, eta 0.0 min) seed=9209 survived=4.38
+[beat] none_none_zero_action_9210 0.0/10 (0%, 0.0 min, eta ?) seed=9210
+[beat] none_none_zero_action_9210 1/10 (10%, 0.0 min, eta 0.2 min) seed=9210 survived=4.14
+[beat] none_none_zero_action_9210 2/10 (20%, 0.0 min, eta 0.1 min) seed=9211 survived=4.04
+[beat] none_none_zero_action_9210 3/10 (30%, 0.0 min, eta 0.1 min) seed=9212 survived=6.9
+[beat] none_none_zero_action_9210 4/10 (40%, 0.0 min, eta 0.0 min) seed=9213 survived=6.74
+[beat] none_none_zero_action_9210 5/10 (50%, 0.0 min, eta 0.0 min) seed=9214 survived=7.14
+[beat] none_none_zero_action_9210 6/10 (60%, 0.0 min, eta 0.0 min) seed=9215 survived=4.04
+[beat] none_none_zero_action_9210 7/10 (70%, 0.0 min, eta 0.0 min) seed=9216 survived=4.26
+[beat] s32_newdish_recal_9220 10/10 (100%, 5.2 min, eta 0.0 min) seed=9229 survived=20.0
+[beat] none_none_zero_action_9210 8/10 (80%, 0.0 min, eta 0.0 min) seed=9217 survived=4.4
+[beat] none_none_zero_action_9210 9/10 (90%, 0.1 min, eta 0.0 min) seed=9218 survived=5.22
+[beat] none_none_zero_action_9210 10/10 (100%, 0.1 min, eta 0.0 min) seed=9219 survived=4.28
+[beat] none_none_zero_action_9220 0.0/10 (0%, 0.0 min, eta ?) seed=9220
+[beat] none_none_zero_action_9220 1/10 (10%, 0.0 min, eta 0.2 min) seed=9220 survived=7.76
+[beat] s32_newdish_recal_9230 3/10 (30%, 1.1 min, eta 2.6 min) seed=9232 survived=20.0
+[beat] none_none_zero_action_9230 0.0/10 (0%, 0.0 min, eta ?) seed=9230
+[beat] none_none_zero_action_9220 2/10 (20%, 0.0 min, eta 0.1 min) seed=9221 survived=8.26
+[beat] none_none_zero_action_9230 1/10 (10%, 0.0 min, eta 0.2 min) seed=9230 survived=3.98
+[beat] none_none_zero_action_9220 3/10 (30%, 0.0 min, eta 0.1 min) seed=9222 survived=4.2
+[beat] none_none_zero_action_9230 2/10 (20%, 0.0 min, eta 0.1 min) seed=9231 survived=4.18
+[beat] none_none_zero_action_9230 3/10 (30%, 0.0 min, eta 0.1 min) seed=9232 survived=4.3
+[beat] none_none_zero_action_9220 4/10 (40%, 0.0 min, eta 0.1 min) seed=9223 survived=7.36
+[beat] none_none_zero_action_9220 5/10 (50%, 0.0 min, eta 0.0 min) seed=9224 survived=4.1
+[beat] none_none_zero_action_9230 4/10 (40%, 0.0 min, eta 0.0 min) seed=9233 survived=4.08
+[beat] none_none_zero_action_9230 5/10 (50%, 0.0 min, eta 0.0 min) seed=9234 survived=4.44
+[beat] none_none_zero_action_9220 6/10 (60%, 0.0 min, eta 0.0 min) seed=9225 survived=5.6
+[beat] none_none_zero_action_9230 6/10 (60%, 0.0 min, eta 0.0 min) seed=9235 survived=4.36
+[beat] none_none_zero_action_9220 7/10 (70%, 0.0 min, eta 0.0 min) seed=9226 survived=4.62
+[beat] none_none_zero_action_9230 7/10 (70%, 0.0 min, eta 0.0 min) seed=9236 survived=4.1
+[beat] none_none_zero_action_9220 8/10 (80%, 0.1 min, eta 0.0 min) seed=9227 survived=4.3
+[beat] none_none_zero_action_9230 8/10 (80%, 0.0 min, eta 0.0 min) seed=9237 survived=4.14
+[beat] none_none_zero_action_9220 9/10 (90%, 0.1 min, eta 0.0 min) seed=9228 survived=4.18
+[beat] none_none_zero_action_9230 9/10 (90%, 0.1 min, eta 0.0 min) seed=9238 survived=4.18
+[beat] none_none_zero_action_9220 10/10 (100%, 0.1 min, eta 0.0 min) seed=9229 survived=3.9
+[beat] none_none_zero_action_9230 10/10 (100%, 0.1 min, eta 0.0 min) seed=9239 survived=8.42
+[beat] s32_newdish_recal_9230 4/10 (40%, 1.4 min, eta 2.0 min) seed=9233 survived=20.0
+[beat] s32_newdish_recal_9230 5/10 (50%, 1.6 min, eta 1.6 min) seed=9234 survived=20.0
+[beat] s32_newdish_recal_9230 6/10 (60%, 1.8 min, eta 1.2 min) seed=9235 survived=20.0
+[beat] s32_newdish_recal_9230 7/10 (70%, 2.1 min, eta 0.9 min) seed=9236 survived=20.0
+[beat] s32_newdish_recal_9230 8/10 (80%, 2.3 min, eta 0.6 min) seed=9237 survived=20.0
+[beat] s32_newdish_recal_9230 9/10 (90%, 2.5 min, eta 0.3 min) seed=9238 survived=20.0
+[beat] s32_newdish_recal_9230 10/10 (100%, 2.7 min, eta 0.0 min) seed=9239 survived=20.0
+{"cfg": "s32", "cond": "day0", "arm": "stale", "n": 40, "full": 39, "mean_s": 19.98, "closed_loop_gain_median": [0.846, 0.867, 0.784, 0.836, 0.808], "closed_loop_bias_over_spread_median": [0.0, 0.062, -0.031, 0.012, -0.006], "closed_loop_noise_median": [0.446, 0.468, 0.538, 0.546, 0.393], "rate_hz_median": 66.28}
+{"cfg": "s32", "cond": "day0", "arm": "recal", "n": 40, "full": 36, "mean_s": 19.25, "closed_loop_gain_median": [0.589, 0.676, 0.768, 0.916, 0.756], "closed_loop_bias_over_spread_median": [-0.018, 0.052, -0.058, 0.002, 0.014], "closed_loop_noise_median": [0.386, 0.443, 0.641, 0.865, 0.506], "rate_hz_median": 66.28}
+{"cfg": "s32", "cond": "day1", "arm": "stale", "n": 40, "full": 36, "mean_s": 18.98, "closed_loop_gain_median": [0.825, 0.877, 0.75, 0.832, 0.797], "closed_loop_bias_over_spread_median": [-0.018, 0.052, -0.001, -0.04, 0.099], "closed_loop_noise_median": [0.444, 0.468, 0.54, 0.542, 0.389], "rate_hz_median": 64.8}
+{"cfg": "s32", "cond": "day1", "arm": "recal", "n": 40, "full": 36, "mean_s": 19.1, "closed_loop_gain_median": [0.616, 0.675, 0.753, 0.936, 0.744], "closed_loop_bias_over_spread_median": [-0.038, 0.05, -0.028, -0.035, 0.014], "closed_loop_noise_median": [0.385, 0.45, 0.63, 0.86, 0.514], "rate_hz_median": 64.81}
+{"cfg": "s32", "cond": "day3", "arm": "stale", "n": 40, "full": 39, "mean_s": 19.82, "closed_loop_gain_median": [0.764, 0.831, 0.744, 0.82, 0.784], "closed_loop_bias_over_spread_median": [0.03, 0.006, 0.029, 0.034, -0.062], "closed_loop_noise_median": [0.443, 0.466, 0.531, 0.544, 0.393], "rate_hz_median": 63.14}
+{"cfg": "s32", "cond": "day3", "arm": "recal", "n": 40, "full": 33, "mean_s": 19.19, "closed_loop_gain_median": [0.568, 0.658, 0.758, 0.866, 0.736], "closed_loop_bias_over_spread_median": [-0.042, 0.052, -0.019, 0.06, 0.024], "closed_loop_noise_median": [0.386, 0.45, 0.629, 0.841, 0.508], "rate_hz_median": 63.09}
+{"cfg": "s32", "cond": "day7", "arm": "stale", "n": 40, "full": 39, "mean_s": 19.92, "closed_loop_gain_median": [0.74, 0.807, 0.672, 0.794, 0.771], "closed_loop_bias_over_spread_median": [-0.394, -0.085, 0.176, -0.182, 0.05], "closed_loop_noise_median": [0.442, 0.462, 0.525, 0.532, 0.382], "rate_hz_median": 58.71}
+{"cfg": "s32", "cond": "day7", "arm": "recal", "n": 40, "full": 37, "mean_s": 19.18, "closed_loop_gain_median": [0.553, 0.648, 0.694, 0.907, 0.754], "closed_loop_bias_over_spread_median": [-0.032, 0.044, -0.034, -0.037, 0.054], "closed_loop_noise_median": [0.39, 0.454, 0.676, 0.879, 0.51], "rate_hz_median": 58.84}
+{"cfg": "s32", "cond": "newdish", "arm": "stale", "n": 40, "full": 0, "mean_s": 3.31, "closed_loop_gain_median": [0.597, 0.705, 0.845, 0.514, 1.384], "closed_loop_bias_over_spread_median": [-1.05, -0.843, 2.6, -1.042, 0.087], "closed_loop_noise_median": [0.461, 0.457, 0.517, 0.608, 0.412], "rate_hz_median": 67.69}
+{"cfg": "s32", "cond": "newdish", "arm": "recal", "n": 40, "full": 36, "mean_s": 19.1, "closed_loop_gain_median": [0.614, 0.612, 0.826, 0.679, 0.856], "closed_loop_bias_over_spread_median": [-0.016, 0.088, 0.002, 0.076, 0.015], "closed_loop_noise_median": [0.395, 0.473, 0.621, 0.894, 0.498], "rate_hz_median": 66.93}
+{"cfg": "none", "cond": "none", "arm": "ideal_imu", "n": 40, "full": 40, "mean_s": 20.0}
+{"cfg": "none", "cond": "none", "arm": "zero_action", "n": 40, "full": 0, "mean_s": 5.03}
+{"gate_A2": {"bar": ">= 34/40", "per_condition": {"day1": {"stale": "36/40", "recal": "36/40", "stale_drops": false, "recal_holds": true}, "day3": {"stale": "39/40", "recal": "33/40", "stale_drops": false, "recal_holds": false}, "day7": {"stale": "39/40", "recal": "37/40", "stale_drops": false, "recal_holds": true}, "newdish": {"stale": "0/40", "recal": "36/40", "stale_drops": true, "recal_holds": true}}, "complete": true, "day0_recal": "36/40", "tested": true, "pass": false}}

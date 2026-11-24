@@ -63,6 +63,7 @@ The robot's balance loop runs at 50 Hz. A dish in that loop may add at most ~40 
 | Does inhibitory plasticity fix the model? | no, not within one time-boxed attempt. Vogels-type inhibitory plasticity, each neuron's target its resting rate, cuts the runaway from 45 to ~9 Hz per electrode, but rates settle at 1.5–1.7× rest (gate 1.5×) while inhibitory weights keep climbing (4–9× their start, rarely at the cap), and the inputs' evoked responses fade to 0.5–1.5 spikes per pulse. No setting is specific and steady (5 settings, 10 min each). Untested guess: the rule also strengthens inhibitory→inhibitory synapses, partly silencing the inhibition | `cartpole_replication.py --drift` 6cd83c4 |
 | Does an outside model hold up? bl1 (github.com/m9h/bl1: JAX, Wagenaar-calibrated, STDP + homeostatic scaling) | no. Same drift test on bl1's own code, as shipped and with two of its five bugs fixed, 5 cultures, 600 s, two pulse lengths. Nothing runs away (its STDP is depression-dominated), but the gate is never passed except by running down. Per-neuron synaptic scaling alone holds the non-stimulated electrodes at their resting rate (1.00–1.01× in every culture). With STDP on it holds neither rates (realistic 0.5 ms pulses: 1.25× the no-plasticity arm, still climbing) nor pathways (each decoder's own gain moves ~2 spikes per pulse within 10 minutes, 5 of 10 pathways beyond 2 SE). A potentiation-dominated control shows the test catches upward drift. The port is spike-for-spike bl1's code (`bl1_checks.py`) | `bl1_drift.py`, `bl1_checks.py`, `bl1_rep_analysis.py` 1e3f994 |
 | The culture in the robot's loop (track A1): only the IMU through the dish, decoder and weight edit fixed beforehand | not on a CL1-sized well. 1 well × 12 electrodes: 0/40 with the planned 1/gain edit, 23/40 with an edit that also removes the decoder's offset (gate ≥ 34/40). 1 × 32: 40/40. Silenced dish 0/40, ideal IMU 40/40. A dead culture does as well or better (1 × 12: 32/40), so the dish relays and computes nothing. The planned edit failed because the robot stands leaning 3.6° forward, not upright: the decoder's offset turned into a false lean of 2.35 spreads. Phase 3.1's channel model had no offset and couldn't show it. The remaining 1 × 12 falls follow pushes from the front: the relay reads the pitch rate too high during the recovery, the forward lean grows past the encoder's input limit (4 replay SDs), and past it the teacher's view of the tilt stops changing | `closed_loop_vestibular.py`, `closed_loop_falls.py` |
+| Sessions and drift (track A2): age the culture 1, 3, 7 days or swap in a new dish; stale decoder vs one recalibrated from 60 s of open-loop replay plus one edit (1 × 32) | not passed, by one episode. A new dish breaks the stale relay (0/40), and recalibration restores 36/40. Aging up to 7 days leaves the stale relay at 36–39/40, so the gate was tested only on the new dish. Recalibrated: 33/40 at day 3, 36–37/40 elsewhere, 36/40 even at day 0. The 60 s decoder reads grav_x with noise 0.84–0.89 spreads against 0.53–0.55 for the one fitted on 312 s, so the calibration's length is the limit | `closed_loop_sessions.py` |
 
 ## The routes
 
@@ -207,6 +208,10 @@ This is Phase 3.3 of [next-steps.md](next-steps.md#33-closed-loop), and route 3 
   - Compare the stale decoder with one recalibrated from a short open-loop replay (~60 s) plus only the 1/gain edit.
   - **Gate:** after aging, the recalibrated relay reaches ≥ 34/40 where the stale one drops. This tests route 3's
     claim that a session needs only one weight edit.
+  - **Result (24 November 2026): not passed, by one episode** (`closed_loop_sessions.py`, 1 × 32, affine edit
+    because A1 showed the 1/gain edit fails). The stale relay drops only on a new dish (0/40), where 60 s of
+    calibration and one edit restore 36/40. Aging up to 7 days leaves the stale relay at 36–39/40. The recalibrated
+    relay reaches 33/40 at day 3 and 36–37/40 elsewhere, 36/40 even at day 0: 60 s is the weak point, not aging.
 
 ### Track B: a culture model good enough for learning questions
 
@@ -245,7 +250,7 @@ the track with a write-up, and learning questions wait for a dish.
 ### Order
 
 1. A1 on the GPU, with B0 alongside (CPU and network). Done.
-2. A2.
+2. A2. Done.
 3. B1, then B2, B3 and B4, each behind its gate.
 
 One GPU job at a time (8 GB card). Every run is guarded: a smoke test, in-run checks, a watchdog, 40 fresh seeds and
