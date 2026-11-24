@@ -140,7 +140,9 @@ drift_multiplicative_scaling.json and run_multiplicative.log there: the weight-d
 
 Stop and resume: every job checkpoints (device, plasticity, script state) to <out>/ckpt every 5 minutes of wall
 time, and on SIGTERM at the next 200 ms read, then exits. Run the same command again to resume; finished jobs are
-kept in <out>/jobs and skipped. A stop during a job's setup (characterisation, calibration, ~15 min) restarts that
+kept in <out>/jobs and skipped. Result and checkpoint files are named by every setting the job runs with (a digest
+after the arm name, ``job_key``), so a rerun with any setting changed runs anew; code changes are not part of the key,
+so rerun into a fresh --out after changing the model. A stop during a job's setup (characterisation, calibration, ~15 min) restarts that
 job's setup.
 
     uv run scripts/cartpole_replication.py
@@ -159,6 +161,7 @@ checkpoint in <out>/ckpt before rerunning: it holds the state the bug produced.
 """
 
 import argparse
+import hashlib
 import importlib.util
 import itertools
 import json
@@ -373,6 +376,13 @@ class Checkpoint:
                 raise Stopped(str(self.path))
 
 
+def job_key(name, settings):
+    """File stem of a job's result and checkpoint: its readable name plus a digest of every setting it runs with.
+    A rerun into the same --out with any setting changed (target floor, length, setup sizes, ...) then runs anew
+    instead of reusing a result, or resuming a checkpoint, made with other settings."""
+    return f"{name}_{hashlib.sha1(json.dumps(settings, sort_keys=True).encode()).hexdigest()[:8]}"
+
+
 def make_stdp(spec):
     from biocompute.culture.plasticity import STDP
 
@@ -482,12 +492,12 @@ def drift(job):
 
     from biocompute.culture.plasticity import Chain, SynapticScaling
 
-    arm, spec, seconds, out, opts = job
+    arm, key, spec, seconds, out, opts = job
     seed = spec.get("seed", 0)
     _start_job()
     g = Guard(f"drift_{arm}", out)
     enc, dec = DRIFT_CONFIGS[seed]
-    ck = Checkpoint(out / "ckpt" / f"drift_{arm}.pt")
+    ck = Checkpoint(out / "ckpt" / f"{key}.pt")
     rng = np.random.default_rng(1)
     dev, _, w_in0 = build(seed)
     stdp = make_stdp(spec)
@@ -564,7 +574,7 @@ def drift(job):
            "w_exc_mean": round(float(c.w[c.syn_exc].mean()), 3), "w_inh_mean": round(float(c.w[inh].mean()), 3),
            "w_inh_mean_start": round(float(c.w0[inh].mean()), 3)}
     (out / "jobs").mkdir(exist_ok=True)
-    (out / "jobs" / f"drift_{arm}.json").write_text(json.dumps(row))
+    (out / "jobs" / f"{key}.json").write_text(json.dumps(row))
     ck.path.unlink(missing_ok=True)
     print(json.dumps({k: v for k, v in row.items() if k not in ("dec_hz_10s",)}), flush=True)
     del dev
@@ -654,10 +664,10 @@ def run(job):
     from biocompute.culture.plasticity import rest
     from biocompute.runguard import Guard
 
-    seed, opt, out = job
+    seed, key, opt, out = job
     _start_job()
     tag = opt["tag"]
-    ck = Checkpoint(out / "ckpt" / f"{tag}_seed{seed}.pt")
+    ck = Checkpoint(out / "ckpt" / f"{key}.pt")
     rng = np.random.default_rng(seed + 900)
     dev, _, w_in0 = build(seed)
     stdp = make_stdp(opt["spec"])
@@ -714,7 +724,7 @@ def run(job):
     STOP["phase"] = "idle"
     result = {"seed": seed, "config": S["cfg"], "cycles": S["cycles"]}
     (out / "jobs").mkdir(exist_ok=True)
-    (out / "jobs" / f"{tag}_seed{seed}.json").write_text(json.dumps(result))
+    (out / "jobs" / f"{key}.json").write_text(json.dumps(result))
     ck.path.unlink(missing_ok=True)
     del dev
     torch.cuda.empty_cache()
@@ -793,7 +803,9 @@ def main():
     out.mkdir(parents=True, exist_ok=True)
 
     def spec(scale, eta, cap=a.w_max_inh, homeo=0.0, seed=0):
-        sp = {"scale": scale, "rule": a.stdp_rule, "eta": eta, "w_max_inh": cap, "floor": a.target_floor}
+        # With STDP off (scale 0) the rule doesn't act: such arms say "additive" and are shared across rules.
+        sp = {"scale": scale, "rule": a.stdp_rule if scale else "additive", "eta": eta, "w_max_inh": cap,
+              "floor": a.target_floor}
         return sp | ({"homeo": homeo} if homeo else {}) | ({"seed": seed} if seed else {})
 
     if a.drift:
@@ -804,15 +816,14 @@ def main():
         for h, seed, x, (eta, cap) in itertools.product(a.drift_homeo, a.drift_seeds, a.drift_scales, pairs):
             sp = spec(x, eta, cap, h, seed)
             secs = a.drift_seconds or (120.0 if x in (0.0, 1.0) else 300.0 if x >= 0.3 else 600.0)
-            # With STDP off (x0) the rule doesn't act, so the arm is named without it and reused across rules.
-            name = f"x{x:g}" + spec_tag({**sp, "scale": 1.0} | ({"rule": "additive"} if x == 0 else {})) + (
-                f"_s{seed}" if seed else "")
-            arms.append((name, sp, secs, out, sizes))
+            name = f"x{x:g}" + spec_tag({**sp, "scale": 1.0}) + (f"_s{seed}" if seed else "")
+            key = job_key(f"drift_{name}", {**sp, "seconds": secs, "rest_s": sizes["rest_s"]})
+            arms.append((name, key, sp, secs, out, sizes))
         if a.smoke:  # the arm with the most machinery: STDP and scaling together if asked for
-            arms = [max(arms, key=lambda j: (j[1]["scale"] > 0) + bool(j[1].get("homeo")))]
-        todo = [j for j in arms if not (out / "jobs" / f"drift_{j[0]}.json").exists()]
+            arms = [max(arms, key=lambda j: (j[2]["scale"] > 0) + bool(j[2].get("homeo")))]
+        todo = [j for j in arms if not (out / "jobs" / f"{j[1]}.json").exists()]
         pool_map(_drift_safe, todo, a.workers)
-        res = [json.loads((out / "jobs" / f"drift_{j[0]}.json").read_text()) for j in arms]
+        res = [json.loads((out / "jobs" / f"{j[1]}.json").read_text()) for j in arms]
         name = "drift" + ("" if a.stdp_rule == "additive" else f"_{a.stdp_rule}") + (
             "_istdp" if any(eta for eta, _ in pairs) else "") + ("_scaling" if any(a.drift_homeo) else "")
         summary = {"gate_B1": gate_b1(res), "pathways": pathways_vs_off(res)} if any(a.drift_homeo) else {}
@@ -824,10 +835,10 @@ def main():
     tag = a.decoder + spec_tag(sp)
     opt = {"tag": tag, "spec": sp, "order": a.order, "repeats": a.repeats, "minutes": a.cycle_min,
            "decoder": a.decoder} | sizes
-    jobs = [(s, opt, out) for s in a.seeds]
-    todo = [j for j in jobs if not (out / "jobs" / f"{tag}_seed{j[0]}.json").exists()]
+    jobs = [(s, job_key(f"{tag}_seed{s}", opt | {"seed": s}), opt, out) for s in a.seeds]
+    todo = [j for j in jobs if not (out / "jobs" / f"{j[1]}.json").exists()]
     pool_map(_run_safe, todo, a.workers)
-    res = [json.loads((out / "jobs" / f"{tag}_seed{s}.json").read_text()) for s in a.seeds]
+    res = [json.loads((out / "jobs" / f"{j[1]}.json").read_text()) for j in jobs]
     (out / f"results_{tag}.json").write_text(json.dumps(res))
     summ = {}
     for m in a.order:
