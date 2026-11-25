@@ -439,13 +439,21 @@ pass the "computes" test.
 ## Proposals, in order
 
 None has been run. Each needs a go-ahead and follows the usual guarded-run rules (smoke test, in-run checks,
-watchdog, fresh seeds, standard baselines).
+watchdog, fresh seeds, standard baselines). The order adopted afterwards is item 4 of the route doc's
+[Order](route-to-computation.md#order):
+1. proposal 1 (A2c);
+2. proposal 2;
+3. a realism scorecard that includes proposal 4;
+4. proposal 5, only by decision;
+5. A1c (a wider encoder input limit), optional.
+
+Proposal 3 is dropped.
 
 | # | What | Track | Needs | Reading fixed in advance |
 |---|---|---|---|---|
 | 1 | **A2c:** stale decoder, only the edit refitted (from 60 s; also 10 s and 30 s) | A | A2's session setups (`outputs/closed_loop_sessions/sessions/`), 5 conditions × 40 fresh seeds per replay length | ≥ 34/40 in every condition |
 | 2 | **Takeover rerun** with a final weight dump and every electrode's spike times: one takeover arm per culture plus the scaling-alone arm as control (6 arms × 600 s; the weight-dependent check's 9 arms took 2–2.5 h) | B (diagnostic) | — | Rerun equals the stored rows. Synapses pointing away from the winner gain more than those pointing back, by > 2 SE in all 3 cultures and not in the control. Reported alongside: decoding of the pulsed input across minutes (paper 3), and the electrodes' direction maps compared with the weights (paper 4) |
-| 3 | **A1 state test:** replay the 17 failing 1 × 12 seeds with whole-well logging | A | A1b setups | Decoding error tracks prior activity in the live culture, not in the dead one |
+| 3 | **A1 state test:** replay the 17 failing 1 × 12 seeds with whole-well logging. *Dropped (25 November): it explains a relay flaw but changes no decision* | A | A1b setups | Decoding error tracks prior activity in the live culture, not in the dead one |
 | 4 | **Burst spread:** start sites, their stability, crossing times (the wave speed) and pattern class (source, plane, rotating), against nulls that keep each electrode's spikes | B0 | Model first, then the Wagenaar spike files | The method recovers the model's known spread before it is applied to Wagenaar |
 | 5 | **Many weak synapses**, same total input | B, only if reopened | Drift reruns, slower | ~6.5% of pulses set off a burst; spontaneous activity inside the Wagenaar ranges |
 | parked | Real dish: STTC with an event-shift null, duplicate-unit merging, geometry reliability over time, decoder tested across sessions, time since the last burst as a covariate, and the takeover test from direction maps if proposal 2 validates it | dish | A culture | — |

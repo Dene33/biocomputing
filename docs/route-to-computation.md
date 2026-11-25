@@ -278,6 +278,22 @@ replication's selected encoders: 16–24%), against 6.5% in the organoids (IQR 2
 2. A2. Done.
 3. B1: not passed (24 November 2026), and a check of weight-dependent STDP didn't change it. Track B is closed;
    B2, B3 and B4 not run.
+4. Next, set on 25 November 2026 after the reading of four papers ([literature-notes.md](literature-notes.md)).
+   None has run yet. Each step is pre-registered, guarded and committed as its own milestone:
+   1. **A2c** (track A). Keep the old decoder and refit only the affine edit, from 10, 30 and 60 s of replay, on
+      fresh seeds. Gate: ≥ 34/40 in every session with the 60 s edit. If it passes, route 3's session protocol
+      becomes "refit the edit". If it fails, keep refitting the decoder, from a longer calibration.
+   2. **Takeover rerun** (track B, a diagnostic; the track stays closed). One takeover arm per culture plus the
+      scaling-alone control, with a final weight dump and every electrode's spike times. It tests the direction
+      hypothesis, and the electrode-level direction maps a real dish would need.
+   3. **Realism scorecard.** B0's yardstick (`spike_stats`) on the model's spontaneous activity against the
+      Wagenaar ranges, and burst spread (start sites, speed, pattern), model first.
+   4. Only if step 2 confirms the hypothesis and track B is reopened by decision: **many weak synapses**, one
+      time-boxed round. Gate: about 6.5% of pulses set off a burst, spontaneous statistics in range, and the full
+      drift gate in ≥ 3 of 5 cultures. A failure ends track B for good.
+   5. Optional: **A1c**, a wider encoder input limit on the 12-electrode well, as a labelled run.
+
+   The notes' A1 state test (proposal 3) is dropped: it explains a relay flaw but changes no decision.
 
 One GPU job at a time (8 GB card). Every run is guarded: a smoke test, in-run checks, a watchdog, 40 fresh seeds and
 the standard baselines.
@@ -298,14 +314,15 @@ new was run for them, and none gives a route past the bar. What they give:
 - **Methods for the real-dish drift test**: co-firing corrected for rate with a proper null, decoding across time,
   response geometry compared between minutes, and those direction maps.
 
-The proposals, in order, are at the end of the notes.
+The order of work they lead to is item 4 under [Order](#order).
 
 ## Parked until dish access
 
 These wait until a real culture or the robot is available. Then the ranking of the routes above applies again.
 
 1. **First real-dish session**, one culture: A1 (channel, ~20 min), C1 (open-loop pushes, ~20 min, then blockers at
-   the end), B1 (coaching, ~1 hour, before the blockers). Each decides its route on its own.
+   the end), B1 (coaching, ~1 hour, before the blockers). Each decides its route on its own. Under the blockers,
+   measure A1's channel once more: in the model, a dish with its links cut relays better (1 × 12: 32 vs 23/40).
 2. **What follows it.** If B1 passes: B2 on the dish, then B3 and B4 on the robot. If C1 passes: A2 and A3, then C2
    on a local loop. If both fail: report the negative result with its controls and pick the next job from the
    adaptation slot (`adaptation_slot.py`) with a richer choice.

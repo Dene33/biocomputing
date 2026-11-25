@@ -14,6 +14,13 @@
   still takes over both outputs.
 - **Checked (25 November):** a code review of track B's scripts found 13 bugs. All are fixed with tests, every
   affected run was repeated, and no verdict changed. Runs now repeat bit for bit.
+- **Next, not yet run:** the order set after reading four papers (route doc, [Order](route-to-computation.md#order),
+  item 4):
+  1. A2c: keep the decoder and refit only the edit;
+  2. a takeover rerun with a weight dump (a diagnostic; track B stays closed);
+  3. a realism scorecard of the model;
+  4. a model fix (many weak synapses) only by decision;
+  5. A1c, optional.
 - **Waiting:** Phase 4's learning questions, for a dish.
 - **Parked:** Phase 5 and every real-robot step. There is no dish and no robot for now.
 - **Open, not in the current plan:** Phase 2 track (b).
@@ -365,3 +372,7 @@ It counts as computation only if:
 4. **Phase 4**: simulation tests done. Learning questions run in simulation only if track B's gates pass.
 5. **Phase 5** and every real-robot step: parked until access. The channel test can start as soon as a dish is
    available.
+6. **Next in simulation:** A2c, then the takeover rerun, then the realism scorecard (route doc,
+   [Order](route-to-computation.md#order), item 4).
+   - Decision point after A2c: route 3's session protocol (refit the edit, or refit the decoder).
+   - Decision point after the takeover rerun: reopen track B for one targeted round, or close it for good.

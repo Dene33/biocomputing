@@ -238,8 +238,9 @@ can't, so learning questions wait for a dish. On 25 November a code review of tr
 are fixed with tests, every affected run was repeated, and no verdict changed.
 Real-dish and real-robot steps are parked. Ideas behind it: [docs/organoid-control-ideas.md](docs/organoid-control-ideas.md).
 Four recent papers suggest a cheaper session recalibration for track A2 (keep the decoder, refit only the edit) and
-a test of why track B's pathways mix. The notes and ranked proposals, none run yet, are in
-[docs/literature-notes.md](docs/literature-notes.md).
+a test of why track B's pathways mix. The notes are in [docs/literature-notes.md](docs/literature-notes.md). The next
+simulated steps, none run yet, in order: A2c (refit only the edit), a takeover rerun with a weight dump, and a
+realism scorecard of the model ([Order](docs/route-to-computation.md#order)).
 
 ## Limits of the simulation
 
