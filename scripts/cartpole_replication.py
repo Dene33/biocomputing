@@ -87,7 +87,7 @@ step, on the simulated culture (20,000 neurons, 256-electrode grid at 100 um, fo
    Result (24 Nov 2026; numbers from the rerun of 25 Nov after the code review's fixes: exp factor, one yardstick per
    neuron): gate B1 not passed; the controls behave. Last-minute rate per electrode against rest, cultures 0 / 1 / 2:
    no plasticity 1.10 / 1.14 / 0.97; scaling alone 1.04 / 1.04 / 0.99 (0.99-1.07 in every minute; neurons above 1.5x
-   their own target 0.8-3.7% -> 0.5-1.0%); STDP x1 with the old 5 s step 6.84 / 8.97 / 4.59; STDP x1 with scaling at
+   their own target 0.8-3.7% -> 0.5-1.0%); STDP x1 with the old 5 s step 6.97 / 7.83 / 5.54; STDP x1 with scaling at
    eta 1e-5 7.46 / 10.2 / 6.29, no better than the old step: 4.9-7.5x rest by minute 2 and 5.1-10.2x from minute 5
    on, mean E->E weight 1.42-1.76x its start (the old step holds it at 0.99x). Exploratory eta 1e-4: 1.91 / 2.10 /
    1.96, 1.7-2.1x from minute 5 on, E->E weight 0.58-0.72x. Scaling alone doesn't mute the inputs (own gains
@@ -96,9 +96,11 @@ step, on the simulated culture (20,000 neurons, 256-electrode grid at 100 um, fo
    under 2), and one decoder ends up following the other encoder (6.6 against 0.8 from its own; 4.7 against 2.0).
    Ten times the eta cut the excess over rest from 7.0x to 1.0x: the brake works, but against a push that doesn't
    let up. Only the old 5 s step didn't repeat bit for bit: its total-input sum used the GPU's atomic adds, which
-   add in a varying order (6.97 / 9.10 / 4.54 on 24 Nov; ordered sum since 25 Nov, ``excitatory_input``). Every
-   other arm repeats exactly; the scaling arms moved since 24 Nov because the exp factor changes the weights slightly
-   and the network's chaos grows that into another path. Likely reason, not tested: our STDP is additive (a fixed
+   add in a varying order (6.97 / 9.10 / 4.54 on 24 Nov, 6.84 / 8.97 / 4.59 on 25 Nov; the numbers above are from the
+   ordered sum, ``excitatory_input``, and repeat). Every other arm repeats exactly; the scaling arms moved since 24
+   Nov because the exp factor changes the weights slightly and the network's chaos grows that into another path. So
+   one run of one arm is one path of a chaotic system: the old step's three runs span 7.8-9.1x in culture 1 and
+   4.5-5.5x in culture 2. Likely reason, not tested: our STDP is additive (a fixed
    step per pairing) and the scaling multiplicative, so they balance only at a rate error that grows as eta falls
    and as the weights shrink. A rate brake also does nothing for the pathways.
    Check before closing track B (24 Nov 2026; B2's first candidate, run early and labelled as such): does
@@ -118,7 +120,7 @@ step, on the simulated culture (20,000 neurons, 256-electrode grid at 100 um, fo
             scripts/cartpole_replication.py --drift --stdp-rule multiplicative --drift-seeds 0 1 2 \
             --drift-scales 0 1 --drift-homeo 0 1e-5 1e-4 --drift-seconds 600 --workers 4 --out outputs/drift_scaling
    Result (24 Nov 2026; numbers from the rerun of 25 Nov): the reading fails, so track B closes. Last-minute rate
-   against rest, cultures 0 / 1 / 2: weight-dependent STDP with the old step 3.97 / 3.46 / 2.41 (control); with
+   against rest, cultures 0 / 1 / 2: weight-dependent STDP with the old step 4.05 / 3.41 / 2.18 (control); with
    scaling at eta 1e-5 4.21 / 4.95 / 2.16 (additive: 7.46 / 10.2 / 6.29), no better than the old step (above it in
    2 of 3 cultures), E->E weight 1.16-1.31x; 6 of 12 pathways moved (2 of 4 in every culture: a cross gain up by
    5.7-19 spikes per pulse). Exploratory eta 1e-4: 1.39 / 1.53 / 1.34, within the band in 28 of 30 minutes

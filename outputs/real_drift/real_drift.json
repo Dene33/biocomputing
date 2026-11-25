@@ -277,81 +277,81 @@
   "additive STDP + old 5 s step": {
    "runs": 3,
    "runs_measured": 3,
-   "moved_share": 0.3333,
+   "moved_share": 0.25,
    "moved_own_share": 0.1667,
-   "moved_cross_share": 0.5,
-   "takeover_share": 0.3333,
-   "specific_start_share": 0.3333,
+   "moved_cross_share": 0.1667,
+   "takeover_share": 0.0,
+   "specific_start_share": 0.0,
    "rate_ratio_first30": {
     "n": 3,
-    "median": 1.9436,
+    "median": 1.8499,
     "iqr": [
-     1.9414,
-     2.3242
+     1.8348,
+     2.001
     ],
     "p5_p95": [
-     1.9396,
-     2.6286
+     1.8227,
+     2.1218
     ]
    },
    "rate_ratio_first3": {
     "n": 3,
-    "median": 1.0625,
+    "median": 1.0832,
     "iqr": [
-     1.0272,
-     1.0735
+     1.0609,
+     1.1708
     ],
     "p5_p95": [
-     0.999,
-     1.0822
+     1.043,
+     1.2408
     ]
    },
    "detectable_2se": {
     "n": 3,
-    "median": 2.3493,
+    "median": 2.1329,
     "iqr": [
-     1.7443,
-     3.0379
+     1.6245,
+     2.7388
     ],
     "p5_p95": [
-     1.2603,
-     3.5888
+     1.2179,
+     3.2235
     ]
    },
    "pref_gain_first3": {
     "n": 3,
-    "median": 15.765,
+    "median": 8.0233,
     "iqr": [
-     10.4008,
-     15.9533
+     5.4233,
+     12.0483
     ],
     "p5_p95": [
-     6.1095,
-     16.104
+     3.3433,
+     15.2683
     ]
    },
    "detectable_vs_pref": {
     "n": 3,
-    "median": 0.149,
+    "median": 0.4169,
     "iqr": [
-     0.1098,
-     0.4444
+     0.2432,
+     0.5862
     ],
     "p5_p95": [
-     0.0784,
-     0.6808
+     0.1042,
+     0.7216
     ]
    },
    "abs_change": {
     "n": 3,
-    "median": 0.9892,
+    "median": 1.2892,
     "iqr": [
-     0.9825,
-     2.1967
+     0.9754,
+     2.9962
     ],
     "p5_p95": [
-     0.9772,
-     3.1627
+     0.7244,
+     4.3619
     ]
    }
   },
@@ -520,81 +520,81 @@
   "multiplicative STDP + old 5 s step": {
    "runs": 3,
    "runs_measured": 3,
-   "moved_share": 0.1667,
+   "moved_share": 0.25,
    "moved_own_share": 0.1667,
-   "moved_cross_share": 0.1667,
-   "takeover_share": 0.3333,
+   "moved_cross_share": 0.3333,
+   "takeover_share": 0.0,
    "specific_start_share": 0.3333,
    "rate_ratio_first30": {
     "n": 3,
-    "median": 1.6979,
+    "median": 1.6273,
     "iqr": [
-     1.592,
-     1.7193
+     1.5683,
+     1.6558
     ],
     "p5_p95": [
-     1.5073,
-     1.7365
+     1.5211,
+     1.6786
     ]
    },
    "rate_ratio_first3": {
     "n": 3,
-    "median": 1.0555,
+    "median": 1.0519,
     "iqr": [
-     0.969,
-     1.0627
+     0.9292,
+     1.0922
     ],
     "p5_p95": [
-     0.8998,
-     1.0685
+     0.8311,
+     1.1245
     ]
    },
    "detectable_2se": {
     "n": 3,
-    "median": 2.5534,
+    "median": 3.0062,
     "iqr": [
-     1.6878,
-     2.7044
+     1.9472,
+     3.2145
     ],
     "p5_p95": [
-     0.9954,
-     2.8252
+     1.1001,
+     3.3812
     ]
    },
    "pref_gain_first3": {
     "n": 3,
-    "median": 9.1533,
+    "median": 9.5167,
     "iqr": [
-     5.9483,
-     9.92
+     5.6442,
+     9.9517
     ],
     "p5_p95": [
-     3.3843,
-     10.5333
+     2.5462,
+     10.2997
     ]
    },
    "detectable_vs_pref": {
     "n": 3,
-    "median": 0.3119,
+    "median": 0.3597,
     "iqr": [
-     0.1944,
-     0.6213
+     0.2226,
+     1.0282
     ],
     "p5_p95": [
-     0.1004,
-     0.8689
+     0.1129,
+     1.5631
     ]
    },
    "abs_change": {
     "n": 3,
-    "median": 0.6375,
+    "median": 1.9167,
     "iqr": [
-     0.4996,
-     1.8767
+     1.3883,
+     2.8671
     ],
     "p5_p95": [
-     0.3893,
-     2.868
+     0.9657,
+     3.6274
     ]
    }
   },
