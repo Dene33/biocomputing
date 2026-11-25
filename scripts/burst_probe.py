@@ -72,7 +72,7 @@ def build(seed, overrides):
                                make_mea_config("mcs60", seed=seed, stim_length_um=120.0))
     dev.step(2000.0)
     c = dev.culture
-    w_in0 = torch.zeros(c.n, device=c.device).index_add_(0, c.post[c.syn_exc], c.w[c.syn_exc])
+    w_in0 = c.excitatory_input()
     return dev, STDP(), w_in0
 
 

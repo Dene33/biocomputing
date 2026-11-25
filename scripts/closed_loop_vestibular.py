@@ -51,7 +51,8 @@ state), jobs/<cfg>/<arm>/<seed>_<key>.json (one per episode), results.json (the 
 digest of the settings the file depends on (``job_key``: data and replay steps; for an episode also its length and
 edit), so a rerun into the same --out with a setting changed runs anew instead of reusing other settings' results.
 Stop: workers share a lock-free stop flag, checked every control step; a replay saves its checkpoint (ckpt/), an
-episode is dropped and redone. Relaunch the same command to resume. GPU runs are not bit-reproducible (atomic adds).
+episode is dropped and redone. Relaunch the same command to resume. GPU runs repeat bit for bit (25 Nov: four A1b
+episodes replayed from the saved setups equal their stored rows).
 
 Run 2 (A1b), after run 1 failed: ``--edit affine --seed-base 9100 --out outputs/closed_loop_vestibular_affine``.
 

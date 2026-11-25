@@ -244,6 +244,13 @@ class OrganoidCulture:
             A.values()[structure[3][idx]] = values.to(A.dtype)
             self._A_cache = ((self.w._version, self.w.data_ptr()), A, structure)
 
+    def excitatory_input(self) -> torch.Tensor:
+        """Each neuron's summed excitatory input weight: the excitatory rows of the delivery matrix, summed. A sum in
+        a fixed order, so it repeats bit for bit; ``index_add_`` on the GPU adds with atomics in a varying order, and
+        runs that rescaled weights by such a sum (the 5 s total-input step) drifted apart from run to run."""
+        A = self._delivery_matrix()
+        return (A @ torch.ones(A.shape[1], 1, device=self.device)).squeeze(1)[: self.n]
+
     def synapses_of(self, neurons: torch.Tensor) -> torch.Tensor:
         """Indices of every synapse leaving or entering ``neurons`` (may repeat a synapse)."""
         if getattr(self, "_syn_lookup", None) is None:

@@ -95,9 +95,10 @@ step, on the simulated culture (20,000 neurons, 256-electrode grid at 100 um, fo
    cultures 0 and 1 a cross gain climbs from 2.0-2.8 to 4.7-6.6 spikes per pulse over the 10 minutes (no plasticity:
    under 2), and one decoder ends up following the other encoder (6.6 against 0.8 from its own; 4.7 against 2.0).
    Ten times the eta cut the excess over rest from 7.0x to 1.0x: the brake works, but against a push that doesn't
-   let up. The plastic arms don't repeat bit for bit on the GPU (spike inputs are summed by atomic adds, in varying
-   order; the arms without plasticity repeat exactly), so a rerun moves them a little: STDP alone, which no fix
-   touched, gave 6.97 / 9.10 / 4.54 on 24 Nov. Likely reason, not tested: our STDP is additive (a fixed
+   let up. Only the old 5 s step didn't repeat bit for bit: its total-input sum used the GPU's atomic adds, which
+   add in a varying order (6.97 / 9.10 / 4.54 on 24 Nov; ordered sum since 25 Nov, ``excitatory_input``). Every
+   other arm repeats exactly; the scaling arms moved since 24 Nov because the exp factor changes the weights slightly
+   and the network's chaos grows that into another path. Likely reason, not tested: our STDP is additive (a fixed
    step per pairing) and the scaling multiplicative, so they balance only at a rate error that grows as eta falls
    and as the weights shrink. A rate brake also does nothing for the pathways.
    Check before closing track B (24 Nov 2026; B2's first candidate, run early and labelled as such): does
@@ -109,9 +110,9 @@ step, on the simulated culture (20,000 neurons, 256-electrode grid at 100 um, fo
    at eta 1e-5, the rate gate above holds in all 3 cultures and at most 1 of the 12 pathways (own and cross, 4 per
    culture) has moved against the no-plasticity arm: last 3 minutes, beyond 2 SE from both arms' per-minute spread
    over minutes 2-10 (``pathways_vs_off``, bl1_rep_analysis.py's test). On B1's rows that test finds 2 of 4 moved in
-   6 of the 9 culture-and-setting arms with additive STDP and none in the other 3 (9 of 9 on 24 Nov's run: one arm's
-   verdict can change between runs), and 1 of 24 with scaling alone (the noise floor). Otherwise
-   the track closes, as its rule says. Output: <out>/drift_multiplicative_scaling.json.
+   6 of the 9 culture-and-setting arms with additive STDP and none in the other 3 (9 of 9 on 24 Nov's run: a slight
+   change, such as the exp factor, can flip one arm's verdict), and 1 of 24 with scaling alone (the noise floor).
+   Otherwise the track closes, as its rule says. Output: <out>/drift_multiplicative_scaling.json.
 
         uv run scripts/launch.py --unit bio-b1m --log outputs/drift_scaling/run_multiplicative.log -- \
             scripts/cartpole_replication.py --drift --stdp-rule multiplicative --drift-seeds 0 1 2 \
@@ -232,7 +233,7 @@ def build(seed):
     dev = SimulatedBiocomputer(make_config("gpu_20k", seed=seed), make_mea_config("grid256", seed=seed))
     dev.step(2000.0)
     c = dev.culture
-    w_in0 = torch.zeros(c.n, device=c.device).index_add_(0, c.post[c.syn_exc], c.w[c.syn_exc])
+    w_in0 = c.excitatory_input()
     return dev, STDP(), w_in0
 
 

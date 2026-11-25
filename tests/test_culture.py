@@ -290,3 +290,41 @@ def test_chain_of_stdp_and_scaling_resumes_exactly():
     assert not torch.equal(a.w, stdp_only.w)
     with pytest.raises(ValueError):
         Chain(STDP()).load_state(b, pst)
+
+
+def test_excitatory_input_is_a_fixed_order_sum():
+    """The 5 s total-input step summed with index_add_, which on the GPU gave a different float sum on every call (20
+    of 20 calls on this culture), so plastic runs drifted apart. The sum must repeat bit for bit and stay exact."""
+    for device in ["cpu"] + (["cuda"] if torch.cuda.is_available() else []):
+        c = OrganoidCulture(make_config("cpu_2k", n_neurons=1500, device=device, wells=2, seed=5))
+        e = c.syn_exc
+        ref = torch.zeros(c.n, dtype=torch.float64, device=device).index_add_(0, c.post[e], c.w[e].double())
+        got = c.excitatory_input()
+        assert torch.allclose(got.double(), ref, rtol=1e-6, atol=0.0)
+        assert all(torch.equal(got, c.excitatory_input()) for _ in range(10))
+
+
+def test_gpu_plastic_run_repeats_bit_for_bit():
+    """Same seed, same run: STDP, per-neuron scaling and the total-input step together on the GPU, twice."""
+    import pytest
+
+    from biocompute.culture.plasticity import STDP, Chain, SynapticScaling
+
+    if not torch.cuda.is_available():
+        pytest.skip("no GPU")
+
+    def run():
+        dev = _plastic_device(device="cuda")
+        c = dev.culture
+        c.plasticity = Chain(STDP(), SynapticScaling(eta=1e-3, every_ms=10.0))
+        w_in0 = c.excitatory_input()
+        for i in range(8):
+            dev.stimulate([10, 20], [5.0, 30.0], [1.0, 1.0])
+            dev.step(50.0)
+            w_in = c.excitatory_input()  # as coach_probe.scale
+            f = torch.where(w_in > 0, w_in0 / w_in.clamp(min=1e-6), torch.ones_like(w_in))
+            c.w[c.syn_exc] *= f[c.post[c.syn_exc]]
+        return c.w.clone(), c.v.clone()
+
+    (w1, v1), (w2, v2) = run(), run()
+    assert torch.equal(w1, w2) and torch.equal(v1, v2)

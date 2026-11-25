@@ -121,3 +121,18 @@ def test_closed_loop_files_are_keyed_by_their_settings():
     e = cls.episode_file(o, "s32", "day1", "stale", 9200, s2)
     for k, v in (("a1", "b"), ("recal_steps", 300), ("seconds", 10.0), ("data", "e.pkl")):
         assert cls.episode_file(o, "s32", "day1", "stale", 9200, s2 | {k: v}) != e
+
+
+def test_no_atomic_float_sums_outside_the_reviewed_places():
+    """On the GPU, index_add_ and its kin add with atomics in a varying order, so a run that sums floats with them
+    doesn't repeat (the 5 s total-input step did this). Sums go through ordered ops (``excitatory_input``, the
+    delivery matrix); a new use must be reviewed and listed here with its reason."""
+    import re
+
+    reviewed = {"src/biocompute/culture/network.py": "the CPU branch of substep (no atomics on the CPU)",
+                "src/biocompute/mea/electrodes.py": "integer spike counts, exact in any order"}
+    pat = re.compile(r"index_add_|scatter_add|scatter_reduce|index_reduce|accumulate=True|bincount\([^)]*weights")
+    root = SCRIPTS.parent
+    found = {str(p.relative_to(root)) for p in [*root.glob("src/**/*.py"), *SCRIPTS.glob("*.py")]
+             if pat.search(p.read_text())}
+    assert found <= set(reviewed), found - set(reviewed)
