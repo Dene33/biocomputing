@@ -112,7 +112,8 @@ def traces(a1: Path, data: str) -> dict:
     for mode, seeds in TRACE_SEEDS.items():
         dish_name = "dead" if mode == "dead" else "live"
         if dish_name not in cache:
-            blob = pickle.loads((a1 / "setups" / f"s12_{dish_name}.pkl").read_bytes())
+            stem = clv.setup_stem("s12", dish_name, {"data": data, "replay_steps": 0})
+            blob = pickle.loads((a1 / "setups" / f"{stem}.pkl").read_bytes())
             dish = build(clv.make_setup(12, dish_name), O)
             ro = LinearReadout(blob["cols"], 6)
             for k, v in blob["readout"].items():

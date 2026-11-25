@@ -106,3 +106,18 @@ def test_time_gaps_do_not_depend_on_the_machine_zone(monkeypatch):
     finally:
         monkeypatch.undo()
         time.tzset()
+
+
+def test_closed_loop_files_are_keyed_by_their_settings():
+    """A1 and A2 named episodes by seed alone, so a rerun with another --edit or --seconds reused the old ones."""
+    clv, cls, o = load("closed_loop_vestibular"), load("closed_loop_sessions"), Path("out")
+    sz = {"data": "d.pkl", "replay_steps": 0, "seconds": 20.0, "edit": "gain"}
+    f = clv.episode_file(o, "s12", "culture_edit", 9000, sz)
+    for k, v in (("edit", "affine"), ("seconds", 10.0), ("data", "e.pkl"), ("replay_steps", 300)):
+        assert clv.episode_file(o, "s12", "culture_edit", 9000, sz | {k: v}) != f
+    assert clv.setup_stem("s12", "live", sz | {"edit": "affine", "seconds": 1.0}) == clv.setup_stem("s12", "live", sz)
+    s2 = {"data": "d.pkl", "a1": "a1", "recal_steps": 3000, "seconds": 20.0}
+    assert cls.a1_setup(s2, "s32") == Path("a1") / "setups" / f"{clv.setup_stem('s32', 'live', sz)}.pkl"
+    e = cls.episode_file(o, "s32", "day1", "stale", 9200, s2)
+    for k, v in (("a1", "b"), ("recal_steps", 300), ("seconds", 10.0), ("data", "e.pkl")):
+        assert cls.episode_file(o, "s32", "day1", "stale", 9200, s2 | {k: v}) != e

@@ -9,17 +9,27 @@ to w_max by an unrelated scaling step; a short run crashed while writing results
   start-up check.
 - ``scripts/watch.py``: stops the unit at the first Traceback / GUARD FAIL / stall.
 
+``job_key`` names a job's cached result or checkpoint by every setting it runs with, so a rerun into the same output
+folder with any setting changed runs anew instead of reusing a result made with other settings.
+
 Standard culture checks (``Guard.culture``): finite state; weights within [0, cap]; changed plastic weights not piled
 up at a value that is not their configured cap (something else is bounding them); electrode rate plausible.
 """
 
 from __future__ import annotations
 
+import hashlib
 import json
 import math
 import os
 import time
 from pathlib import Path
+
+
+def job_key(name: str, settings: dict) -> str:
+    """File stem of a job's result and checkpoint: its readable name plus a digest of every setting it runs with.
+    Code changes are not in the key: after a model change, rerun into a fresh output folder."""
+    return f"{name}_{hashlib.sha1(json.dumps(settings, sort_keys=True).encode()).hexdigest()[:8]}"
 
 
 class GuardFail(RuntimeError):

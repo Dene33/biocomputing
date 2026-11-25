@@ -171,7 +171,6 @@ checkpoint in <out>/ckpt before rerunning: it holds the state the bug produced.
 """
 
 import argparse
-import hashlib
 import importlib.util
 import itertools
 import json
@@ -184,6 +183,8 @@ import time
 from pathlib import Path
 
 import numpy as np
+
+from biocompute.runguard import job_key
 
 HERE = Path(__file__).parent
 spec = importlib.util.spec_from_file_location("coach_probe", HERE / "coach_probe.py")
@@ -384,13 +385,6 @@ class Checkpoint:
             self.save(dev, stdp, script_fn())
             if STOP["requested"]:
                 raise Stopped(str(self.path))
-
-
-def job_key(name, settings):
-    """File stem of a job's result and checkpoint: its readable name plus a digest of every setting it runs with.
-    A rerun into the same --out with any setting changed (target floor, length, setup sizes, ...) then runs anew
-    instead of reusing a result, or resuming a checkpoint, made with other settings."""
-    return f"{name}_{hashlib.sha1(json.dumps(settings, sort_keys=True).encode()).hexdigest()[:8]}"
 
 
 def make_stdp(spec):

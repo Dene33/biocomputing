@@ -46,10 +46,12 @@ Run (guarded, resumable):
     uv run scripts/watch.py --unit bio-a1 --log outputs/closed_loop_vestibular/run.log
     systemctl --user stop bio-a1     # graceful: replays checkpoint, the running episode is redone on resume
 
-Outputs (<out> = outputs/closed_loop_vestibular): setups/<cfg>_<dish>.json (+ .pkl: decoder, edit, warm state),
-jobs/<cfg>/<arm>/<seed>.json (one per episode), results.json (the table and the gate). Stop: workers share a
-lock-free stop flag, checked every control step; a replay saves its checkpoint (ckpt/), an episode is dropped and
-redone. Relaunch the same command to resume. GPU runs are not bit-reproducible (atomic adds).
+Outputs (<out> = outputs/closed_loop_vestibular): setups/<cfg>_<dish>_<key>.json (+ .pkl: decoder, edit, warm
+state), jobs/<cfg>/<arm>/<seed>_<key>.json (one per episode), results.json (the table and the gate). <key> is a
+digest of the settings the file depends on (``job_key``: data and replay steps; for an episode also its length and
+edit), so a rerun into the same --out with a setting changed runs anew instead of reusing other settings' results.
+Stop: workers share a lock-free stop flag, checked every control step; a replay saves its checkpoint (ckpt/), an
+episode is dropped and redone. Relaunch the same command to resume. GPU runs are not bit-reproducible (atomic adds).
 
 Run 2 (A1b), after run 1 failed: ``--edit affine --seed-base 9100 --out outputs/closed_loop_vestibular_affine``.
 
@@ -114,6 +116,8 @@ from pathlib import Path
 
 import numpy as np
 
+from biocompute.runguard import job_key
+
 ROOT = Path(__file__).resolve().parent.parent
 SEEDS = list(range(9000, 9040))
 CONFIGS = {"s12": 12, "s32": 32}
@@ -127,6 +131,8 @@ ARMS = {
     "zero_action": dict(dish=None, teacher=None, stim=False),
 }
 CULTURE_ARMS = [k for k, v in ARMS.items() if v["dish"]]
+SETUP_KEYS = ("data", "replay_steps")  # the settings a setup depends on
+EPISODE_KEYS = SETUP_KEYS + ("seconds", "edit")  # ... and an episode
 PREROLL_STEPS = 5
 WARM_STEPS = 50
 
@@ -340,6 +346,16 @@ class VestibularController:
 
 
 # --- Setup: replay, decoder, edit, warm state -------------------------------------------------------------------------
+def setup_stem(cfg: str, dish: str, sz: dict) -> str:
+    """File stem of a setup (setups/, ckpt/): ``<cfg>_<dish>`` plus a digest of the settings it is built with."""
+    return job_key(f"{cfg}_{dish}", {k: sz[k] for k in SETUP_KEYS})
+
+
+def episode_file(out: Path, cfg: str, arm: str, seed: int, sz: dict) -> Path:
+    """One episode's result: jobs/<cfg>/<arm>/<seed>_<digest of its settings>.json."""
+    return out / "jobs" / cfg / arm / f"{job_key(str(seed), {k: sz[k] for k in EPISODE_KEYS})}.json"
+
+
 def load_replay(path: str, steps: int) -> np.ndarray:
     d = pickle.load(open(ROOT / path if not Path(path).is_absolute() else path, "rb"))
     return np.asarray(d["obs"][: steps or None], np.float64)
@@ -388,7 +404,8 @@ def setup_job(job):
     ctrl = build(setup, O)
     dev, cu = ctrl.device, ctrl.device.culture
     g.check(cu.plasticity is None, "plasticity is on")
-    ck = out / "ckpt" / f"replay_{name}.pkl"
+    stem = setup_stem(cfg, dish, sz)
+    ck = out / "ckpt" / f"replay_{stem}.pkl"
     ck.parent.mkdir(parents=True, exist_ok=True)
     n = len(O)
     F = None
@@ -481,12 +498,12 @@ def setup_job(job):
     blob = {"row": row, "readout": {k: getattr(ro, k) for k in ("W", "mean", "std", "y_mean", "y_std")},
             "warm": dev.state(), "obs0": obs0, "cols": cols,
             "hold_T": T[split:].astype(np.float32), "hold_P": P.astype(np.float32)}
-    p = out / "setups" / f"{name}.pkl"
+    p = out / "setups" / f"{stem}.pkl"
     p.parent.mkdir(parents=True, exist_ok=True)
     tmp = p.with_suffix(".tmp")
     tmp.write_bytes(pickle.dumps(blob))
     os.replace(tmp, p)
-    write_json(out / "setups" / f"{name}.json", row)
+    write_json(p.with_suffix(".json"), row)
     ck.unlink(missing_ok=True)
     g.beat(n, n, force=True, gain=str(gain), r2=str(held["r2"]))
     print(json.dumps({"setup": name} | {k: row[k] for k in ("alpha", "edit_gain", "phase31_gain", "affine_gain",
@@ -508,7 +525,7 @@ def episode_job(job):
 
     cfg, arm, seeds, out, sz = job
     spec = ARMS[arm]
-    todo = [s for s in seeds if not (out / "jobs" / cfg / arm / f"{s}.json").exists()]
+    todo = [s for s in seeds if not episode_file(out, cfg, arm, s, sz).exists()]
     if not todo or stop_requested():
         return {"stopped": f"{cfg}/{arm} before start"} if todo else {"done": 0}
     g = Guard(f"{cfg}_{arm}_{seeds[0]}", out)
@@ -520,7 +537,7 @@ def episode_job(job):
 
         from biocompute.train.setup import build
 
-        blob = pickle.loads((out / "setups" / f"{cfg}_{spec['dish']}.pkl").read_bytes())
+        blob = pickle.loads((out / "setups" / f"{setup_stem(cfg, spec['dish'], sz)}.pkl").read_bytes())
         O = load_replay(sz["data"], sz["replay_steps"])
         dish = build(make_setup(CONFIGS[cfg], spec["dish"]), O)  # same encoder fit as the setup's
         cu = dish.device.culture
@@ -573,17 +590,17 @@ def episode_job(job):
                                                  / (ep.steps * 0.02), 2)
         if ctl.decoded and spec["dish"]:
             row["closed_loop_channel"] = channel_stats(np.array(ctl.true), np.array(ctl.decoded), center=center)
-        write_json(out / "jobs" / cfg / arm / f"{seed}.json", row)
+        write_json(episode_file(out, cfg, arm, seed, sz), row)
         n_done += 1
         g.beat(si + 1, len(todo), force=True, seed=seed, survived=row["survived_s"])
     return {"done": n_done}
 
 
 # --- Summary ------------------------------------------------------------------------------------------------------------
-def summarize(out: Path, combos, seeds, seconds, edit="gain") -> dict:
+def summarize(out: Path, combos, seeds, sz) -> dict:
     table = []
     for cfg, arm in combos:
-        rows = [json.loads(p.read_text()) for s in seeds if (p := out / "jobs" / cfg / arm / f"{s}.json").exists()]
+        rows = [json.loads(p.read_text()) for s in seeds if (p := episode_file(out, cfg, arm, s, sz)).exists()]
         surv = np.array([r["survived_s"] for r in rows])
         full = int(sum(r["full"] for r in rows))
         e = {"cfg": cfg, "arm": arm, "n": len(rows), "full": full,
@@ -617,9 +634,11 @@ def summarize(out: Path, combos, seeds, seconds, edit="gain") -> dict:
             if a["n"] and b["n"]:
                 dead_vs_live[cfg] = {"live_full": f"{a['full']}/{a['n']}", "dead_full": f"{b['full']}/{b['n']}",
                                      "live_minus_dead_mean_s": round(a["mean_s"] - b["mean_s"], 2)}
-    setups = {p.stem: json.loads(p.read_text()) for p in sorted((out / "setups").glob("*.json"))}
-    res = {"edit": edit, "seeds": [seeds[0], seeds[-1]], "seconds": seconds, "table": table, "gate_A1": gate,
-           "dead_vs_live": dead_vs_live,
+    setups = {f"{c}_{d}": json.loads(p.read_text()) for c, d in sorted({(c, ARMS[a]["dish"]) for c, a in combos
+                                                                         if ARMS[a]["dish"]})
+              if (p := out / "setups" / f"{setup_stem(c, d, sz)}.json").exists()}
+    res = {"edit": sz["edit"], "seeds": [seeds[0], seeds[-1]], "seconds": sz["seconds"], "table": table,
+           "gate_A1": gate, "dead_vs_live": dead_vs_live,
            "setups": {k: {kk: v.get(kk) for kk in ("edit_gain", "phase31_gain", "held_out", "affine_gain", "affine_icpt",
                                                    "stand_imu", "held_out_at_stand", "alpha", "mean_rate_hz",
                                                    "replay_steps", "split")} for k, v in setups.items()}}
@@ -668,18 +687,18 @@ def main():
                       "seconds": a.seconds, "workers": a.workers, "smoke": a.smoke, "edit": a.edit,
                       "seed_base": a.seed_base}), flush=True)
     dishes = sorted({(c, ARMS[arm]["dish"]) for c, arm in combos if ARMS[arm]["dish"]})
-    todo = [(c, d, out, sz) for c, d in dishes if not (out / "setups" / f"{c}_{d}.pkl").exists()]
+    todo = [(c, d, out, sz) for c, d in dishes if not (out / "setups" / f"{setup_stem(c, d, sz)}.pkl").exists()]
     if todo:
         pool_map(_setup_safe, todo, min(a.workers, len(todo)), threads)
     jobs = []
     for c, arm in combos:
-        left = [s for s in seeds if not (out / "jobs" / c / arm / f"{s}.json").exists()]
+        left = [s for s in seeds if not episode_file(out, c, arm, s, sz).exists()]
         jobs += [(c, arm, left[i:i + a.chunk], out, sz) for i in range(0, len(left), a.chunk)]
     # Long jobs first, so the short ones fill in at the end.
     jobs.sort(key=lambda j: (ARMS[j[1]]["dish"] is None, j[1] == "silenced"))
     if jobs:
         pool_map(_episode_safe, jobs, min(a.workers, len(jobs)), threads)
-    summarize(out, combos, seeds, a.seconds, a.edit)
+    summarize(out, combos, seeds, sz)
 
 
 if __name__ == "__main__":

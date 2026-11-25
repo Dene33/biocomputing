@@ -49,8 +49,10 @@ Run (guarded, resumable):
     uv run scripts/watch.py --unit bio-a2 --log outputs/closed_loop_sessions/run.log
     systemctl --user stop bio-a2     # graceful; relaunch the same command to resume
 
-Outputs (outputs/closed_loop_sessions): sessions/<cfg>_<cond>.json (+ .pkl: decoder, edit, warm state),
-jobs/<cfg>/<cond>/<arm>/<seed>.json (one per episode), results.json (the table and the gate). A session's 60 s
+Outputs (outputs/closed_loop_sessions): sessions/<cfg>_<cond>_<key>.json (+ .pkl: decoder, edit, warm state),
+jobs/<cfg>/<cond>/<arm>/<seed>_<key>.json (one per episode), results.json (the table and the gate). <key> is a
+digest of the settings the file depends on (``job_key``: data, A1's folder, recalibration steps; for an episode also
+its length), so a rerun into the same --out with a setting changed runs anew. A session's 60 s
 replay takes about 2 minutes and is redone if stopped (no checkpoint); a stopped episode is redone; finished
 episodes are kept.
 
@@ -103,6 +105,8 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import closed_loop_vestibular as clv  # noqa: E402
 
+from biocompute.runguard import job_key  # noqa: E402
+
 ROOT = clv.ROOT
 SEEDS = list(range(9200, 9240))
 CONDITIONS = {"day0": dict(days=0.0), "day1": dict(days=1.0), "day3": dict(days=3.0), "day7": dict(days=7.0),
@@ -114,6 +118,7 @@ AGING_SEED = 11
 REST_MS = 1000.0
 RECAL_STEPS = 3000  # 60 s
 FOLDS = 5
+SESSION_KEYS = ("data", "a1", "recal_steps")  # the settings a session depends on; an episode also on its length
 
 
 def _session_safe(job):
@@ -130,8 +135,24 @@ def _episode_safe(job):
         return {"stopped": str(e)}
 
 
+def session_stem(cfg: str, cond: str, sz: dict) -> str:
+    """File stem of a session (sessions/): ``<cfg>_<cond>`` plus a digest of the settings it is built with."""
+    return job_key(f"{cfg}_{cond}", {k: sz[k] for k in SESSION_KEYS})
+
+
+def episode_file(out: Path, cfg: str, cond: str, arm: str, seed: int, sz: dict) -> Path:
+    """One episode's result: jobs/<cfg>/<cond>/<arm>/<seed>_<digest of its settings>.json."""
+    key = job_key(str(seed), {k: sz[k] for k in SESSION_KEYS + ("seconds",)})
+    return out / "jobs" / cfg / cond / arm / f"{key}.json"
+
+
+def a1_setup(sz: dict, cfg: str) -> Path:
+    """A1's day-0 setup for ``cfg``, under the name A1 gave it (built on the whole replay of this run's data)."""
+    return Path(sz["a1"]) / "setups" / f"{clv.setup_stem(cfg, 'live', {'data': sz['data'], 'replay_steps': 0})}.pkl"
+
+
 def a1_blob(sz, cfg):
-    return pickle.loads((Path(sz["a1"]) / "setups" / f"{cfg}_live.pkl").read_bytes())
+    return pickle.loads(a1_setup(sz, cfg).read_bytes())
 
 
 def make_ctrl(cfg: str, cond: str, O: np.ndarray):
@@ -258,12 +279,12 @@ def session_job(job):
            "stale_affine_icpt": row0["affine_icpt"], "smoke": sz["smoke"]}
     blob = {"row": row, "readout": {k: getattr(ro, k) for k in ("W", "mean", "std", "y_mean", "y_std")},
             "warm": dev.state(), "obs0": obs0, "cols": cols}
-    p = out / "sessions" / f"{name}.pkl"
+    p = out / "sessions" / f"{session_stem(cfg, cond, sz)}.pkl"
     p.parent.mkdir(parents=True, exist_ok=True)
     tmp = p.with_suffix(".tmp")
     tmp.write_bytes(pickle.dumps(blob))
     os.replace(tmp, p)
-    clv.write_json(out / "sessions" / f"{name}.json", row)
+    clv.write_json(p.with_suffix(".json"), row)
     g.beat(n, n, force=True)
     print(json.dumps({"session": name, "alive_vs_day0": row["alive_vs_day0"], "exc_sd": row["excitability_sd"],
                       "rate_hz": row["rate_hz"], "stale_gain": stale.get("gain"),
@@ -282,8 +303,7 @@ def episode_job(job):
     from biocompute.train.tasks import make_task
 
     cfg, cond, arm, seeds, out, sz = job
-    path = out / "jobs" / cfg / cond / arm
-    todo = [s for s in seeds if not (path / f"{s}.json").exists()]
+    todo = [s for s in seeds if not episode_file(out, cfg, cond, arm, s, sz).exists()]
     if not todo or clv.stop_requested():
         return {"stopped": f"{cfg}/{cond}/{arm} before start"} if todo else {"done": 0}
     g = Guard(f"{cfg}_{cond}_{arm}_{seeds[0]}", out)
@@ -295,7 +315,7 @@ def episode_job(job):
     elif ARMS[arm]["dish"]:
         import torch
 
-        sb = pickle.loads((out / "sessions" / f"{cfg}_{cond}.pkl").read_bytes())
+        sb = pickle.loads((out / "sessions" / f"{session_stem(cfg, cond, sz)}.pkl").read_bytes())
         src = a1_blob(sz, cfg) if arm == "stale" else sb
         O = clv.load_replay(sz["data"], 0)
         dish = make_ctrl(cfg, cond, O)
@@ -349,18 +369,17 @@ def episode_job(job):
             if ctl.decoded:
                 row["closed_loop_channel"] = clv.channel_stats(np.array(ctl.true), np.array(ctl.decoded),
                                                                center=center)
-        clv.write_json(path / f"{seed}.json", row)
+        clv.write_json(episode_file(out, cfg, cond, arm, seed, sz), row)
         n_done += 1
         g.beat(si + 1, len(todo), force=True, seed=seed, survived=row["survived_s"])
     return {"done": n_done}
 
 
-def summarize(out: Path, configs, conds, seeds, seconds) -> dict:
+def summarize(out: Path, configs, conds, seeds, sz) -> dict:
     table = []
     for cfg, cond, arm in [(c, d, a) for c in configs for d in conds for a in ("stale", "recal")] + \
             [("none", "none", a) for a in ("ideal_imu", "zero_action")]:
-        rows = [json.loads(p.read_text()) for s in seeds
-                if (p := out / "jobs" / cfg / cond / arm / f"{s}.json").exists()]
+        rows = [json.loads(p.read_text()) for s in seeds if (p := episode_file(out, cfg, cond, arm, s, sz)).exists()]
         if not rows:
             continue
         surv = np.array([r["survived_s"] for r in rows])
@@ -391,8 +410,9 @@ def summarize(out: Path, configs, conds, seeds, seconds) -> dict:
                 "day0_recal": None if d0 is None else f"{d0['full']}/{d0['n']}",
                 "tested": any(v["stale_drops"] for v in per.values()),
                 "pass": bool(complete and per and all(v["recal_holds"] for v in per.values()))}
-    sessions = {p.stem: json.loads(p.read_text()) for p in sorted((out / "sessions").glob("*.json"))}
-    res = {"seeds": [seeds[0], seeds[-1]], "seconds": seconds, "table": table, "gate_A2": gate,
+    sessions = {f"{c}_{d}": json.loads(p.read_text()) for c in configs for d in sorted(conds)
+                if (p := out / "sessions" / f"{session_stem(c, d, sz)}.json").exists()}
+    res = {"seeds": [seeds[0], seeds[-1]], "seconds": sz["seconds"], "table": table, "gate_A2": gate,
            "sessions": sessions}
     clv.write_json(out / "results.json", res)
     for e in table:
@@ -431,26 +451,26 @@ def main():
     threads = max(1, min(4, (os.cpu_count() or 4) // max(a.workers, 1)))
     sz = {"data": a.data, "a1": a.a1, "recal_steps": a.recal_steps, "seconds": a.seconds, "smoke": a.smoke}
     for cfg in a.configs:
-        if not (Path(a.a1) / "setups" / f"{cfg}_live.pkl").exists():
+        if not a1_setup(sz, cfg).exists():
             sys.exit(f"no A1 setup for {cfg} in {a.a1}")
     print(json.dumps({"start": time.strftime("%Y-%m-%d %H:%M:%S"), "configs": a.configs, "conds": a.conds,
                       "arms": a.arms, "seeds": [seeds[0], seeds[-1]], "seconds": a.seconds,
                       "workers": a.workers, "smoke": a.smoke}), flush=True)
     dish_arms = [x for x in a.arms if ARMS[x]["dish"]]
     todo = [(c, d, out, sz) for c in a.configs for d in a.conds
-            if dish_arms and not (out / "sessions" / f"{c}_{d}.pkl").exists()]
+            if dish_arms and not (out / "sessions" / f"{session_stem(c, d, sz)}.pkl").exists()]
     if todo:
         clv.pool_map(_session_safe, todo, min(a.workers, len(todo)), threads)
     combos = [(c, d, x) for c in a.configs for d in a.conds for x in dish_arms]
     combos += [("none", "none", x) for x in a.arms if not ARMS[x]["dish"]]
     jobs = []
     for c, d, x in combos:
-        left = [s for s in seeds if not (out / "jobs" / c / d / x / f"{s}.json").exists()]
+        left = [s for s in seeds if not episode_file(out, c, d, x, s, sz).exists()]
         jobs += [(c, d, x, left[i:i + a.chunk], out, sz) for i in range(0, len(left), a.chunk)]
     jobs.sort(key=lambda j: not ARMS[j[2]]["dish"])  # long jobs first
     if jobs:
         clv.pool_map(_episode_safe, jobs, min(a.workers, len(jobs)), threads)
-    summarize(out, a.configs, a.conds, seeds, a.seconds)
+    summarize(out, a.configs, a.conds, seeds, sz)
 
 
 if __name__ == "__main__":
