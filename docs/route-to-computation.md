@@ -3,10 +3,14 @@
 22 November 2026. Builds on [next-steps.md](next-steps.md) and the README's status. Each claim cites the script and
 commit that produced it. Simulated results are statements about our model; each is a hypothesis for a real dish.
 
-**Status, 24 November 2026.** The routes below are ranked for real hardware, and every one of their gates needs a
+**Status, 25 November 2026.** The routes below are ranked for real hardware, and every one of their gates needs a
 dish. We have no culture and no physical robot for now, so the routes are parked. Both simulated tracks in
 [Order of work without a dish](#order-of-work-without-a-dish) have run: track A missed its gates narrowly, and track B
 closed after its first step. What waits is listed under [Parked until dish access](#parked-until-dish-access).
+On 25 November a code review of track B's scripts found 13 bugs (among them a scaling step that could turn weights
+negative, cached results reused across settings, and a yardstick that differed between arms). All are fixed with
+tests, every drift arm was rerun, and no verdict changed; the numbers below are from the rerun. Runs now repeat bit
+for bit; a single run of one culture is still one path of a chaotic network.
 
 ## The bar
 

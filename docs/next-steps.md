@@ -1,9 +1,9 @@
 # Next steps: from a sensory relay to an organoid that matters
 
-21 November 2026. Context: [README, Status and findings](../README.md#status-and-findings-23-november-2026) and
+21 November 2026. Context: [README, Status and findings](../README.md#status-and-findings-25-november-2026) and
 [organoid-control-ideas.md](organoid-control-ideas.md).
 
-**Status, 24 November 2026.**
+**Status, 25 November 2026.**
 - **Done:** Phase 1.1 and Gate G1; the Phase 2 harness (2.1) and track (a); Phase 3.1; Phase 4's simulation tests
   ([route-to-computation.md](route-to-computation.md)).
 - **Run:** Phase 3.3, the culture in the robot's loop: track A (A1 and A2) of the route doc's
@@ -12,6 +12,8 @@
 - **Closed:** track B, after its first step (B1, a rate controller) failed and one check didn't rescue it. The
   model's rates can be brought to the edge of the band (1.3–1.5× rest), but under repeated stimulation one input
   still takes over both outputs.
+- **Checked (25 November):** a code review of track B's scripts found 13 bugs. All are fixed with tests, every
+  affected run was repeated, and no verdict changed. Runs now repeat bit for bit.
 - **Waiting:** Phase 4's learning questions, for a dish.
 - **Parked:** Phase 5 and every real-robot step. There is no dish and no robot for now.
 - **Open, not in the current plan:** Phase 2 track (b).

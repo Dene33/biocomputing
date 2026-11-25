@@ -22,8 +22,8 @@ The culture drives **all 23 joints of Asimov 1 at 50 Hz** in MuJoCo. Two ways to
 | `src/biocompute/loop.py` | The closed loop. The culture needs 20 ms of its own time to answer, so an action applies one step late. |
 | `src/biocompute/train/` | Tasks, DAgger (serial, and `parallel.py`: several copies of the same dish in worker processes), feedback sessions |
 | `scripts/` | `characterise_culture.py`, `baselines.py`, `train_reservoir.py`, `train_dagger.py` (parallel DAgger, ridge or MLP decoder), `eval_readout.py` (many seeds, ablations), `train_feedback.py`, `evaluate.py`, `view.py`, `train_expert.py` / `program_expert.py` (stance-only balance experts: they cannot pass `stand_push`) |
-| `scripts/` (experiments) | `reflex_oracle.py`, `blind_teacher.py`, `no_imu_student.py`, `vestibular_probe.py`, `trigger_probe.py`, `adaptation_slot.py`, `struggle_signal.py`, `coach_probe.py`, `dish_regimes.py`, `burst_probe.py`, `cartpole_replication.py`, `cebra_probe.py`, `bl1_drift.py` (with `bl1_checks.py`, `bl1_rep_analysis.py`; runs in bl1's own venv), `closed_loop_vestibular.py`, `public_data_targets.py`: one experiment each; results in [docs/route-to-computation.md](docs/route-to-computation.md) and the commit log |
-| `scripts/launch.py`, `scripts/watch.py`, `src/biocompute/runguard.py` | Guarded long runs: smoke test, detached systemd unit, in-run checks, watchdog |
+| `scripts/` (experiments) | `reflex_oracle.py`, `blind_teacher.py`, `no_imu_student.py`, `vestibular_probe.py`, `trigger_probe.py`, `adaptation_slot.py`, `struggle_signal.py`, `coach_probe.py`, `dish_regimes.py`, `burst_probe.py`, `cartpole_replication.py`, `cebra_probe.py`, `bl1_drift.py` (with `bl1_checks.py`, `bl1_rep_analysis.py`; runs in bl1's own venv), `closed_loop_vestibular.py` (with `closed_loop_falls.py`), `closed_loop_sessions.py`, `public_data_targets.py`, `real_drift.py`: one experiment each; results in [docs/route-to-computation.md](docs/route-to-computation.md) and the commit log |
+| `scripts/launch.py`, `scripts/watch.py`, `src/biocompute/runguard.py` | Guarded long runs: smoke test, detached systemd unit, in-run checks, watchdog, result files named by their settings (`job_key`) |
 | `src/biocompute/eval/dish_channel.py` | A dish as a statistical channel (delay, update rate, noise, gain), the stand-in for the culture in Phases 2 and 3.1 |
 | `wsp/controller/` | Weight-space programming of the robot-side controller (Phase 2). `track_a.py` needs `teacher_weights.npz`, written from the teacher's ONNX by `export_teacher.py` |
 
@@ -80,7 +80,11 @@ uv run scripts/watch.py --unit bio-X --log outputs/X/run.log
 ```
 
 `train_dagger.py` checkpoints every round and `cartpole_replication.py` saves when stopped; both resume when the same
-command is run again.
+command is run again. Finished jobs and checkpoints are named by every setting they depend on
+(`biocompute.runguard.job_key`), so a rerun with a setting changed computes anew instead of reusing other settings'
+results; code changes are not in the name, so after one, run into a fresh `--out`. Runs repeat bit for bit: the same
+seed gives the same result on the GPU, also across a stop and resume. Sums go through ordered operations
+(`OrganoidCulture.excitatory_input`, the delivery matrix), and a test fails on any new atomic float sum.
 
 Tasks (`src/biocompute/train/tasks.py`):
 
@@ -103,9 +107,9 @@ The `cpu_2k` preset is tuned so that spontaneous activity looks like a cortical 
 
 It also responds to single-electrode stimulation. Bursts end because short-term depression uses up synaptic resources, as in culture models. These are plausible ranges, not a fit to one dataset: reports for organoids (e.g. Trujillo et al., *Cell Stem Cell* 2019) and dissociated cultures (Wagenaar et al., *BMC Neuroscience* 2006) vary with age and protocol. The realism dials are neuron count, electrode count and pitch, detection radius, noise, dead channels, stimulation limits, latency, forgetting time constant and aging.
 
-## Status and findings (23 November 2026)
+## Status and findings (25 November 2026)
 
-Built: everything in the layout above, with 19 passing tests. Teacher parity with cyclotron is exact.
+Built: everything in the layout above, with 32 passing tests. Teacher parity with cyclotron is exact.
 
 **Baselines** (`scripts/baselines.py`, 5 seeds, 20 s, 1-step latency):
 
@@ -229,8 +233,9 @@ simulated tracks ([Order of work without a dish](docs/route-to-computation.md#or
 Track A puts the simulated culture in the robot's loop (Phase 3.3 of [docs/next-steps.md](docs/next-steps.md));
 its two steps have run (above).
 Track B tried to make the culture model good enough to ask learning questions of, behind gates fixed in advance.
-It closed after its first step, a rate controller (B1): rates can be held, pathways can't, so learning questions
-wait for a dish.
+It closed after its first step, a rate controller (B1): rates can be brought to the edge of the band, pathways
+can't, so learning questions wait for a dish. On 25 November a code review of track B's scripts found 13 bugs; all
+are fixed with tests, every affected run was repeated, and no verdict changed.
 Real-dish and real-robot steps are parked. Ideas behind it: [docs/organoid-control-ideas.md](docs/organoid-control-ideas.md).
 
 ## Limits of the simulation
