@@ -84,16 +84,20 @@ step, on the simulated culture (20,000 neurons, 256-electrode grid at 100 um, fo
         uv run scripts/launch.py --unit bio-b1 --log outputs/drift_scaling/run.log -- \
             scripts/cartpole_replication.py --drift --drift-seeds 0 1 2 --drift-scales 0 1 \
             --drift-homeo 0 1e-5 1e-4 --drift-seconds 600 --workers 4 --out outputs/drift_scaling
-   Result (24 Nov 2026): gate B1 not passed; the controls behave. Last-minute rate per electrode against rest,
-   cultures 0 / 1 / 2: no plasticity 1.10 / 1.14 / 0.97; scaling alone 1.04 / 1.05 / 1.01 (0.99-1.07 in every
-   minute; neurons above 1.5x their own target 19-25% -> 0.5-1%); STDP x1 with the old 5 s step 6.97 / 9.10 / 4.54;
-   STDP x1 with scaling at eta 1e-5 7.40 / 9.59 / 5.96, no better than the old step: 5-9x rest by minute 2 and about
-   flat after, mean E->E weight 1.47-1.75x its start (the old step holds it at 0.99x). Exploratory eta 1e-4: 1.92 /
-   1.86 / 1.92, about 1.9x from minute 5 on, E->E weight 0.52-0.68x. Scaling alone doesn't mute the inputs (own gains
-   1-3 spikes per pulse, as with no plasticity). With STDP and eta 1e-4 the pathways mix: cross gains climb from ~1 to
-   2-5 spikes per pulse over the 10 minutes (no plasticity: 0-2), and in culture 2 one decoder ends up following the
-   other encoder (10.1 against 1.5). Ten times the eta cut the excess over rest from 6.7x to 0.9x: the brake works,
-   but against a push that doesn't let up. Likely reason, not tested: our STDP is additive (a fixed
+   Result (24 Nov 2026; numbers from the rerun of 25 Nov after the code review's fixes: exp factor, one yardstick per
+   neuron): gate B1 not passed; the controls behave. Last-minute rate per electrode against rest, cultures 0 / 1 / 2:
+   no plasticity 1.10 / 1.14 / 0.97; scaling alone 1.04 / 1.04 / 0.99 (0.99-1.07 in every minute; neurons above 1.5x
+   their own target 0.8-3.7% -> 0.5-1.0%); STDP x1 with the old 5 s step 6.84 / 8.97 / 4.59; STDP x1 with scaling at
+   eta 1e-5 7.46 / 10.2 / 6.29, no better than the old step: 4.9-7.5x rest by minute 2 and 5.1-10.2x from minute 5
+   on, mean E->E weight 1.42-1.76x its start (the old step holds it at 0.99x). Exploratory eta 1e-4: 1.91 / 2.10 /
+   1.96, 1.7-2.1x from minute 5 on, E->E weight 0.58-0.72x. Scaling alone doesn't mute the inputs (own gains
+   1.6-2.9 spikes per pulse in the last minute; no plasticity 1.1-3.2). With STDP and eta 1e-4 the pathways mix: in
+   cultures 0 and 1 a cross gain climbs from 2.0-2.8 to 4.7-6.6 spikes per pulse over the 10 minutes (no plasticity:
+   under 2), and one decoder ends up following the other encoder (6.6 against 0.8 from its own; 4.7 against 2.0).
+   Ten times the eta cut the excess over rest from 7.0x to 1.0x: the brake works, but against a push that doesn't
+   let up. The plastic arms don't repeat bit for bit on the GPU (spike inputs are summed by atomic adds, in varying
+   order; the arms without plasticity repeat exactly), so a rerun moves them a little: STDP alone, which no fix
+   touched, gave 6.97 / 9.10 / 4.54 on 24 Nov. Likely reason, not tested: our STDP is additive (a fixed
    step per pairing) and the scaling multiplicative, so they balance only at a rate error that grows as eta falls
    and as the weights shrink. A rate brake also does nothing for the pathways.
    Check before closing track B (24 Nov 2026; B2's first candidate, run early and labelled as such): does
@@ -105,23 +109,27 @@ step, on the simulated culture (20,000 neurons, 256-electrode grid at 100 um, fo
    at eta 1e-5, the rate gate above holds in all 3 cultures and at most 1 of the 12 pathways (own and cross, 4 per
    culture) has moved against the no-plasticity arm: last 3 minutes, beyond 2 SE from both arms' per-minute spread
    over minutes 2-10 (``pathways_vs_off``, bl1_rep_analysis.py's test). On B1's rows that test finds 2 of 4 moved in
-   every culture at every setting with additive STDP, and 1 of 24 with scaling alone (the noise floor). Otherwise
+   6 of the 9 culture-and-setting arms with additive STDP and none in the other 3 (9 of 9 on 24 Nov's run: one arm's
+   verdict can change between runs), and 1 of 24 with scaling alone (the noise floor). Otherwise
    the track closes, as its rule says. Output: <out>/drift_multiplicative_scaling.json.
 
         uv run scripts/launch.py --unit bio-b1m --log outputs/drift_scaling/run_multiplicative.log -- \
             scripts/cartpole_replication.py --drift --stdp-rule multiplicative --drift-seeds 0 1 2 \
             --drift-scales 0 1 --drift-homeo 0 1e-5 1e-4 --drift-seconds 600 --workers 4 --out outputs/drift_scaling
-   Result (24 Nov 2026): the reading fails, so track B closes. Last-minute rate against rest, cultures 0 / 1 / 2:
-   weight-dependent STDP with the old step 3.98 / 3.85 / 2.59 (control); with scaling at eta 1e-5 4.19 / 5.36 / 3.63
-   (additive: 7.40 / 9.59 / 5.96), above the old step again, E->E weight 1.11-1.31x; 6 of 12 pathways moved (2 of
-   4 in every culture: a cross gain up by 14-18 spikes per pulse). Exploratory eta 1e-4: 1.40 / 1.45 / 1.32, within
-   the band in 29 of 30 minutes (1.05-1.50; culture 1 minute 8 at 1.56), E->E weight 0.67-0.76x, inputs still
-   answered (own gains 2.5-5.8): the first setting that holds rates. But the pathways still merge: 2 of 4 moved in
-   every culture, and in each culture one encoder drives both decoders by the end (the other decoder: 6.2 / 5.8 /
-   5.1 spikes per pulse from the wrong encoder against 1.3 / 0.9 / 1.1 from its own); separate in 0 of 30 minutes.
-   So the likely reason above holds for the rates (weight dependence plus faster scaling brings them in), and the
-   pathways are a separate problem: under repeated stimulation our STDP hands the network to whichever input drives
-   it, whatever holds the rates.
+   Result (24 Nov 2026; numbers from the rerun of 25 Nov): the reading fails, so track B closes. Last-minute rate
+   against rest, cultures 0 / 1 / 2: weight-dependent STDP with the old step 3.97 / 3.46 / 2.41 (control); with
+   scaling at eta 1e-5 4.21 / 4.95 / 2.16 (additive: 7.46 / 10.2 / 6.29), no better than the old step (above it in
+   2 of 3 cultures), E->E weight 1.16-1.31x; 6 of 12 pathways moved (2 of 4 in every culture: a cross gain up by
+   5.7-19 spikes per pulse). Exploratory eta 1e-4: 1.39 / 1.53 / 1.34, within the band in 28 of 30 minutes
+   (1.03-1.49; culture 1 at 1.52 and 1.53 in minutes 6 and 10), E->E weight 0.70-0.79x, inputs still answered (own
+   gains 2.7-6.0 spikes per pulse, per-minute mean of the two): the closest any setting came to holding rates, but
+   culture 1's last minute misses the band by 0.03 (24 Nov's run ended inside in all three, 1.32-1.45). And the
+   pathways still merge: 2 of 4 moved in every culture, and in each culture one encoder drives both decoders by the
+   end (the other decoder: 6.5 / 4.0 / 5.3 spikes per pulse from the wrong encoder against 1.3 / 3.4 / 1.0 from its
+   own); separate (own >= 2x |cross| and |cross| <= 1, both decoders) in 0 of 30 minutes. So the likely reason above
+   holds for the rates (weight dependence plus faster scaling brings them to the edge of the band), and the pathways
+   are a separate problem: under repeated stimulation our STDP hands the network to whichever input drives it,
+   whatever holds the rates.
    After each episode, if the mean of the last 5 episodes is not above that of the last 20: a 400 ms training
    signal, then 3 s wait (null: the same time without stimulation).
    - ``random``: 5 training units in random order, 10 ms apart, repeated at 10 Hz

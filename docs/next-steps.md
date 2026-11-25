@@ -10,7 +10,8 @@
   [Order of work without a dish](route-to-computation.md#order-of-work-without-a-dish). Neither gate passed on its
   main configuration; results in [3.3](#33-closed-loop).
 - **Closed:** track B, after its first step (B1, a rate controller) failed and one check didn't rescue it. The
-  model can be made to hold its rates, but under repeated stimulation one input still takes over both outputs.
+  model's rates can be brought to the edge of the band (1.3–1.5× rest), but under repeated stimulation one input
+  still takes over both outputs.
 - **Waiting:** Phase 4's learning questions, for a dish.
 - **Parked:** Phase 5 and every real-robot step. There is no dish and no robot for now.
 - **Open, not in the current plan:** Phase 2 track (b).

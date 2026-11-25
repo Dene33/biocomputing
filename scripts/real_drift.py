@@ -51,11 +51,11 @@ doesn't work on these logs at all. 129 null runs (1 excluded), 98 with >= 8 full
   whether the 200 ms gains are evoked spikes stays open; the logs keep no spike times to check.
 - Rates (no regression involved): over a 15-min run of input pulses alone, the decoders' rate in the last 3 minutes
   is 0.77x the first 30 s (IQR 0.61-0.96, p95 1.18) and 0.94x the first 3 minutes (0.87-1.04): real tissue settles
-  slightly and never runs away. Our model on the same measure: no plasticity 0.98, additive STDP 1.45-3.1,
-  weight-dependent STDP with scaling at 1e-4 1.02. Over hours (``hours_summary``: 15 sessions of 4-21 h, each later
-  null run against the session's first; one session whose first null run is silent is left out): median 1.2x (IQR
-  0.93-1.48, p5-p95 0.52-1.8); 7 of 15 sessions stay within 1.5x either way in every run, one reaches 6.3x. Across
-  rests of >= 30 min: 1.07x (0.91-1.24).
+  slightly and never runs away. Our model on the same measure (drift rerun of 25 Nov): no plasticity 0.98,
+  additive STDP 1.17-2.9, weight-dependent STDP with scaling at 1e-4 1.03. Over hours (``hours_summary``: 15
+  sessions of 4-21 h, each later null run against the session's first; one session whose first null run is silent
+  is left out): median 1.2x (IQR 0.93-1.48, p5-p95 0.52-1.8); 7 of 15 sessions stay within 1.5x either way in every
+  run, one reaches 6.3x. Across rests of >= 30 min: 1.07x (0.91-1.24).
 - So the rate half of our drift gate (<= 1.5x over 10 minutes) is realistic, and over hours real rates wander by up
   to ~1.5-2x.
 

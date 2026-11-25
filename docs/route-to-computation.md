@@ -64,8 +64,8 @@ The robot's balance loop runs at 50 Hz. A dish in that loop may add at most ~40 
 | Does an outside model hold up? bl1 (github.com/m9h/bl1: JAX, Wagenaar-calibrated, STDP + homeostatic scaling) | no. Same drift test on bl1's own code, as shipped and with two of its five bugs fixed, 5 cultures, 600 s, two pulse lengths. Nothing runs away (its STDP is depression-dominated), but the gate is never passed except by running down. Per-neuron synaptic scaling alone holds the non-stimulated electrodes at their resting rate (1.00–1.01× in every culture). With STDP on it holds neither rates (realistic 0.5 ms pulses: 1.25× the no-plasticity arm, still climbing) nor pathways (each decoder's own gain moves ~2 spikes per pulse within 10 minutes, 5 of 10 pathways beyond 2 SE). A potentiation-dominated control shows the test catches upward drift. The port is spike-for-spike bl1's code (`bl1_checks.py`) | `bl1_drift.py`, `bl1_checks.py`, `bl1_rep_analysis.py` 1e3f994 |
 | The culture in the robot's loop (track A1): only the IMU through the dish, decoder and weight edit fixed beforehand | not on a CL1-sized well. 1 well × 12 electrodes: 0/40 with the planned 1/gain edit, 23/40 with an edit that also removes the decoder's offset (gate ≥ 34/40). 1 × 32: 40/40. Silenced dish 0/40, ideal IMU 40/40. A dead culture does as well or better (1 × 12: 32/40), so the dish relays and computes nothing. The planned edit failed because the robot stands leaning 3.6° forward, not upright: the decoder's offset turned into a false lean of 2.35 spreads. Phase 3.1's channel model had no offset and couldn't show it. The remaining 1 × 12 falls follow pushes from the front: the relay reads the pitch rate too high during the recovery, the forward lean grows past the encoder's input limit (4 replay SDs), and past it the teacher's view of the tilt stops changing | `closed_loop_vestibular.py`, `closed_loop_falls.py` |
 | Sessions and drift (track A2): age the culture 1, 3, 7 days or swap in a new dish; stale decoder vs one recalibrated from 60 s of open-loop replay plus one edit (1 × 32) | not passed, by one episode. A new dish breaks the stale relay (0/40), and recalibration restores 36/40. Aging up to 7 days leaves the stale relay at 36–39/40, so the gate was tested only on the new dish. Recalibrated: 33/40 at day 3, 36–37/40 elsewhere, 36/40 even at day 0. The 60 s decoder reads grav_x with noise 0.84–0.89 spreads against 0.53–0.55 for the one fitted on 312 s, so the calibration's length is the limit | `closed_loop_sessions.py` |
-| Does per-neuron synaptic scaling hold rates? (track B1: bl1's rule, our model, 3 cultures, 600 s) | not with our STDP on. Scaling alone keeps every electrode at rest (1.01–1.05× in the last minute, 0.99–1.07× in every minute) without muting the inputs, and brings neurons above 1.5× their own target from ~20% to ~1%. With STDP at bl1's rate (gate) it runs away like the old total-input step: 6.0–9.6× rest against 4.5–9.1×, E→E weights up 1.5–1.75×. Ten times faster (exploratory): ~1.9× rest from minute 5 on, but the pathways mix (cross gains from ~1 to 2–5 spikes per pulse; one decoder follows the wrong encoder). Likely reason: additive STDP against multiplicative scaling only balances at a standing rate error | `cartpole_replication.py --drift --drift-homeo`, `SynapticScaling` |
-| Does weight-dependent STDP let the scaling hold? (the check before closing track B, 3 cultures, 600 s) | rates yes at ten times bl1's rate, pathways no. At bl1's rate (gate): 3.6–5.4× rest, worse than with the old step (2.6–4.0×). Ten times faster: 1.3–1.45× rest, in band in 29 of 30 minutes, inputs still answered (own gains 2.5–5.8 spikes per pulse), the first setting that holds rates. But 2 of 4 pathways move beyond 2 SE of the no-plasticity arm in every culture, and by the end one input drives both outputs (5–6 spikes per pulse from the wrong input against ~1 from the right one). Scaling alone: 1 of 24 moved (the noise floor) | `cartpole_replication.py --drift --stdp-rule multiplicative`, `pathways_vs_off` |
+| Does per-neuron synaptic scaling hold rates? (track B1: bl1's rule, our model, 3 cultures, 600 s) | not with our STDP on. Scaling alone keeps every electrode at rest (0.99–1.04× in the last minute, 0.99–1.07× in every minute) without muting the inputs, and brings neurons above 1.5× their own target from 1–4% to ~1%. With STDP at bl1's rate (gate) it runs away like the old total-input step: 6.3–10.2× rest against 4.6–9.0×, E→E weights up 1.4–1.8×. Ten times faster (exploratory): 1.7–2.1× rest from minute 5 on, but the pathways mix (in two cultures a cross gain climbs from 2–3 to 4.7–6.6 spikes per pulse and one decoder follows the wrong encoder). Likely reason: additive STDP against multiplicative scaling only balances at a standing rate error | `cartpole_replication.py --drift --drift-homeo`, `SynapticScaling` |
+| Does weight-dependent STDP let the scaling hold? (the check before closing track B, 3 cultures, 600 s) | rates nearly at ten times bl1's rate, pathways no. At bl1's rate (gate): 2.2–5.0× rest, no better than with the old step (2.4–4.0×). Ten times faster: 1.34–1.53× rest in the last minute, in band in 28 of 30 minutes, inputs still answered (own gains 2.7–6.0 spikes per pulse), the closest any setting came; one culture ends 0.03 over the band (all three inside on the 24 November run, 1.32–1.45×). And 2 of 4 pathways move beyond 2 SE of the no-plasticity arm in every culture, and by the end one input drives both outputs (4.0–6.5 spikes per pulse from the wrong input against 1.0–3.4 from the right one). Scaling alone: 1 of 24 moved (the noise floor). Numbers from the rerun of 25 November after the code review's fixes; arms with plasticity don't repeat bit for bit on the GPU, so single arms shift a little between runs | `cartpole_replication.py --drift --stdp-rule multiplicative`, `pathways_vs_off` |
 
 ## The routes
 
@@ -235,11 +235,11 @@ the track with a write-up, and learning questions wait for a dish.
   a 10 s moving average, and its E→E weights scale multiplicatively toward its own resting rate.
   **Gate:** scaling alone holds rates at rest. In the drift test's rate half (3 cultures), with our STDP on, the rate
   stays ≤ 1.5× rest over the last minute.
-  **Result (24 November 2026): not passed.** Scaling alone holds every culture at rest (1.01–1.05×). With STDP on,
-  at bl1's rate it doesn't slow the runaway (6.0–9.6× rest, the old step 4.5–9.1×). Ten times faster, the rate
-  settles near 1.9× while the pathways mix. Details in the simulation table above and in `cartpole_replication.py`.
-  A labelled check of B2's first candidate, weight-dependent STDP with the same scaling, didn't change the verdict
-  (3.6–5.4× rest at bl1's rate).
+  **Result (24 November 2026, rerun 25 November after the code review's fixes): not passed.** Scaling alone holds every
+  culture at rest (0.99–1.04×). With STDP on, at bl1's rate it doesn't slow the runaway (6.3–10.2× rest, the old step
+  4.6–9.0×). Ten times faster, the rate settles near 2× while the pathways mix. Details in the simulation table above
+  and in `cartpole_replication.py`. A labelled check of B2's first candidate, weight-dependent STDP with the same
+  scaling, didn't change the verdict (2.2–5.0× rest at bl1's rate).
 - **B2. Stable pathways.** One round, then one refinement round. Each candidate is combined with B1:
   weight-dependent STDP, inhibitory plasticity on I→E synapses only, a BCM-style sliding threshold, intrinsic
   excitability homeostasis, heterosynaptic normalisation.
@@ -256,16 +256,16 @@ the track with a write-up, and learning questions wait for a dish.
 
 **Track B closed (24 November 2026).** B1 failed, and the one check run before closing didn't rescue it. Four brakes
 have now been tried on the model's runaway: a total-input step, inhibitory plasticity, bl1's per-neuron scaling (in
-bl1's model and in ours), and that scaling with weight-dependent STDP. The last, at ten times bl1's rate, is the first
-to hold rates (1.3–1.45× rest in the last minute, in band in 29 of 30 minutes). But in every culture one input still
-ends up driving both outputs within minutes. Holding rates doesn't keep pathways apart: under repeated stimulation our
-STDP hands the network to whichever input drives it. So simulated learning questions wait for a dish, as the track's
-rule says. B2's other candidates are untried: inhibitory plasticity on I→E only, a BCM-style threshold, intrinsic
-excitability, heterosynaptic normalisation. The model still serves where plasticity is off, as track A's relay.
-Public recordings settle only the rate half: in the cart-pole organoids' game logs, real rates don't climb under the
-same kind of input pulses (`real_drift.py`; parked item 5 below). What real pathways do still needs a dish. One more
-mismatch they show: stimulation sets off a network burst in about 20% of trials in our model (the replication's
-selected encoders: 16–24%), against 6.5% in the organoids (IQR 2.7–10%).
+bl1's model and in ours), and that scaling with weight-dependent STDP. The last, at ten times bl1's rate, comes closest
+to holding rates (1.34–1.53× rest in the last minute, in band in 28 of 30 minutes; one culture ends just over). But in
+every culture one input still ends up driving both outputs within minutes. Holding rates doesn't keep pathways apart:
+under repeated stimulation our STDP hands the network to whichever input drives it. So simulated learning questions wait
+for a dish, as the track's rule says. B2's other candidates are untried: inhibitory plasticity on I→E only, a BCM-style
+threshold, intrinsic excitability, heterosynaptic normalisation. The model still serves where plasticity is off, as
+track A's relay. Public recordings settle only the rate half: in the cart-pole organoids' game logs, real rates don't
+climb under the same kind of input pulses (`real_drift.py`; parked item 5 below). What real pathways do still needs a
+dish. One more mismatch they show: stimulation sets off a network burst in about 20% of trials in our model (the
+replication's selected encoders: 16–24%), against 6.5% in the organoids (IQR 2.7–10%).
 
 ### Order
 
@@ -294,5 +294,6 @@ These wait until a real culture or the robot is available. Then the ranking of t
    stimulation, which is what blocks our model. Public data answers the rate half (`real_drift.py`, the cart-pole
    organoids' game logs, 98 runs without training): over 15 minutes of input pulses alone, real rates settle slightly
    (last 3 minutes 0.77× the first 30 s, 95th percentile 1.18×), and over hours they wander by up to ~1.5–2×. The
-   pathway half needs spike times; the logs keep only 200 ms counts, which can't tell evoked spikes from the slow
-   rise and fall of activity with the game.
+   pathway half can't be read from them: the smallest change they could show (2 SE, 0.43 spikes per pulse) is
+   larger than the gains themselves (median 0.08), and with only 200 ms counts in a closed loop, whether those gains
+   are evoked spikes can't be checked.

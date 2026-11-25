@@ -220,8 +220,9 @@ inhibitory plasticity brought rates near rest but didn't keep the inputs' pathwa
 its per-neuron synaptic scaling holds rates on its own, but with STDP on, pathways move within minutes
 (`bl1_drift.py`). The same scaling in our model (`SynapticScaling`, track B1) holds rates at rest on its own, but
 with our STDP on it doesn't stop the runaway (6–10× rest at bl1's rate). With weight-dependent STDP and ten times
-bl1's rate it holds rates (1.3–1.45×), yet one input still takes over both outputs in every culture. Ranked routes: coached adaptation first (fits every platform, cart-pole
-precedent; a real dish decides), push detection tested open loop alongside it, the inner-ear relay as hardware testbed.
+bl1's rate it brings rates to the edge of the band (1.3–1.5×), yet one input still takes over both outputs in every
+culture. Ranked routes: coached adaptation first (fits every platform, cart-pole precedent; a real dish decides),
+push detection tested open loop alongside it, the inner-ear relay as hardware testbed.
 
 **Next** (24 November 2026). We have no real culture and no physical robot for now, so the work runs in two
 simulated tracks ([Order of work without a dish](docs/route-to-computation.md#order-of-work-without-a-dish)).
