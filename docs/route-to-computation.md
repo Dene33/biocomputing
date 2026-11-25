@@ -10,7 +10,8 @@ closed after its first step. What waits is listed under [Parked until dish acces
 On 25 November a code review of track B's scripts found 13 bugs (among them a scaling step that could turn weights
 negative, cached results reused across settings, and a yardstick that differed between arms). All are fixed with
 tests, every drift arm was rerun, and no verdict changed; the numbers below are from the rerun. Runs now repeat bit
-for bit; a single run of one culture is still one path of a chaotic network.
+for bit; a single run of one culture is still one path of a chaotic network. Leads from three recent papers, not yet
+run, are under [Leads from recent papers](#leads-from-recent-papers).
 
 ## The bar
 
@@ -280,6 +281,23 @@ replication's selected encoders: 16–24%), against 6.5% in the organoids (IQR 2
 
 One GPU job at a time (8 GB card). Every run is guarded: a smoke test, in-run checks, a watchdog, 40 fresh seeds and
 the standard baselines.
+
+## Leads from recent papers
+
+25 November 2026. Three papers, read against these results in [literature-notes.md](literature-notes.md). Nothing
+new was run for them, and none gives a route past the bar. What they give:
+
+- **A cheaper session recalibration for track A2**, backed by stored A2 numbers. On a new dish the old decoder's
+  output is shifted by 1–2.5 spreads on the gyros, but it is no noisier than on day 0. After the edit, its grav_x
+  error is 0.98 spreads, against 1.70 for the decoder refitted from 60 s. Keeping the decoder and refitting only
+  the edit (two numbers per channel) is route 3's claim taken literally, and A2 never tested it.
+- **A testable explanation of track B's takeover.** Activity spreading from a stimulated site gives STDP a
+  direction, and the winning input drives outputs up to 0.94 mm away at 20–36 spikes per pulse. One rerun with a
+  weight dump can confirm or refute it.
+- **Methods for the real-dish drift test**: co-firing corrected for rate with a proper null, decoding across time,
+  and response geometry compared between minutes.
+
+The proposals, in order, are at the end of the notes.
 
 ## Parked until dish access
 

@@ -237,6 +237,9 @@ It closed after its first step, a rate controller (B1): rates can be brought to 
 can't, so learning questions wait for a dish. On 25 November a code review of track B's scripts found 13 bugs; all
 are fixed with tests, every affected run was repeated, and no verdict changed.
 Real-dish and real-robot steps are parked. Ideas behind it: [docs/organoid-control-ideas.md](docs/organoid-control-ideas.md).
+Three recent papers suggest a cheaper session recalibration for track A2 (keep the decoder, refit only the edit) and
+a test of why track B's pathways mix. The notes and ranked proposals, none run yet, are in
+[docs/literature-notes.md](docs/literature-notes.md).
 
 ## Limits of the simulation
 
