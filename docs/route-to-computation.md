@@ -10,7 +10,7 @@ closed after its first step. What waits is listed under [Parked until dish acces
 On 25 November a code review of track B's scripts found 13 bugs (among them a scaling step that could turn weights
 negative, cached results reused across settings, and a yardstick that differed between arms). All are fixed with
 tests, every drift arm was rerun, and no verdict changed; the numbers below are from the rerun. Runs now repeat bit
-for bit; a single run of one culture is still one path of a chaotic network. Leads from three recent papers, not yet
+for bit; a single run of one culture is still one path of a chaotic network. Leads from four recent papers, not yet
 run, are under [Leads from recent papers](#leads-from-recent-papers).
 
 ## The bar
@@ -284,7 +284,7 @@ the standard baselines.
 
 ## Leads from recent papers
 
-25 November 2026. Three papers, read against these results in [literature-notes.md](literature-notes.md). Nothing
+25 November 2026. Four papers, read against these results in [literature-notes.md](literature-notes.md). Nothing
 new was run for them, and none gives a route past the bar. What they give:
 
 - **A cheaper session recalibration for track A2**, backed by stored A2 numbers. On a new dish the old decoder's
@@ -293,9 +293,10 @@ new was run for them, and none gives a route past the bar. What they give:
   the edit (two numbers per channel) is route 3's claim taken literally, and A2 never tested it.
 - **A testable explanation of track B's takeover.** Activity spreading from a stimulated site gives STDP a
   direction, and the winning input drives outputs up to 0.94 mm away at 20–36 spikes per pulse. One rerun with a
-  weight dump can confirm or refute it.
+  weight dump can confirm or refute it. Maps of which way evoked activity travels across the electrodes could show
+  the same without weights, which is the only way to test a real dish.
 - **Methods for the real-dish drift test**: co-firing corrected for rate with a proper null, decoding across time,
-  and response geometry compared between minutes.
+  response geometry compared between minutes, and those direction maps.
 
 The proposals, in order, are at the end of the notes.
 

@@ -1,27 +1,29 @@
-# Reading notes: what three recent papers mean for this project
+# Reading notes: what four recent papers mean for this project
 
-25 November 2026. Three papers read against the repo's results. Nothing new was simulated for these notes. Numbers
+25 November 2026. Four papers read against the repo's results. Nothing new was simulated for these notes. Numbers
 marked **stored** come from result files already on disk, named where they appear. Everything marked **expected** is
 reasoning, not a result.
 
-**In short.** None of the three papers gives a dish a way past the "computes" test in
-[the bar](route-to-computation.md#the-bar). What they describe (memory of recent input, prediction, steady codes),
-a filter of the input also provides. They help in three other ways:
+**In short.** None of the four papers gives a dish a way past the "computes" test in
+[the bar](route-to-computation.md#the-bar). What they describe (memory of recent input, prediction, steady codes,
+computing by colliding waves), a filter of the input also provides. They help in three other ways:
 
 1. **Track A2 can probably pass with a cheaper recalibration** (paper 3, stored A2 numbers). A new dish breaks the
    old decoder by shifting its output by 1–2.5 spreads, not by making it noisier. Refitting only the weight edit
    (two numbers per IMU channel) may succeed where refitting the whole decoder fell one episode short.
 2. **A testable explanation of why track B closed** (paper 1). Activity spreading out from a stimulated site gives
    STDP a direction, and the input whose spread wins takes over. The winning input drives outputs up to 0.94 mm
-   away. One rerun with a weight dump can test this.
-3. **Methods for the parked real-dish drift test** (papers 2 and 3): co-firing corrected for rate with a proper
-   null, decoding across time, and response geometry compared between minutes.
+   away. One rerun with a weight dump can test this. Paper 4's direction maps would show the same thing from the
+   electrodes alone, which is the only way a real dish can be tested.
+3. **Methods for the parked real-dish drift test** (papers 2–4): co-firing corrected for rate with a proper null,
+   decoding across time, response geometry compared between minutes, and maps of which way evoked activity travels.
 
 | Paper | What it shows, in its own system | What we take |
 |---|---|---|
 | Muller et al., *Neuron* 2026: traveling waves in cortex | Wiring that falls off with distance plus slow axons make activity travel; sparse waves change how strongly neurons answer input | Takeover hypothesis; our model sits in the "dense" regime; its delays are too short to hold memory; A1 state test; burst spread as a realism target |
 | Verzhbinsky et al., *Nature Neuroscience* 2026 (article s41593-026-02403-z): co-ripples in human cortex | Neurons fire together more often during coincident ~90 Hz ripples, at any distance | Co-firing measure (STTC), duplicate-unit merging and per-culture statistics for the real-dish pathway test; three traps |
 | Vishne, Gerber, Knight & Deouell, *Cell Reports* 42:112752, 2023: sustained visual representations | Responses fade by ~80% while an image stays on, yet a fixed linear readout decodes it the whole time | A2 refit-the-edit arm; decoding across time in the drift runs; geometry reliability; analysis methods |
+| Xu, Long, Feng & Gong, *Nature Human Behaviour* 2023 (doi 10.1038/s41562-023-01626-5): rotating waves in human fMRI | Slow brain-wide activity forms many rotating waves; where they sit and which way they turn depends on the task | The takeover test from electrode spike times alone; pattern classes and nulls for burst spread; five traps |
 
 ## 1. Traveling waves: Muller et al., *Neuron* 2026
 
@@ -334,6 +336,106 @@ It would make the model more realistic. It would not be a route, because a filte
 **What doesn't transfer.** This is human cortex, recorded as high-frequency power summed over millimetres of tissue,
 framed around conscious perception. It says nothing about cultures or learning.
 
+## 4. Rotating waves in human fMRI: Xu, Long, Feng & Gong, *Nature Human Behaviour* 2023
+
+**What it says.** The data are human brain scans (fMRI, Human Connectome Project): 100 people at rest, and three
+other groups of 100 doing language or working-memory tasks, with one image every 0.72 s at 2 mm resolution. Only slow
+fluctuations are kept (0.01–0.1 Hz), and a spatial band-pass keeps patterns 70–138 mm across.
+- **How they find the waves.** Each voxel's phase comes from a Hilbert transform. The phase map's gradient gives the
+  direction activity travels at each point (a "phase vector field"), and its curl marks rotating patterns ("brain
+  spirals") around points where all phases meet.
+- **At rest.** About 16 spirals at once per hemisphere, 4–31 mm in radius.
+  - They turn at 0.36 rad/s on average (one turn in about 17 s).
+  - Their centres drift at about 2 mm/s, and further than a random walk would (exponent 1.5).
+  - They gather on borders between functional regions.
+  - When two meet, they annihilate (51%), partly annihilate (46%) or repel (2.6%).
+- **During tasks.** The rotation direction at a given place depends on the task.
+  - A template classifier given only the spirals' centres and rotation directions tells four language conditions
+    apart 48–50% of the time (chance 25%, null 24%). Amplitudes at 19 random voxels give 30%.
+  - Working memory: stimulus type 44% (chance 25%), memory load 67% and right vs wrong answers 59% (chance 50% for
+    both).
+- **Proposed routing rules.** Activity passes between two spirals turning opposite ways (a "gate"), and is diverted
+  between two turning the same way (a "wall"). Arrays of spirals route activity up the cortical hierarchy while
+  listening and down while answering. A 30 × 30 lattice of coupled phase oscillators reproduces the collisions, and
+  reversing spirals by hand there reverses the flow.
+- **Controls.** The null randomises the Fourier phases in space and time together, which keeps both autocorrelations.
+  Spatial filtering creates spirals even in that null, so a spiral counts only where the filtered and unfiltered
+  phases agree (within 30°) more often than in 95% of null cases. Spirals also appear in unfiltered signals averaged
+  over trials.
+- **Availability:** MATLAB code at github.com/BrainDynamicsUSYD/BrainVortexToolbox; the data are from the HCP (human
+  scans, of no use as culture targets).
+
+### What transfers: little of the biology
+
+This is whole human cortex, seen through a slow blood-flow signal: waves centimetres across, turning once in about
+17 s. Our model cultures are 2–4 mm across and work in milliseconds. The paper cites rotating waves in intact cortex and in
+slices of rodent neocortex (Huang et al., *Neuron* 2010), none in dissociated cultures or organoids. I have not checked
+whether cultures show them.
+
+Whether our model could hold a rotating wave is a measurable question, not one to assume. The condition, standard for
+excitable media: a wave keeps circling only if one lap takes longer than the tissue needs to recover. Our model's
+synapses recover over 2 s (`stp_tau_rec_ms`), but how fast its bursts travel has never been measured. Proposal 4
+measures the speed, after which the condition can be checked.
+
+### Usable: the takeover test from electrodes alone
+
+A real dish's weights can't be read, so proposal 2's weight dump has no dish version. If the takeover hypothesis
+(paper 1) holds, it should also show in the electrodes' spike times:
+- **Direction field.** For each pulse, take each electrode's first-spike latency. Its gradient over the grid gives the
+  direction the evoked activity travels at each point: the paper's phase vector field, built from spike timing as
+  paper 1 advises. A Hilbert phase suits ongoing oscillations, not single evoked bursts.
+- **Where the inputs still differ.** Average the direction field per input. Then, for each 3 × 3 patch of electrodes,
+  ask whether single pulses match their own input's average better than the other input's (the paper's local
+  direction classifier, Fig. 8c). The result is a map of where on the array the two inputs' spread still differs.
+- **Prediction.** Over a takeover run, the area where the inputs differ shrinks. Around the losing input's output
+  electrode, the direction turns to point away from the winning input.
+
+Proposal 2's rerun can log every electrode's spike times and check this against the weights. If the electrode measure
+follows the weights, it becomes the pathway test a real dish needs (parked item 5), which public data couldn't answer.
+
+The grid matters: gradients need neighbours on every side (their smallest spiral core is 3 × 3 points).
+- Our 16 × 16 grid at 100 µm and high-density arrays (MaxWell) are fine.
+- An 8 × 8 grid at 200 µm (our `mcs60`) is coarse.
+- FinalSpark's 8 electrodes per organoid can't do it.
+
+### Usable: patterns and nulls for proposal 4
+
+- **Classify each burst's spread on the grid:** spreading out from a source, a plane wave, or rotating (curl and its
+  sign).
+- **Agreement test.** Smoothing creates rotations even in noise. Keep a pattern only if it is also there before
+  smoothing, beyond the null.
+- **Use a different null.** Theirs keeps both autocorrelations but makes the signal Gaussian-like, and bursty spike
+  rates aren't (reasoning). Use nulls that keep each electrode's own spikes (shift each electrode's train in time, or
+  shuffle electrode positions), or an amplitude-adjusted surrogate.
+- **Don't hunt for spirals first.** Rotating waves and the gate/wall rules have no known dish counterpart: report them
+  if found.
+
+### Traps, from its methods
+
+1. **Scale chosen on the outcome.** The spatial filter band was chosen where task classification scored best, and
+   the accuracy is then reported at that band as the "maximum accuracy". Fix analysis settings before looking, as our
+   gates do. For proposal 4, choose the smoothing scale on the model.
+2. **An unfair baseline.** Spiral features summarise the whole cortex's phase map and sit at informative places, while
+   the amplitude baseline reads 19 random voxels per time step. So "spirals carry more than amplitude" isn't shown. A
+   fair stand-in gets the same input, as our bar requires.
+3. **Pseudo-replication.** Error bars and t-tests are over 100 random re-splits of the same trials (n = 100
+   iterations), and the same subjects' trials fall in both training and test. The honest unit is the held-out
+   subject; for us, the held-out culture.
+4. **Uncorrected maps.** Contrast maps are thresholded at one-tailed p < 0.05 per voxel, with no correction for
+   multiple comparisons (Fig. 5 caption).
+5. **A circle in PCA says nothing about spirals** (reasoning). A plane wave sin(k·x − ωt) equals
+   sin(k·x)·cos ωt − cos(k·x)·sin ωt: two fixed maps weighted by cos ωt and sin ωt. So PCA finds exactly two
+   components and traces a circle, and so does any wave crossing an array. Their check (a simulated spiral gives a
+   circle) shows a spiral is enough, not that one is needed. For us: circles in PCA or CEBRA embeddings of MEA data
+   are expected whenever a burst crosses the array, and are no sign of computation.
+
+### No route past the bar
+
+The discussion points to computing by colliding waves (Gong & van Leeuwen 2009, not read for these notes). Reasoning:
+a collision computes a function of where and when the inputs arrived within a short window. That information is in
+the input, so a short filter of the input can match it. Like the memory and prediction in papers 1 and 3, it doesn't
+pass the "computes" test.
+
 ## Proposals, in order
 
 None has been run. Each needs a go-ahead and follows the usual guarded-run rules (smoke test, in-run checks,
@@ -342,8 +444,8 @@ watchdog, fresh seeds, standard baselines).
 | # | What | Track | Needs | Reading fixed in advance |
 |---|---|---|---|---|
 | 1 | **A2c:** stale decoder, only the edit refitted (from 60 s; also 10 s and 30 s) | A | A2's session setups (`outputs/closed_loop_sessions/sessions/`), 5 conditions × 40 fresh seeds per replay length | ≥ 34/40 in every condition |
-| 2 | **Takeover rerun** with a final weight dump and all electrodes' counts per pulse: one takeover arm per culture plus the scaling-alone arm as control (6 arms × 600 s; the weight-dependent check's 9 arms took 2–2.5 h) | B (diagnostic) | — | Rerun equals the stored rows. Synapses pointing away from the winner gain more than those pointing back, by > 2 SE in all 3 cultures and not in the control. Decoding of the pulsed input across minutes reported alongside |
+| 2 | **Takeover rerun** with a final weight dump and every electrode's spike times: one takeover arm per culture plus the scaling-alone arm as control (6 arms × 600 s; the weight-dependent check's 9 arms took 2–2.5 h) | B (diagnostic) | — | Rerun equals the stored rows. Synapses pointing away from the winner gain more than those pointing back, by > 2 SE in all 3 cultures and not in the control. Reported alongside: decoding of the pulsed input across minutes (paper 3), and the electrodes' direction maps compared with the weights (paper 4) |
 | 3 | **A1 state test:** replay the 17 failing 1 × 12 seeds with whole-well logging | A | A1b setups | Decoding error tracks prior activity in the live culture, not in the dead one |
-| 4 | **Burst spread:** start sites, their stability and crossing times | B0 | Model first, then the Wagenaar spike files | The method recovers the model's known spread before it is applied to Wagenaar |
+| 4 | **Burst spread:** start sites, their stability, crossing times (the wave speed) and pattern class (source, plane, rotating), against nulls that keep each electrode's spikes | B0 | Model first, then the Wagenaar spike files | The method recovers the model's known spread before it is applied to Wagenaar |
 | 5 | **Many weak synapses**, same total input | B, only if reopened | Drift reruns, slower | ~6.5% of pulses set off a burst; spontaneous activity inside the Wagenaar ranges |
-| parked | Real dish: STTC with an event-shift null, duplicate-unit merging, geometry reliability over time, decoder tested across sessions, time since the last burst as a covariate | dish | A culture | — |
+| parked | Real dish: STTC with an event-shift null, duplicate-unit merging, geometry reliability over time, decoder tested across sessions, time since the last burst as a covariate, and the takeover test from direction maps if proposal 2 validates it | dish | A culture | — |
