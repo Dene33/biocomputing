@@ -368,8 +368,80 @@ def test_configure_returns_none_without_two_eligible_pairs():
     assert len(set(cfg["enc"] + cfg["dec"])) == 4
 
 
+DD = load("day_drift")
+
 
 def test_finalspark_column_names_are_read_as_text():
     """pandas keeps a values block's column names as a protocol-0 pickled list; they are parsed, never unpickled."""
     assert load("finalspark_data")._names(b"(lp0\nVa1\np1\naVa2\np2\naVd1\np3\na.") == ["a1", "a2", "d1"]
     assert load("finalspark_data")._names(b"(lp0\nVmax_voltage_uv\np1\na.") == ["max_voltage_uv"]
+
+
+def test_day_rates_count_only_usable_time_and_clean_events():
+    """Two days; electrode 0 fires 1 Hz on day 0 and 2 Hz on day 1. Day 1 holds a stimulation (excluded 10 min
+    before to 60 min after) and artifact-sized events; neither enters its rate."""
+    S = DD.S
+    t0 = 1_000_000 * S
+    day0 = t0 + np.arange(0, 86400, 1.0) * S
+    day1 = t0 + 86400 * S + np.arange(0, 86400, 0.5) * S
+    stim = t0 + 86400 * S + 3600 * S * 12
+    art = stim + np.arange(5) * S // 1000  # five 2 mV events right after the stimulation
+    t = np.r_[day0, day1, art].astype(np.int64)
+    amp = np.r_[np.full(len(day0) + len(day1), -40.0), np.full(5, -2000.0)]
+    o = np.argsort(t, kind="stable")
+    dr = DD.day_rates(t[o], np.zeros(len(t), np.int64), amp[o], np.array([stim], np.int64))
+    assert dr["n_days"] == 2 and dr["valid"].all()
+    assert dr["use_s"][0] == 86400 and dr["use_s"][1] == 86400 - 71 * 60  # 10 + 60 min and the stimulation's minute
+    assert abs(dr["rate"][0, 0] - 1.0) < 1e-9 and abs(dr["rate"][1, 0] - 2.0) < 1e-3
+
+
+def test_lag_changes_and_the_reading():
+    rate = np.zeros((4, 32))
+    rate[:, 0] = [1.0, 2.0, 2.0, 0.5]  # electrode 0: x2, x1, x0.25 day to day
+    rate[:, 8:16] = 0.05  # a silent group is left out
+    ch = DD.lag_changes(rate, np.ones(4, bool), (1,))
+    assert ch["1"]["electrode"]["n"] == 3 and ch["1"]["electrode"]["median"] == 1.0
+    assert ch["1"]["electrode"]["signed_median"] == 0.0
+    assert ch["1"]["group"]["n"] == 3  # group 0 only (mean 1/8 Hz and up), not the silent one
+    real = {"spont": {L: {"electrode": {"n": 50, "p25": 0.4, "median": 0.8, "p75": 1.2},
+                          "group": {"n": 50, "p25": 0.4, "median": 0.8, "p75": 1.2}} for L in ("1", "3", "7")},
+            "evoked": {"classes": {c: {"electrode": {"n": 30, "p25": 0.3, "median": 0.5, "p75": 0.9},
+                                       "group": {"n": 3, "p25": 0.3, "median": 0.5, "p75": 0.9}}
+                                   for c in ("1d", "7d")}}}
+    gentle = {"n": 20, "median": 0.1}
+    model = {"spont": {L: {"electrode": gentle, "group": gentle} for L in ("1", "3", "7")},
+             "evoked": {d: {"electrode": {"n": 20, "median": 0.5}, "group": gentle} for d in ("1", "7")}}
+    c = DD.compare(real, model)
+    assert c["verdicts"]["spont_electrode"] == "too gentle" and c["verdicts"]["evoked_electrode"] == "in range"
+    assert c["decision"].startswith("part 2")
+    for L in ("1", "3", "7"):
+        model["spont"][L] = {"electrode": {"n": 20, "median": 0.8}, "group": {"n": 5, "median": 0.8}}
+    model["spont"]["7"]["electrode"] = gentle  # too gentle at one lag of three: still in range
+    c = DD.compare(real, model)
+    assert c["verdicts"]["spont_electrode"] == "in range" and c["decision"].startswith("aging.py")
+
+
+def test_evoked_changes_use_shared_settings_and_lag_classes():
+    S = DD.S
+    resp = lambda x: {"all": x, "odd": x, "even": x}  # noqa: E731
+    base = np.zeros(32)
+    base[:4] = 2.0
+    sw = [{"t_first": 0, "delivered": True, "settings": {(k,): resp(base) for k in range(12)}},
+          {"t_first": 86400 * S, "delivered": True, "settings": {(k,): resp(base * 0.5) for k in range(12)}},
+          {"t_first": 7 * 86400 * S, "delivered": False, "settings": {(k,): resp(base) for k in range(12)}}]
+    ev = DD.evoked_changes(sw, 0)
+    assert len(ev["pairs"]) == 1 and ev["pairs"][0]["lag_days"] == 1.0  # the undelivered sweep is left out
+    assert ev["classes"]["1d"]["electrode"]["median"] == 1.0 and ev["classes"]["7d"]["electrode"]["n"] == 0
+    assert ev["classes"]["1d"]["group"]["n"] == 1 and ev["noise_floor_electrode"]["median"] == 0.0
+
+
+def test_day_drift_doses_interpolate_and_flag_unreachable_targets():
+    pt = lambda x, y: {"shift": x, "evoked_electrode_abs": y, "evoked_electrode_signed": -y,  # noqa: E731
+                       "evoked_culture": -y, "spont_culture": -2 * y}
+    pts = [pt(0.0, 0.1), pt(-1.0, 0.3), pt(-2.0, 0.7), pt(1.0, 0.2), pt(2.0, 0.25)]
+    d = DD.dose_for(pts, -1, 0.5)
+    assert d["reached"] and abs(d["shift"] + 1.5) < 1e-9 and abs(d["spont_culture"] + 1.0) < 1e-9
+    up = DD.dose_for(pts, 1, 0.5)
+    assert not up["reached"] and up["shift"] == 2.0  # the largest tried, flagged
+    assert DD.dose_for(pts, -1, 0.05)["shift"] == 0.0  # already there without a shift
+    assert DD.dose_for([], 1, 0.5) == {"shift": None, "reached": False}  # a lag without sessions

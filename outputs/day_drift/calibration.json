@@ -1,0 +1,261 @@
+{
+ "targets": {
+  "1": 0.174,
+  "3": 0.336,
+  "7": 0.659
+ },
+ "stress_target": 1.99,
+ "curves": {
+  "1": [
+   {
+    "shift": -3.0,
+    "evoked_electrode_abs": 1.03,
+    "evoked_electrode_signed": -1.03,
+    "evoked_culture": -0.635,
+    "spont_culture": -3.631
+   },
+   {
+    "shift": -2.0,
+    "evoked_electrode_abs": 0.623,
+    "evoked_electrode_signed": -0.623,
+    "evoked_culture": -0.424,
+    "spont_culture": -3.625
+   },
+   {
+    "shift": -1.0,
+    "evoked_electrode_abs": 0.294,
+    "evoked_electrode_signed": -0.294,
+    "evoked_culture": -0.222,
+    "spont_culture": -2.076
+   },
+   {
+    "shift": -0.5,
+    "evoked_electrode_abs": 0.145,
+    "evoked_electrode_signed": -0.141,
+    "evoked_culture": -0.126,
+    "spont_culture": -0.558
+   },
+   {
+    "shift": 0.0,
+    "evoked_electrode_abs": 0.055,
+    "evoked_electrode_signed": -0.009,
+    "evoked_culture": -0.03,
+    "spont_culture": 0.29
+   },
+   {
+    "shift": 0.5,
+    "evoked_electrode_abs": 0.124,
+    "evoked_electrode_signed": 0.108,
+    "evoked_culture": 0.06,
+    "spont_culture": 0.889
+   },
+   {
+    "shift": 1.0,
+    "evoked_electrode_abs": 0.231,
+    "evoked_electrode_signed": 0.219,
+    "evoked_culture": 0.146,
+    "spont_culture": 1.335
+   },
+   {
+    "shift": 2.0,
+    "evoked_electrode_abs": 0.415,
+    "evoked_electrode_signed": 0.405,
+    "evoked_culture": 0.301,
+    "spont_culture": 2.067
+   }
+  ],
+  "3": [
+   {
+    "shift": -3.0,
+    "evoked_electrode_abs": 1.096,
+    "evoked_electrode_signed": -1.096,
+    "evoked_culture": -0.672,
+    "spont_culture": -3.645
+   },
+   {
+    "shift": -2.0,
+    "evoked_electrode_abs": 0.682,
+    "evoked_electrode_signed": -0.682,
+    "evoked_culture": -0.462,
+    "spont_culture": -3.601
+   },
+   {
+    "shift": -1.0,
+    "evoked_electrode_abs": 0.335,
+    "evoked_electrode_signed": -0.335,
+    "evoked_culture": -0.262,
+    "spont_culture": -1.076
+   },
+   {
+    "shift": -0.5,
+    "evoked_electrode_abs": 0.169,
+    "evoked_electrode_signed": -0.168,
+    "evoked_culture": -0.163,
+    "spont_culture": -0.226
+   },
+   {
+    "shift": 0.0,
+    "evoked_electrode_abs": 0.106,
+    "evoked_electrode_signed": -0.037,
+    "evoked_culture": -0.071,
+    "spont_culture": 0.411
+   },
+   {
+    "shift": 0.5,
+    "evoked_electrode_abs": 0.128,
+    "evoked_electrode_signed": 0.076,
+    "evoked_culture": 0.017,
+    "spont_culture": 0.897
+   },
+   {
+    "shift": 1.0,
+    "evoked_electrode_abs": 0.214,
+    "evoked_electrode_signed": 0.174,
+    "evoked_culture": 0.103,
+    "spont_culture": 1.288
+   },
+   {
+    "shift": 2.0,
+    "evoked_electrode_abs": 0.409,
+    "evoked_electrode_signed": 0.385,
+    "evoked_culture": 0.262,
+    "spont_culture": 1.97
+   }
+  ],
+  "7": [
+   {
+    "shift": -3.0,
+    "evoked_electrode_abs": 1.217,
+    "evoked_electrode_signed": -1.217,
+    "evoked_culture": -0.771,
+    "spont_culture": -3.599
+   },
+   {
+    "shift": -2.0,
+    "evoked_electrode_abs": 0.808,
+    "evoked_electrode_signed": -0.808,
+    "evoked_culture": -0.561,
+    "spont_culture": -3.041
+   },
+   {
+    "shift": -1.0,
+    "evoked_electrode_abs": 0.451,
+    "evoked_electrode_signed": -0.449,
+    "evoked_culture": -0.363,
+    "spont_culture": -0.753
+   },
+   {
+    "shift": -0.5,
+    "evoked_electrode_abs": 0.307,
+    "evoked_electrode_signed": -0.281,
+    "evoked_culture": -0.266,
+    "spont_culture": -0.085
+   },
+   {
+    "shift": 0.0,
+    "evoked_electrode_abs": 0.215,
+    "evoked_electrode_signed": -0.138,
+    "evoked_culture": -0.174,
+    "spont_culture": 0.394
+   },
+   {
+    "shift": 0.5,
+    "evoked_electrode_abs": 0.178,
+    "evoked_electrode_signed": -0.021,
+    "evoked_culture": -0.087,
+    "spont_culture": 0.809
+   },
+   {
+    "shift": 1.0,
+    "evoked_electrode_abs": 0.215,
+    "evoked_electrode_signed": 0.089,
+    "evoked_culture": -0.004,
+    "spont_culture": 1.179
+   },
+   {
+    "shift": 2.0,
+    "evoked_electrode_abs": 0.353,
+    "evoked_electrode_signed": 0.281,
+    "evoked_culture": 0.154,
+    "spont_culture": 1.838
+   }
+  ]
+ },
+ "doses": {
+  "day1_down": {
+   "days": 1,
+   "target": 0.174,
+   "shift": -0.597,
+   "reached": true,
+   "evoked_electrode_abs": 0.174,
+   "evoked_electrode_signed": -0.171,
+   "evoked_culture": -0.145,
+   "spont_culture": -0.853
+  },
+  "day1_up": {
+   "days": 1,
+   "target": 0.174,
+   "shift": 0.734,
+   "reached": true,
+   "evoked_electrode_abs": 0.174,
+   "evoked_electrode_signed": 0.16,
+   "evoked_culture": 0.1,
+   "spont_culture": 1.097
+  },
+  "day3_down": {
+   "days": 3,
+   "target": 0.336,
+   "shift": -1.003,
+   "reached": true,
+   "evoked_electrode_abs": 0.336,
+   "evoked_electrode_signed": -0.336,
+   "evoked_culture": -0.263,
+   "spont_culture": -1.083
+  },
+  "day3_up": {
+   "days": 3,
+   "target": 0.336,
+   "shift": 1.626,
+   "reached": true,
+   "evoked_electrode_abs": 0.336,
+   "evoked_electrode_signed": 0.306,
+   "evoked_culture": 0.202,
+   "spont_culture": 1.715
+  },
+  "day7_down": {
+   "days": 7,
+   "target": 0.659,
+   "shift": -1.583,
+   "reached": true,
+   "evoked_electrode_abs": 0.659,
+   "evoked_electrode_signed": -0.658,
+   "evoked_culture": -0.478,
+   "spont_culture": -2.086
+  },
+  "day7_up": {
+   "days": 7,
+   "target": 0.659,
+   "shift": 2.0,
+   "evoked_electrode_abs": 0.353,
+   "evoked_electrode_signed": 0.281,
+   "evoked_culture": 0.154,
+   "spont_culture": 1.838,
+   "reached": false
+  },
+  "day7_stress": {
+   "days": 7,
+   "target": 1.99,
+   "shift": -3.0,
+   "evoked_electrode_abs": 1.217,
+   "evoked_electrode_signed": -1.217,
+   "evoked_culture": -0.771,
+   "spont_culture": -3.599,
+   "reached": false
+  }
+ },
+ "real_spont_group_signed": {
+  "1": -0.157,
+  "3": -0.719,
+  "7": -1.559
+ }
+}
