@@ -366,3 +366,10 @@ def test_configure_returns_none_without_two_eligible_pairs():
     assert CP.configure(cand, rate, first, np.ones(k)) is None  # every encoder bursts on all its pulses
     cfg = CP.configure(cand, rate, first, np.zeros(k))
     assert len(set(cfg["enc"] + cfg["dec"])) == 4
+
+
+
+def test_finalspark_column_names_are_read_as_text():
+    """pandas keeps a values block's column names as a protocol-0 pickled list; they are parsed, never unpickled."""
+    assert load("finalspark_data")._names(b"(lp0\nVa1\np1\naVa2\np2\naVd1\np3\na.") == ["a1", "a2", "d1"]
+    assert load("finalspark_data")._names(b"(lp0\nVmax_voltage_uv\np1\na.") == ["max_voltage_uv"]

@@ -29,3 +29,9 @@ wsp/controller/teacher_weights.npz
 
 # Public data from other labs (track B, B0): third-party files, never committed
 outputs/public_data/raw/
+# FinalSpark datasets fs369 (65 GB) and fs437 (1.8 GB), zips and their extracts (covered by the line above; named so a move can't expose them)
+outputs/public_data/raw/finalspark/
+fs369*/
+fs437*/
+fs369*.zip
+fs437*.zip
