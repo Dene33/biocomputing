@@ -435,6 +435,57 @@ def test_evoked_changes_use_shared_settings_and_lag_classes():
     assert ev["classes"]["1d"]["group"]["n"] == 1 and ev["noise_floor_electrode"]["median"] == 0.0
 
 
+def test_real_pathways_cycles_pairs_and_reading():
+    """Cycles start where the stimulated local electrode goes down; a planted change moves the planted pathway pairs
+    and leaves unchanged ones at the null's level; the reading follows its thresholds."""
+    RP = load("real_pathways")
+    local = np.tile(np.repeat(np.arange(8), 40), 6)
+    cyc = RP.cycles_of(local)
+    assert cyc.max() == 5 and (np.bincount(cyc) == 320).all()
+    pairs = [(0, 3), (1, 4), (2, 5)]
+    rng = np.random.default_rng(0)
+    d = np.zeros((len(local), 32))
+    for s in range(8):  # in group 1, every input s drives output (s + 1) % 8 by 1.5 spikes, with noise
+        k = local == s
+        d[k, 8 + (s + 1) % 8] = rng.normal(1.5, 1.0, k.sum())
+    t = RP.pair_tests(d, local, cyc, pairs, [1])
+    assert t["n"] == 24 and t["power"] and t["share_moved"] <= 0.25
+    d2 = d.copy()
+    d2[cyc >= 3] *= 2.0  # every pathway doubles in the later cycles
+    t2 = RP.pair_tests(d2, local, cyc, pairs, [1])
+    assert t2["n"] == 24 and t2["share_moved"] == 1.0 and t2["null_share"] <= 0.25
+    assert RP.reading(t2) == "real pathways drift"
+    assert RP.reading(t | {"share_moved": 0.1, "null_share": 0.05}) == "real pathways hold over ~5 minutes"
+    assert RP.reading(t | {"power": False}).startswith("inconclusive")
+    assert RP.reading(RP.pair_tests(d, local, cyc, pairs[:2], [1])).startswith("inconclusive")  # 16 < 20
+    assert RP.pair_tests(d, local, cyc, pairs, [0])["n"] == 0  # a silent group has no responding pathway
+
+
+def test_real_pathways_series_found_and_read():
+    """Repeated single-input series: blocks split on long gaps, fast trains left out; a planted rise in the last block
+    reads as potentiation, an unchanged series as holding."""
+    RP = load("real_pathways")
+    S, MS = RP.FD.S, RP.FD.MS
+    blocks = [np.arange(80) * 300 * MS + k * 1800 * S for k in range(3)]  # 3 blocks of 80, ~3.3 Hz, 30 min apart
+    fast = 10 * 3600 * S + np.arange(300) * 10 * MS  # 100 Hz: the response window would hold the next pulse
+    t = np.r_[np.concatenate(blocks), fast]
+    ev = {"t": t, "n": np.ones(len(t), int), "mask": np.r_[np.full(240, 1 << 8), np.full(300, 1 << 9)],
+          "setting": [("a",)] * len(t)}
+    found = RP.find_series(ev, t)
+    assert len(found) == 1 and found[0]["electrode"] == 8 and found[0]["block"].max() == 2
+    rng = np.random.default_rng(1)
+    blk = found[0]["block"]
+    d = np.zeros((240, 32))
+    d[:, 9] = rng.normal(1.5, 1.0, 240)
+    d[:, 10] = rng.normal(1.0, 1.0, 240)
+    pre = np.ones((240, 32))
+    t1 = RP.series_test(d, pre, blk, 8)
+    assert t1["responding"] == 2 and t1["power"] and t1["reading"].startswith("the pathways hold")
+    d2 = d.copy()
+    d2[blk == 2] *= 2.0
+    assert RP.series_test(d2, pre, blk, 8)["reading"] == "they drift up (potentiation)"
+
+
 def test_day_drift_doses_interpolate_and_flag_unreachable_targets():
     pt = lambda x, y: {"shift": x, "evoked_electrode_abs": y, "evoked_electrode_signed": -y,  # noqa: E731
                        "evoked_culture": -y, "spont_culture": -2 * y}
