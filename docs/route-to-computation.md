@@ -232,6 +232,15 @@ This is Phase 3.3 of [next-steps.md](next-steps.md#33-closed-loop), and route 3 
     replay. With 60 s: 37–40/40 in every session, the new dish 37/40, against 30–36/40 for the recalibrated decoder
     on the same seeds. 30 s is as good; 10 s pins the offsets but leaves two new-dish gains loose (36/40). A session
     needs two numbers per IMU channel, not a new decoder. Shown on one new dish.
+  - **A2d (26 November 2026): passed, under day-to-day change of real size.** FinalSpark's whole-life organoid
+    recordings change far more from day to day than `aging.py` does. In fs369 (21 days) each electrode's evoked
+    response moves by a median ×1.13 in a day and ×1.6 in a week (75th percentile ×4), and spontaneous rates fall
+    ×2.9 per organoid in a week; `aging.py` moves the model's evoked response by ×1.04 and ×1.16 and its spontaneous
+    rate up, not down (`day_drift.py`, too gentle on all four measures). A shift of every neuron's excitability,
+    calibrated to the real evoked change, gives seven sessions (1, 3 and 7 days, up and down, and a stress dose).
+    The 60 s edit keeps the relay at 35–40/40 in all of them. The kept decoder alone breaks only where the culture
+    gets more excitable (day 7 up: 19/40); coherent declines leave it standing, even at ×0.43. Limits: coherent
+    change only, one culture; the two largest targets weren't reached.
 
 ### Track B: a culture model good enough for learning questions
 
@@ -244,9 +253,16 @@ the track with a write-up, and learning questions wait for a dish.
 
 - **B0. Public data** (CPU, alongside A1). Recordings of real cultures from other labs:
   - Wagenaar et al. 2006, dissociated cortical cultures (spontaneous, plus stimulation sets if published);
-  - FinalSpark's free dataset (request form). Found 26 November: a public CC-BY record of spontaneous spikes from
-    human forebrain organoids on FinalSpark's platform (TU Munich, Zenodo 10.5281/zenodo.22755004, v3: 8 electrodes
-    per organoid, 600-1800 s each, ages 75-367 days, no stimulation); not fetched;
+  - FinalSpark's whole-life exports, received 26 November: fs369 (one MEA for 21.7 days, four organoid groups of 8
+    electrodes, mostly spontaneous, with four whole-array stimulation sweeps and one mapping session) and fs437 (a
+    dying MEA, 6 days, stimulated by many clients). Spike events with times, every stimulation, 3 ms raw snippets.
+    Read with h5py only (`scripts/finalspark_data.py`; two logged sessions never reached the array, so every use
+    checks for the stimulation artifact). They gave A2d's day-to-day targets (`day_drift.py`) and an organoid column
+    for the realism scorecard (`organoid_scorecard.py`), and showed that the pathway half of the drift test can't be
+    read from them either (`real_pathways.py`; parked item 5). Also found 26 November: a public CC-BY record of
+    spontaneous spikes from human forebrain organoids on FinalSpark's platform (TU Munich, Zenodo
+    10.5281/zenodo.22755004, v3: 8 electrodes per organoid, 600-1800 s each, ages 75-367 days, no stimulation); not
+    fetched;
   - the Robbins et al. Zenodo record (10.5281/zenodo.17684862), if it holds recordings.
 
   Extract per-electrode rates, burst rate, burst duration, inter-burst interval, recruitment, and the stability of
@@ -287,7 +303,13 @@ climb under the same kind of input pulses (`real_drift.py`; parked item 5 below)
 dish. One more mismatch they show: stimulation sets off a network burst in about 20% of trials in our model (the
 replication's selected encoders: 16–24%), against 6.5% in the organoids (IQR 2.7–10%). The realism scorecard
 (25 November) confirms it in five cultures (20–21%) and adds two more: spontaneous bursts come ten times too often
-(45 per minute against 4.2) and too regularly (interval CV 0.32 against 0.87).
+(45 per minute against 4.2) and too regularly (interval CV 0.32 against 0.87). Against FinalSpark's organoids
+(26 November, `organoid_scorecard.py`, on 8-electrode blocks) the model is in range on none of five spontaneous
+measures (bursts 39 per minute against 0.85, 41 ms long against 752). Their mapping session shows what the model
+lacks on the evoked side: a pulse reaches 2–3 neighbouring electrodes (11–17 of 56 pairs respond) and sets off a burst
+2.5–5 points above chance; in the model it drives only its own electrode and sets off nothing beyond chance. Its 20%
+figure above comes from a measure that doesn't subtract chance; at its burst rate a 200 ms window holds a burst onset
+12–14% of the time anyway, so much of it may be spontaneous (not tested).
 
 **Why one input takes over (takeover rerun, 25 November 2026; a diagnostic, the track stays closed).** One takeover
 arm per culture was rerun with a weight dump and every electrode's spikes (`takeover_rerun.py`; each arm repeated
@@ -348,6 +370,11 @@ The round departed from the wording above in two ways, both fixed before it ran:
       15 cultures, electrode rate 0.54–0.56 Hz). Track B is closed for good.** It ran as a dose series (×1.9, ×4,
       ×10) because 1,000 synapses don't fit at today's reach (see the track B paragraph).
    5. Optional: **A1c**, a wider encoder input limit on the 12-electrode well, as a labelled run.
+5. FinalSpark's whole-life exports (26 November 2026), each step pre-registered:
+   1. **A2d** (track A): how much real organoids change from day to day, against `aging.py`, then A2c rerun under a
+      calibrated change of that size. **`aging.py` too gentle on all four measures; A2d passed (35–40/40).**
+   2. **Real pathways** (parked item 5): **not answerable from these records** (see item 5 under Parked).
+   3. **Organoid column of the realism scorecard** (`organoid_scorecard.py`): see the track B paragraph.
 
    The notes' A1 state test (proposal 3) is dropped: it explains a relay flaw but changes no decision.
 
@@ -392,4 +419,9 @@ These wait until a real culture or the robot is available. Then the ranking of t
    (last 3 minutes 0.77× the first 30 s, 95th percentile 1.18×), and over hours they wander by up to ~1.5–2×. The
    pathway half can't be read from them: the smallest change they could show (2 SE, 0.43 spikes per pulse) is
    larger than the gains themselves (median 0.08), and with only 200 ms counts in a closed loop, whether those gains
-   are evoked spikes can't be checked.
+   are evoked spikes can't be checked. FinalSpark's exports (26 November, `real_pathways.py`) have spike times but
+   don't answer it either: no stimulation setting repeats in fs369's mapping session; its one repeated single-input
+   series and a 30-minute whole-array session show no stimulation artifact, so they never reached the array; and the
+   series fs437 did deliver to a live organoid evoke nothing. They do show that real pathways are specific: in the
+   two live organoids 11 and 17 of 56 electrode pairs respond (about 1.4 spikes each), and the outputs' strongest
+   inputs differ (4 and 6 different inputs).

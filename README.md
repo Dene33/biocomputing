@@ -22,7 +22,7 @@ The culture drives **all 23 joints of Asimov 1 at 50 Hz** in MuJoCo. Two ways to
 | `src/biocompute/loop.py` | The closed loop. The culture needs 20 ms of its own time to answer, so an action applies one step late. |
 | `src/biocompute/train/` | Tasks, DAgger (serial, and `parallel.py`: several copies of the same dish in worker processes), feedback sessions |
 | `scripts/` | `characterise_culture.py`, `baselines.py`, `train_reservoir.py`, `train_dagger.py` (parallel DAgger, ridge or MLP decoder), `eval_readout.py` (many seeds, ablations), `train_feedback.py`, `evaluate.py`, `view.py`, `train_expert.py` / `program_expert.py` (stance-only balance experts: they cannot pass `stand_push`) |
-| `scripts/` (experiments) | `reflex_oracle.py`, `blind_teacher.py`, `no_imu_student.py`, `vestibular_probe.py`, `trigger_probe.py`, `adaptation_slot.py`, `struggle_signal.py`, `coach_probe.py`, `dish_regimes.py`, `burst_probe.py`, `cartpole_replication.py`, `cebra_probe.py`, `bl1_drift.py` (with `bl1_checks.py`, `bl1_rep_analysis.py`; runs in bl1's own venv), `closed_loop_vestibular.py` (with `closed_loop_falls.py`), `closed_loop_sessions.py`, `public_data_targets.py`, `real_drift.py`: one experiment each; results in [docs/route-to-computation.md](docs/route-to-computation.md) and the commit log |
+| `scripts/` (experiments) | `reflex_oracle.py`, `blind_teacher.py`, `no_imu_student.py`, `vestibular_probe.py`, `trigger_probe.py`, `adaptation_slot.py`, `struggle_signal.py`, `coach_probe.py`, `dish_regimes.py`, `burst_probe.py`, `cartpole_replication.py`, `cebra_probe.py`, `bl1_drift.py` (with `bl1_checks.py`, `bl1_rep_analysis.py`; runs in bl1's own venv), `closed_loop_vestibular.py` (with `closed_loop_falls.py`), `closed_loop_sessions.py`, `public_data_targets.py`, `real_drift.py`, `day_drift.py`, `real_pathways.py`, `organoid_scorecard.py` (the last three on FinalSpark's exports, read by `finalspark_data.py`): one experiment each; results in [docs/route-to-computation.md](docs/route-to-computation.md) and the commit log |
 | `scripts/launch.py`, `scripts/watch.py`, `src/biocompute/runguard.py` | Guarded long runs: smoke test, detached systemd unit, in-run checks, watchdog, result files named by their settings (`job_key`) |
 | `src/biocompute/eval/dish_channel.py` | A dish as a statistical channel (delay, update rate, noise, gain), the stand-in for the culture in Phases 2 and 3.1 |
 | `wsp/controller/` | Weight-space programming of the robot-side controller (Phase 2). `track_a.py` needs `teacher_weights.npz`, written from the teacher's ONNX by `export_teacher.py` |
@@ -106,11 +106,17 @@ The `cpu_2k` preset is tuned so that spontaneous activity looks like a cortical 
   culture bursts every 1.4 s and too regularly: see the realism scorecard under Next);
 - most spikes inside bursts (~75 %).
 
+Against FinalSpark's organoids (26 November, `scripts/organoid_scorecard.py`, scored on organoid-sized blocks of
+8 electrodes) the `gpu_20k` culture is in range on none of five measures: it fires 5.3 Hz against 1.6, bursts 39 times
+a minute against 0.85, for 41 ms against 752, regularly (CV 0.32 against 1.08), with 80% of spikes in bursts against
+35%. A single pulse drives only the electrode it is given on; in the organoids it reaches 2–3 neighbours (11–17 of 56
+electrode pairs respond, about 1.4 spikes each).
+
 It also responds to single-electrode stimulation. Bursts end because short-term depression uses up synaptic resources, as in culture models. These are plausible ranges, not a fit to one dataset: reports for organoids (e.g. Trujillo et al., *Cell Stem Cell* 2019) and dissociated cultures (Wagenaar et al., *BMC Neuroscience* 2006) vary with age and protocol. The realism dials are neuron count, electrode count and pitch, detection radius, noise, dead channels, stimulation limits, latency, forgetting time constant and aging.
 
-## Status and findings (25 November 2026)
+## Status and findings (26 November 2026)
 
-Built: everything in the layout above, with 32 passing tests. Teacher parity with cyclotron is exact.
+Built: everything in the layout above, with 55 passing tests. Teacher parity with cyclotron is exact.
 
 **Baselines** (`scripts/baselines.py`, 5 seeds, 20 s, 1-step latency):
 
@@ -211,10 +217,19 @@ A2c (25 November) keeps the old decoder and refits only its edit (gain and offse
 replay: from 60 s it holds 37–40/40 in every session, the new dish 37/40, against 30–36/40 for the recalibrated
 decoder on the same seeds. 30 s is as good; 10 s leaves two new-dish gains loose (36/40). A session therefore needs
 two numbers per channel, not a new decoder (shown on one new dish).
+A2d (26 November) asks whether that holds when the culture changes as much as real organoids do. FinalSpark's
+whole-life recordings (`scripts/day_drift.py`) change far more from day to day than our `aging.py`: each electrode's
+evoked response by ×1.13 in a day and ×1.6 in a week (`aging.py`: ×1.04 and ×1.16), and organoids' spontaneous rates
+fall ×2.9 in a week where the model's rise. With a shift of every neuron's excitability calibrated to the real evoked
+change (1, 3 and 7 days, up and down, plus a stress dose), the 60 s edit still holds 35–40/40 in every session.
+Without it, the old decoder breaks only where the culture became more excitable (day 7: 19/40).
 Public data for track B (`scripts/public_data_targets.py`): 81 recordings of 29 dense cortical cultures from
 Wagenaar et al. 2006, and the cart-pole organoids' Zenodo record, give the ranges the model must match. The
 organoids' game logs also give the rate half of a real drift test (`scripts/real_drift.py`): under the input pulses
-alone, real rates don't climb. Whether real pathways stay put can't be read from them.
+alone, real rates don't climb. Whether real pathways stay put can't be read from them. FinalSpark's whole-life
+exports (received 26 November; `outputs/public_data/raw/finalspark/`, not committed) add organoids with spike times
+and every stimulation, but they can't answer it either (`scripts/real_pathways.py`): no stimulation repeats in a
+usable way. Two logged sessions never reached the array at all, so every use checks for the stimulation artifact.
 
 **Route finding** ([docs/route-to-computation.md](docs/route-to-computation.md)). Phase 4 tested in simulation and
 the routes ranked against real hardware. No stimulation regime makes the dish compute. It keeps less of the recent IMU

@@ -337,6 +337,24 @@ the recalibration. The old decoder, fitted on 312 s, reads grav_x with noise 0.9
 (≤ 0.09 spread) but on the new dish leaves two gains 22–29% low; 30 s pins them within 5%. Route 3's session
 protocol is therefore "refit the edit", from 30–60 s of replay. Shown on one new dish (one culture seed).
 
+A2d, A2c under day-to-day change of real size (same script, seeds 9400–9439, 26 November). FinalSpark's fs369
+organoids change much more between days than `aging.py`: each electrode's evoked response by a median ×1.13 in a day
+and ×1.6 in a week (`scripts/day_drift.py`; `aging.py`: ×1.04 and ×1.16). Seven sessions add a shift of every
+neuron's excitability, calibrated so the evoked change matches (two largest targets not reached). Full runs of 40:
+
+| Session | Evoked change, realized (target) | Edit from 60 s (gated) | Stale |
+|---|---|---|---|
+| Day 0 | – | 40/40 | 38/40 |
+| Day 1 down / up | 0.18 / 0.18 (0.17) | 39/40 / 39/40 | 40/40 / 39/40 |
+| Day 3 down / up | 0.34 / 0.34 (0.34) | 40/40 / 37/40 | 38/40 / 37/40 |
+| Day 7 down | 0.63 (0.66) | 37/40 | 38/40 |
+| Day 7 up | 0.35 (0.66) | 35/40 | **19/40** |
+| Day 7 stress | 1.21 (1.99) | 39/40 | 37/40 |
+
+(Changes as median |log2| per electrode.) Ideal IMU 40/40, zero action 0/40. Gate (≥ 34/40 with the 60 s edit in
+every session): passed. Only the more excitable day-7 culture breaks the kept decoder; the edit removes its offsets
+(within 0.09 spread). The session protocol "refit the edit" holds under change of real size, for coherent change.
+
 The dish plus the Phase 2 controller, on 40 fresh seeds. The decoder and the weight edit are fixed before the first
 closed-loop seed, and plasticity is off. Main configuration: 1 well × 12 electrodes (CL1-sized); comparison 1 × 32.
 Arms:
