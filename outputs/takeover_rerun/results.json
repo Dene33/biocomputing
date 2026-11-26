@@ -1,0 +1,1034 @@
+{
+ "seconds": 600.0,
+ "minute_s": 60.0,
+ "reading": {
+  "per_culture": {
+   "0": {
+    "score": 5.998605627674061,
+    "z": 732.29,
+    "control_score": 0.009405606549855623,
+    "control_z": 17.47,
+    "loser_score": 5.784591987501813,
+    "null_p95": 5.468424920316966,
+    "rule1_z_over_2": true,
+    "rule2_beats_control": true,
+    "rule3_beats_loser_and_null": true,
+    "confirmed": true,
+    "plan_literal": false
+   },
+   "1": {
+    "score": 4.304196832450566,
+    "z": 669.48,
+    "control_score": 0.009614802890001366,
+    "control_z": 18.11,
+    "loser_score": 3.704933052589146,
+    "null_p95": 3.8276034136992507,
+    "rule1_z_over_2": true,
+    "rule2_beats_control": true,
+    "rule3_beats_loser_and_null": true,
+    "confirmed": true,
+    "plan_literal": false
+   },
+   "2": {
+    "score": 5.444103900678358,
+    "z": 765.67,
+    "control_score": 0.008897640006749422,
+    "control_z": 16.92,
+    "loser_score": 4.202806166144195,
+    "null_p95": 4.9429995118701715,
+    "rule1_z_over_2": true,
+    "rule2_beats_control": true,
+    "rule3_beats_loser_and_null": true,
+    "confirmed": true,
+    "plan_literal": false
+   }
+  },
+  "confirmed": true,
+  "plan_literal_confirmed": false
+ },
+ "arms": {
+  "takeover_0": {
+   "winner": {
+    "score": 5.998605627674061,
+    "se": 0.008191548418360508,
+    "z": 732.2920309216274,
+    "n_away": 357732,
+    "n_toward": 468409,
+    "dw_away": 4.886715900704135,
+    "dw_toward": -1.1118897269699257
+   },
+   "loser": {
+    "score": 5.784591987501813,
+    "se": 0.008356184601693144,
+    "z": 692.2527760252842,
+    "n_away": 358990,
+    "n_toward": 468183,
+    "dw_away": 4.790872955942952,
+    "dw_toward": -0.9937190315588609
+   },
+   "null": {
+    "n": 158,
+    "p95": 5.468424920316966,
+    "median": 4.994229621219154,
+    "winner_rank": 1.0
+   },
+   "hubs": {
+    "top_share": 0.027386406098407298,
+    "n_top": 160,
+    "top_median_dist_um": 391.92843344884363,
+    "all_median_dist_um": 1418.3520049301633,
+    "top_within_300um": 0.38125,
+    "all_within_300um": 0.0230625
+   },
+   "dw_ee_mean": 1.6705564410306764,
+   "pulses_isolated": {
+    "winner": 1059,
+    "loser": 1030
+   },
+   "decode_all": [
+    0.972,
+    0.966,
+    1.0,
+    0.995,
+    0.987,
+    0.985,
+    0.99,
+    0.985,
+    0.991,
+    0.938
+   ],
+   "decode_far": [
+    0.916,
+    0.99,
+    1.0,
+    0.995,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    0.991
+   ],
+   "latency_vs_weights": {
+    "winner_minute1": [
+     0.789,
+     256
+    ],
+    "winner_minute10": [
+     0.844,
+     256
+    ],
+    "loser_minute1": [
+     0.392,
+     6
+    ],
+    "loser_minute10": [
+     null,
+     2
+    ]
+   },
+   "latency_vs_weights_per_minute": {
+    "winner": [
+     0.789,
+     0.829,
+     0.83,
+     0.849,
+     0.842,
+     0.843,
+     0.843,
+     0.84,
+     0.849,
+     0.844
+    ],
+    "loser": [
+     0.392,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ]
+   },
+   "local_area": [
+    0.996,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "after_run": {
+    "plain": {
+     "winner": 5.9986,
+     "loser": 5.7846,
+     "rank_of_winner": 1,
+     "n_positions": 256,
+     "peak_dist_to_winner_um": 0.0,
+     "corr_with_dist_to_winner": -0.987,
+     "null_median": 4.9942,
+     "null_p95": 5.4684,
+     "null_min": 4.0143
+    },
+    "within": {
+     "winner": 5.6368,
+     "loser": 5.433,
+     "rank_of_winner": 1,
+     "n_positions": 256,
+     "peak_dist_to_winner_um": 0.0,
+     "corr_with_dist_to_winner": -0.986,
+     "null_median": 4.6936,
+     "null_p95": 5.1333,
+     "null_min": 3.7981,
+     "winner_se": 0.0164,
+     "neurons": 15495
+    }
+   },
+   "arm": "x1_homeo1e-05",
+   "equals_stored_row": true,
+   "rate_ratio": 7.46,
+   "gain_end": [
+    [
+     9.25,
+     0.02
+    ],
+    [
+     25.35,
+     1.58
+    ]
+   ],
+   "w_ee_mean_vs_start": 1.76
+  },
+  "control_0": {
+   "winner": {
+    "score": 0.009405606549855623,
+    "se": 0.0005384078444741928,
+    "z": 17.469297014127097,
+    "n_away": 357732,
+    "n_toward": 468409,
+    "dw_away": 0.006435774043431318,
+    "dw_toward": -0.002969832506424305
+   },
+   "loser": {
+    "score": 0.009158859218652303,
+    "se": 0.000537273919663409,
+    "z": 17.046908259366354,
+    "n_away": 358990,
+    "n_toward": 468183,
+    "dw_away": 0.006609866856337806,
+    "dw_toward": -0.0025489923623144965
+   },
+   "null": {
+    "n": 158,
+    "p95": 0.007862598065248373,
+    "median": 0.0049057115305770945,
+    "winner_rank": 1.0
+   },
+   "hubs": {
+    "top_share": 0.022897832050005437,
+    "n_top": 160,
+    "top_median_dist_um": 1686.4217151534758,
+    "all_median_dist_um": 1418.3520049301633,
+    "top_within_300um": 0.0,
+    "all_within_300um": 0.0230625
+   },
+   "dw_ee_mean": 0.002868571109157119,
+   "pulses_isolated": {
+    "winner": 1059,
+    "loser": 1030
+   },
+   "decode_all": [
+    0.94,
+    0.942,
+    0.944,
+    0.939,
+    0.956,
+    0.945,
+    0.961,
+    0.914,
+    0.957,
+    0.953
+   ],
+   "decode_far": [
+    0.735,
+    0.793,
+    0.802,
+    0.846,
+    0.707,
+    0.756,
+    0.751,
+    0.793,
+    0.82,
+    0.744
+   ],
+   "latency_vs_weights": {
+    "winner_minute1": [
+     0.844,
+     7
+    ],
+    "winner_minute10": [
+     0.729,
+     9
+    ],
+    "loser_minute1": [
+     null,
+     0
+    ],
+    "loser_minute10": [
+     null,
+     0
+    ]
+   },
+   "latency_vs_weights_per_minute": {
+    "winner": [
+     0.844,
+     0.878,
+     0.774,
+     0.851,
+     null,
+     0.861,
+     0.856,
+     0.727,
+     0.875,
+     0.729
+    ],
+    "loser": [
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ]
+   },
+   "local_area": [
+    0.172,
+    0.164,
+    0.16,
+    0.152,
+    0.152,
+    0.152,
+    0.156,
+    0.168,
+    0.168,
+    0.148
+   ],
+   "after_run": {
+    "plain": {
+     "winner": 0.0094,
+     "loser": 0.0092,
+     "rank_of_winner": 7,
+     "n_positions": 256,
+     "peak_dist_to_winner_um": 141.4,
+     "corr_with_dist_to_winner": -0.664,
+     "null_median": 0.0049,
+     "null_p95": 0.0079,
+     "null_min": 0.0027
+    },
+    "within": {
+     "winner": 0.0148,
+     "loser": 0.0152,
+     "rank_of_winner": 11,
+     "n_positions": 256,
+     "peak_dist_to_winner_um": 141.4,
+     "corr_with_dist_to_winner": -0.683,
+     "null_median": 0.011,
+     "null_p95": 0.0138,
+     "null_min": 0.0083,
+     "winner_se": 0.0008,
+     "neurons": 15495
+    }
+   },
+   "arm": "x0_homeo1e-05",
+   "equals_stored_row": true,
+   "rate_ratio": 1.04,
+   "gain_end": [
+    [
+     2.65,
+     0.77
+    ],
+    [
+     1.33,
+     2.29
+    ]
+   ],
+   "w_ee_mean_vs_start": 1.001
+  },
+  "takeover_1": {
+   "winner": {
+    "score": 4.304196832450566,
+    "se": 0.0064291240561796395,
+    "z": 669.4841777572165,
+    "n_away": 364247,
+    "n_toward": 469514,
+    "dw_away": 3.080885236908706,
+    "dw_toward": -1.2233115955418608
+   },
+   "loser": {
+    "score": 3.704933052589146,
+    "se": 0.006644723606371498,
+    "z": 557.575193802878,
+    "n_away": 364962,
+    "n_toward": 470990,
+    "dw_away": 2.752963004283448,
+    "dw_toward": -0.9519700483056981
+   },
+   "null": {
+    "n": 176,
+    "p95": 3.8276034136992507,
+    "median": 2.9241133272988904,
+    "winner_rank": 1.0
+   },
+   "hubs": {
+    "top_share": 0.041093406115725525,
+    "n_top": 160,
+    "top_median_dist_um": 450.0991051596102,
+    "all_median_dist_um": 1424.1431952278035,
+    "top_within_300um": 0.3875,
+    "all_within_300um": 0.0210625
+   },
+   "dw_ee_mean": 0.6836838771035846,
+   "pulses_isolated": {
+    "winner": 1059,
+    "loser": 1030
+   },
+   "decode_all": [
+    0.972,
+    0.981,
+    0.975,
+    0.991,
+    0.987,
+    0.985,
+    1.0,
+    0.99,
+    0.991,
+    0.995
+   ],
+   "decode_far": [
+    0.902,
+    0.99,
+    1.0,
+    0.995,
+    0.996,
+    1.0,
+    1.0,
+    0.99,
+    0.995,
+    0.995
+   ],
+   "latency_vs_weights": {
+    "winner_minute1": [
+     0.743,
+     256
+    ],
+    "winner_minute10": [
+     0.874,
+     256
+    ],
+    "loser_minute1": [
+     null,
+     2
+    ],
+    "loser_minute10": [
+     null,
+     0
+    ]
+   },
+   "latency_vs_weights_per_minute": {
+    "winner": [
+     0.743,
+     0.856,
+     0.863,
+     0.866,
+     0.863,
+     0.868,
+     0.878,
+     0.873,
+     0.873,
+     0.874
+    ],
+    "loser": [
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ]
+   },
+   "local_area": [
+    0.973,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "after_run": {
+    "plain": {
+     "winner": 4.3042,
+     "loser": 3.7049,
+     "rank_of_winner": 1,
+     "n_positions": 256,
+     "peak_dist_to_winner_um": 0.0,
+     "corr_with_dist_to_winner": -0.991,
+     "null_median": 2.9241,
+     "null_p95": 3.8276,
+     "null_min": 1.6396
+    },
+    "within": {
+     "winner": 3.939,
+     "loser": 3.386,
+     "rank_of_winner": 1,
+     "n_positions": 256,
+     "peak_dist_to_winner_um": 0.0,
+     "corr_with_dist_to_winner": -0.991,
+     "null_median": 2.6743,
+     "null_p95": 3.4909,
+     "null_min": 1.4817,
+     "winner_se": 0.0147,
+     "neurons": 15516
+    }
+   },
+   "arm": "x1_multiplicative_homeo1e-05_s1",
+   "equals_stored_row": true,
+   "rate_ratio": 4.95,
+   "gain_end": [
+    [
+     11.1,
+     -0.17
+    ],
+    [
+     20.13,
+     1.02
+    ]
+   ],
+   "w_ee_mean_vs_start": 1.311
+  },
+  "control_1": {
+   "winner": {
+    "score": 0.009614802890001366,
+    "se": 0.0005309099432027933,
+    "z": 18.11004486372705,
+    "n_away": 364247,
+    "n_toward": 469514,
+    "dw_away": 0.011932132189205268,
+    "dw_toward": 0.002317329299203901
+   },
+   "loser": {
+    "score": 0.011791490075020441,
+    "se": 0.0005299731413823917,
+    "z": 22.249221996917242,
+    "n_away": 364962,
+    "n_toward": 470990,
+    "dw_away": 0.012670300928363363,
+    "dw_toward": 0.0008788108533429206
+   },
+   "null": {
+    "n": 176,
+    "p95": 0.009263498058353678,
+    "median": 0.006704088117368865,
+    "winner_rank": 0.9943181818181818
+   },
+   "hubs": {
+    "top_share": 0.022065661591756425,
+    "n_top": 160,
+    "top_median_dist_um": 1577.7377009121738,
+    "all_median_dist_um": 1424.1431952278035,
+    "top_within_300um": 0.0,
+    "all_within_300um": 0.0210625
+   },
+   "dw_ee_mean": 0.007885421553274905,
+   "pulses_isolated": {
+    "winner": 1059,
+    "loser": 1030
+   },
+   "decode_all": [
+    0.958,
+    0.952,
+    0.914,
+    0.958,
+    0.939,
+    0.92,
+    0.946,
+    0.944,
+    0.948,
+    0.948
+   ],
+   "decode_far": [
+    0.637,
+    0.644,
+    0.609,
+    0.598,
+    0.533,
+    0.597,
+    0.624,
+    0.657,
+    0.645,
+    0.654
+   ],
+   "latency_vs_weights": {
+    "winner_minute1": [
+     null,
+     1
+    ],
+    "winner_minute10": [
+     null,
+     1
+    ],
+    "loser_minute1": [
+     null,
+     1
+    ],
+    "loser_minute10": [
+     null,
+     1
+    ]
+   },
+   "latency_vs_weights_per_minute": {
+    "winner": [
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ],
+    "loser": [
+     null,
+     null,
+     null,
+     null,
+     null,
+     0.742,
+     null,
+     0.632,
+     0.53,
+     null
+    ]
+   },
+   "local_area": [
+    0.129,
+    0.117,
+    0.121,
+    0.125,
+    0.141,
+    0.133,
+    0.148,
+    0.133,
+    0.141,
+    0.125
+   ],
+   "after_run": {
+    "plain": {
+     "winner": 0.0096,
+     "loser": 0.0118,
+     "rank_of_winner": 44,
+     "n_positions": 256,
+     "peak_dist_to_winner_um": 608.3,
+     "corr_with_dist_to_winner": -0.296,
+     "null_median": 0.0067,
+     "null_p95": 0.0093,
+     "null_min": 0.0024
+    },
+    "within": {
+     "winner": 0.0168,
+     "loser": 0.0189,
+     "rank_of_winner": 46,
+     "n_positions": 256,
+     "peak_dist_to_winner_um": 608.3,
+     "corr_with_dist_to_winner": -0.297,
+     "null_median": 0.0143,
+     "null_p95": 0.0164,
+     "null_min": 0.0099,
+     "winner_se": 0.0009,
+     "neurons": 15516
+    }
+   },
+   "arm": "x0_homeo1e-05_s1",
+   "equals_stored_row": true,
+   "rate_ratio": 1.04,
+   "gain_end": [
+    [
+     2.91,
+     1.06
+    ],
+    [
+     1.0,
+     2.38
+    ]
+   ],
+   "w_ee_mean_vs_start": 1.004
+  },
+  "takeover_2": {
+   "winner": {
+    "score": 5.444103900678358,
+    "se": 0.007110242854512454,
+    "z": 765.670598328903,
+    "n_away": 361032,
+    "n_toward": 474413,
+    "dw_away": 4.093055708176364,
+    "dw_toward": -1.3510481925019935
+   },
+   "loser": {
+    "score": 4.202806166144195,
+    "se": 0.007908045578627945,
+    "z": 531.4595274340069,
+    "n_away": 362721,
+    "n_toward": 473471,
+    "dw_away": 3.4379620225978478,
+    "dw_toward": -0.7648441435463473
+   },
+   "null": {
+    "n": 132,
+    "p95": 4.9429995118701715,
+    "median": 4.367717032275482,
+    "winner_rank": 1.0
+   },
+   "hubs": {
+    "top_share": 0.028557279777828192,
+    "n_top": 160,
+    "top_median_dist_um": 439.460083090319,
+    "all_median_dist_um": 1415.6264113650427,
+    "top_within_300um": 0.40625,
+    "all_within_300um": 0.024
+   },
+   "dw_ee_mean": 1.125625827141043,
+   "pulses_isolated": {
+    "winner": 1030,
+    "loser": 1059
+   },
+   "decode_all": [
+    0.935,
+    0.587,
+    0.467,
+    0.5,
+    0.624,
+    0.597,
+    0.473,
+    0.455,
+    0.512,
+    0.455
+   ],
+   "decode_far": [
+    0.791,
+    0.803,
+    0.756,
+    0.879,
+    0.93,
+    0.955,
+    0.951,
+    0.899,
+    0.929,
+    0.896
+   ],
+   "latency_vs_weights": {
+    "winner_minute1": [
+     0.458,
+     215
+    ],
+    "winner_minute10": [
+     0.854,
+     256
+    ],
+    "loser_minute1": [
+     null,
+     1
+    ],
+    "loser_minute10": [
+     null,
+     1
+    ]
+   },
+   "latency_vs_weights_per_minute": {
+    "winner": [
+     0.458,
+     0.756,
+     0.855,
+     0.852,
+     0.844,
+     0.849,
+     0.853,
+     0.853,
+     0.841,
+     0.854
+    ],
+    "loser": [
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ]
+   },
+   "local_area": [
+    0.383,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "after_run": {
+    "plain": {
+     "winner": 5.4441,
+     "loser": 4.2028,
+     "rank_of_winner": 1,
+     "n_positions": 256,
+     "peak_dist_to_winner_um": 0.0,
+     "corr_with_dist_to_winner": -0.987,
+     "null_median": 4.3677,
+     "null_p95": 4.943,
+     "null_min": 2.7739
+    },
+    "within": {
+     "winner": 5.0863,
+     "loser": 3.9383,
+     "rank_of_winner": 1,
+     "n_positions": 256,
+     "peak_dist_to_winner_um": 0.0,
+     "corr_with_dist_to_winner": -0.987,
+     "null_median": 4.0931,
+     "null_p95": 4.6315,
+     "null_min": 2.593,
+     "winner_se": 0.0154,
+     "neurons": 15529
+    }
+   },
+   "arm": "x1_homeo1e-05_s2",
+   "equals_stored_row": true,
+   "rate_ratio": 6.29,
+   "gain_end": [
+    [
+     2.26,
+     35.75
+    ],
+    [
+     -0.23,
+     10.04
+    ]
+   ],
+   "w_ee_mean_vs_start": 1.512
+  },
+  "control_2": {
+   "winner": {
+    "score": 0.008897640006749422,
+    "se": 0.000525735126916302,
+    "z": 16.924187772916195,
+    "n_away": 361032,
+    "n_toward": 474413,
+    "dw_away": 0.025228134323170903,
+    "dw_toward": 0.01633049431642148
+   },
+   "loser": {
+    "score": 0.009897582340169523,
+    "se": 0.0005241561916172377,
+    "z": 18.882887388263804,
+    "n_away": 362721,
+    "n_toward": 473471,
+    "dw_away": 0.02591044608255052,
+    "dw_toward": 0.016012863742380996
+   },
+   "null": {
+    "n": 132,
+    "p95": 0.009534708398425394,
+    "median": 0.005730776923407713,
+    "winner_rank": 0.9242424242424242
+   },
+   "hubs": {
+    "top_share": 0.024684601975961243,
+    "n_top": 160,
+    "top_median_dist_um": 1417.1576732118433,
+    "all_median_dist_um": 1415.6264113650427,
+    "top_within_300um": 0.0,
+    "all_within_300um": 0.024
+   },
+   "dw_ee_mean": 0.02146172835260908,
+   "pulses_isolated": {
+    "winner": 1030,
+    "loser": 1059
+   },
+   "decode_all": [
+    0.949,
+    0.938,
+    0.944,
+    0.953,
+    0.974,
+    0.96,
+    0.966,
+    0.965,
+    0.934,
+    0.929
+   ],
+   "decode_far": [
+    0.591,
+    0.649,
+    0.604,
+    0.678,
+    0.712,
+    0.647,
+    0.741,
+    0.682,
+    0.697,
+    0.692
+   ],
+   "latency_vs_weights": {
+    "winner_minute1": [
+     null,
+     1
+    ],
+    "winner_minute10": [
+     null,
+     2
+    ],
+    "loser_minute1": [
+     null,
+     0
+    ],
+    "loser_minute10": [
+     null,
+     0
+    ]
+   },
+   "latency_vs_weights_per_minute": {
+    "winner": [
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ],
+    "loser": [
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ]
+   },
+   "local_area": [
+    0.117,
+    0.145,
+    0.125,
+    0.129,
+    0.152,
+    0.16,
+    0.117,
+    0.125,
+    0.125,
+    0.125
+   ],
+   "after_run": {
+    "plain": {
+     "winner": 0.0089,
+     "loser": 0.0099,
+     "rank_of_winner": 59,
+     "n_positions": 256,
+     "peak_dist_to_winner_um": 761.6,
+     "corr_with_dist_to_winner": -0.457,
+     "null_median": 0.0057,
+     "null_p95": 0.0095,
+     "null_min": 0.002
+    },
+    "within": {
+     "winner": 0.0181,
+     "loser": 0.0187,
+     "rank_of_winner": 46,
+     "n_positions": 256,
+     "peak_dist_to_winner_um": 707.1,
+     "corr_with_dist_to_winner": -0.582,
+     "null_median": 0.015,
+     "null_p95": 0.0184,
+     "null_min": 0.0111,
+     "winner_se": 0.0009,
+     "neurons": 15529
+    }
+   },
+   "arm": "x0_homeo1e-05_s2",
+   "equals_stored_row": true,
+   "rate_ratio": 0.99,
+   "gain_end": [
+    [
+     1.55,
+     0.34
+    ],
+    [
+     -0.37,
+     2.87
+    ]
+   ],
+   "w_ee_mean_vs_start": 1.01
+  }
+ },
+ "settings": {
+  "cos": 0.5,
+  "null_min_um": 500.0,
+  "far_um": 200.0,
+  "win_ms": 50.0,
+  "answer": 0.3,
+  "area_acc": 0.75,
+  "eta": 1e-05,
+  "takeover": {
+   "0": [
+    "additive",
+    136,
+    155,
+    139
+   ],
+   "1": [
+    "multiplicative",
+    129,
+    34,
+    35
+   ],
+   "2": [
+    "additive",
+    100,
+    217,
+    233
+   ]
+  }
+ }
+}

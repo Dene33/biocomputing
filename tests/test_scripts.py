@@ -130,7 +130,8 @@ def test_no_atomic_float_sums_outside_the_reviewed_places():
     import re
 
     reviewed = {"src/biocompute/culture/network.py": "the CPU branch of substep (no atomics on the CPU)",
-                "src/biocompute/mea/electrodes.py": "integer spike counts, exact in any order"}
+                "src/biocompute/mea/electrodes.py": "integer spike counts, exact in any order",
+                "scripts/takeover_rerun.py": "numpy on the CPU (bincount with weights): sums in a fixed order"}
     pat = re.compile(r"index_add_|scatter_add|scatter_reduce|index_reduce|accumulate=True|bincount\([^)]*weights")
     root = SCRIPTS.parent
     found = {str(p.relative_to(root)) for p in [*root.glob("src/**/*.py"), *SCRIPTS.glob("*.py")]
@@ -192,3 +193,57 @@ def test_gate_a2c_needs_every_condition_day0_included():
     g = cls.gate_a2c(*tab(ok | {"newdish": 38}), 40)
     assert g["per_condition"]["newdish"]["only_refit60_full"] == [36, 37]
     assert g["per_condition"]["newdish"]["only_recal_full"] == []
+
+
+def _takeover_dump(rng, radial=True, n=3000):
+    """A made-up culture on a 16 x 16 grid at 100 um: E->E weights grow along the direction away from electrode
+    136 (row 8, column 8) when ``radial``; two inputs whose pulses evoke a wave from their own electrode."""
+    gy, gx = np.mgrid[0:16, 0:16]
+    exy = np.c_[gx.ravel() * 100.0 - 750, gy.ravel() * 100.0 - 750].astype(np.float32)
+    pos = np.c_[rng.uniform(-800, 800, (n, 2)), np.zeros(n)].astype(np.float32)
+    pre, post = rng.integers(0, n, 40 * n), rng.integers(0, n, 40 * n)
+    keep = (pre != post) & (np.linalg.norm(pos[pre, :2] - pos[post, :2], axis=1) < 300)
+    pre, post = pre[keep].astype(np.int32), post[keep].astype(np.int32)
+    v, r = pos[post, :2] - pos[pre, :2], pos[pre, :2] - exy[136]
+    cos = (v * r).sum(1) / np.maximum(np.linalg.norm(v, axis=1) * np.linalg.norm(r, axis=1), 1e-9)
+    w0 = np.full(len(pre), 1.0, np.float32)
+    w1 = w0 + (0.5 * cos if radial else 0) + rng.normal(0, 0.05, len(pre)).astype(np.float32)
+    pt, pc, st, sc = [], [], [], []
+    t = 0.0
+    while t < 4000.0:
+        e = 136 if rng.random() < 0.5 else 155
+        pt.append(t), pc.append(e)
+        d = np.linalg.norm(exy - exy[e], axis=1)
+        for ch in np.flatnonzero(rng.random(256) < 0.9):
+            st.append(t + 1 + d[ch] / 50.0), sc.append(ch)  # a wave at 50 um/ms from the pulsed electrode
+        for ch in np.flatnonzero(d < 300):  # and a few extra spikes near it
+            st.extend([t + 2 + d[ch] / 50.0, t + 3 + d[ch] / 50.0]), sc.extend([ch, ch])
+        t += 60.0
+    return {"syn_exc": np.ones(len(pre), bool), "excitatory": np.ones(n, bool), "pre": pre, "post": post, "pos": pos,
+            "w_start": w0, "w_end": w1.astype(np.float32), "electrode_xy": exy, "spike_t_ms": np.array(st),
+            "spike_ch": np.array(sc, np.int16), "pulse_t_ms": np.array(pt), "pulse_ch": np.array(pc, np.int16),
+            "t_start_ms": np.array(0.0), "t_end_ms": np.array(4000.0)}
+
+
+def test_takeover_reading_finds_a_planted_direction_and_only_there():
+    TR = load("takeover_rerun")
+    rng = np.random.default_rng(1)
+    d = _takeover_dump(rng)
+    res, maps = TR.analyse_arm(d, 136, 155, minute_s=1.0)
+    assert res["winner"]["z"] > 10 and res["winner"]["score"] > res["null"]["p95"]
+    assert res["winner"]["score"] > res["loser"]["score"]
+    flat, _ = TR.analyse_arm(_takeover_dump(np.random.default_rng(2), radial=False), 136, 155, minute_s=1.0)
+    assert abs(flat["winner"]["z"]) < 3
+    # The latency field of the winner's waves runs outward, as the planted weights do.
+    c, n_el = TR.field_cosine(maps["latency"][0, 0], maps["weights"], 100.0)
+    assert n_el > 100 and c > 0.5
+    # Inputs at different electrodes: decodable from every electrode and in most of the area.
+    assert min(res["decode_all"]) > 0.9 and min(res["local_area"]) > 0.5
+    rd = TR.reading({"takeover_0": res, "control_0": flat})
+    assert rd["per_culture"]["0"]["confirmed"] and not rd["confirmed"]  # cultures 1 and 2 missing
+    # After-run maps: both scores peak at the planted centre and fall with distance from it; nothing in the flat one.
+    for k in ("plain", "within"):
+        m = res["after_run"][k]
+        assert m["rank_of_winner"] <= 3 and m["peak_dist_to_winner_um"] <= 150 and m["corr_with_dist_to_winner"] < -0.5
+    assert res["after_run"]["within"]["winner"] > 10 * res["after_run"]["within"]["winner_se"]
+    assert abs(flat["after_run"]["within"]["winner"]) < 3 * flat["after_run"]["within"]["winner_se"]

@@ -296,8 +296,9 @@ def configure(cand, rate, first, burst):
             "c1_mean": round(float(first.mean()), 3), "burst_mean": round(float(burst.mean()), 2)}
 
 
-def schedule(dev, enc, th, last):
-    """Queue the encoder pulses of the next 200 ms read for pole angle ``th``; returns pulses per encoder."""
+def schedule(dev, enc, th, last, log=None):
+    """Queue the encoder pulses of the next 200 ms read for pole angle ``th``; returns pulses per encoder. With
+    ``log`` (a list), also appends the pulses' absolute times (ms) and channels; that doesn't touch the run."""
     hz = [(7 * (0.15 - math.sin(th))) ** 2, (7 * (0.15 + math.sin(th))) ** 2]
     ch, tt, n = [], [], [0, 0]
     now = dev.culture.t_ms
@@ -311,6 +312,8 @@ def schedule(dev, enc, th, last):
             n[i] += 1
     if ch:
         dev.stimulate(np.array(ch), np.array(tt), np.ones(len(ch)))
+        if log is not None:
+            log.append((now + np.array(tt, np.float64), np.array(ch, np.int16)))
     return n
 
 
@@ -518,6 +521,10 @@ def drift(job):
 
     arm, key, spec, seconds, out, opts = job
     seed = spec.get("seed", 0)
+    # The takeover rerun (takeover_rerun.py): ``dump`` saves the weights at the start and end, the synapses' ends, the
+    # positions, every electrode's spikes and every pulse; ``ref`` is a stored row this arm must repeat bit for bit,
+    # checked every minute. Neither touches the run.
+    dump, ref = opts.get("dump", False), opts.get("ref")
     _start_job()
     g = Guard(f"drift_{arm}", out)
     enc, dec = DRIFT_CONFIGS[seed]
@@ -548,6 +555,15 @@ def drift(job):
         S = {"i": 0, "X": [], "Y": [], "N": [], "last": {e: -1e9 for e in enc}, "th": 0.0, "target_hz": target,
              "neuron_rest_hz": round(float(rates.mean()), 3), "rest_hz_per_electrode": round(float(rest_hz), 2),
              "w_ee_start": float(c.w[ee].mean())}
+        if dump:
+            S |= {"spk": [], "pulses": [], "t_start_ms": float(c.t_ms)}
+            p = out / "dump" / f"{key}_start.npy"
+            p.parent.mkdir(parents=True, exist_ok=True)
+            np.save(p.with_suffix(".tmp.npy"), c.w.cpu().numpy())
+            os.replace(p.with_suffix(".tmp.npy"), p)
+        if ref:
+            for k in ("neuron_rest_hz", "rest_hz_per_electrode"):
+                g.check(S[k] == ref[k], f"{k} {S[k]} != stored {ref[k]}")
     c.plasticity = rule if plastic else None
     n_reads = int(seconds * 5)
     STOP["phase"] = "resumable"
@@ -556,8 +572,11 @@ def drift(job):
         i = S["i"]
         if i % 5 == 0:
             S["th"] = math.radians(rng.uniform(-12.0, 12.0))
-        S["X"].append(schedule(dev, enc, S["th"], S["last"]))
+        S["X"].append(schedule(dev, enc, S["th"], S["last"], S["pulses"] if dump else None))
+        t0 = float(c.t_ms)
         b = dev.step(200.0)
+        if dump:
+            S["spk"].append((t0 + b.times_ms.astype(np.float64), b.channels.astype(np.int16)))
         S["Y"].append([int((b.channels == dec[0]).sum()), int((b.channels == dec[1]).sum())])
         S["N"].append(len(b.channels))
         if i >= n_reads - 300:
@@ -565,11 +584,17 @@ def drift(job):
         if (i + 1) % 25 == 0 and stdp_on and homeo is None:
             C.scale(c, w_in0)
         S["i"] += 1
+        if ref and S["i"] % 300 == 0:  # each minute's gains as end-of-run computes them, against the stored row
+            m = S["i"] // 300 - 1
+            gm = np.round(gains(np.array(S["X"][-300:], float), np.array(S["Y"][-300:], float)), 2).tolist()
+            g.check(m < len(ref["gain_60s"]) and gm == ref["gain_60s"][m],
+                    f"minute {m + 1} gains {gm} != stored {ref['gain_60s'][m] if m < len(ref['gain_60s']) else None}")
         if g.due():
             hz = float(np.mean(S["N"][-50:])) / 0.2 / dev.n_channels
             g.culture(c, stdp if stdp_on else None, rate_hz=hz)
             g.beat(S["i"], n_reads, hz=round(hz, 2), w_inh=round(float(c.w[~c.syn_exc].mean()), 3))
     STOP["phase"] = "idle"
+    guard = g
     X, Y, N = np.array(S["X"], float), np.array(S["Y"], float), np.array(S["N"], float)
     g = [np.round(gains(X[k:k + 300], Y[k:k + 300]), 2).tolist() for k in range(0, len(X) - 299, 300)] or [
         np.round(gains(X, Y), 2).tolist()]  # runs under 60 s (smoke tests): the whole run
@@ -596,6 +621,31 @@ def drift(job):
            "rest_hz_per_electrode": S["rest_hz_per_electrode"],
            "w_exc_mean": round(float(c.w[c.syn_exc].mean()), 3), "w_inh_mean": round(float(c.w[inh].mean()), 3),
            "w_inh_mean_start": round(float(c.w0[inh].mean()), 3)}
+    if ref:
+        same = json.loads(json.dumps(row))
+        diff = [k for k, v in ref.items() if same.get(k) != v]
+        guard.check(not diff, f"rerun differs from the stored row in {diff}")
+        row["equals_stored_row"] = True
+    if dump:
+        p = out / "dump" / f"{key}.npz"
+        spk, pul = S["spk"], S["pulses"]
+        cpu = lambda t: t.cpu().numpy()  # noqa: E731
+        arrays = dict(
+            w_start=np.load(out / "dump" / f"{key}_start.npy"), w_end=cpu(c.w), w0=cpu(c.w0),
+            pre=cpu(c.pre).astype(np.int32), post=cpu(c.post).astype(np.int32), syn_exc=cpu(c.syn_exc),
+            excitatory=cpu(c.excitatory), pos=cpu(c.pos).astype(np.float32), alive=cpu(c.alive),
+            electrode_xy=np.asarray(dev.mea.xy, np.float32), enc=np.array(enc), dec=np.array(dec),
+            spike_t_ms=np.concatenate([s[0] for s in spk]) if spk else np.zeros(0),
+            spike_ch=np.concatenate([s[1] for s in spk]) if spk else np.zeros(0, np.int16),
+            pulse_t_ms=np.concatenate([s[0] for s in pul]) if pul else np.zeros(0),
+            pulse_ch=np.concatenate([s[1] for s in pul]) if pul else np.zeros(0, np.int16),
+            t_start_ms=np.array(S["t_start_ms"]), t_end_ms=np.array(float(c.t_ms)), X=X, Y=Y, N=N,
+            target_hz=np.asarray(S["target_hz"], np.float32), pulses_delivered_dropped=np.array(
+                [dev.pulses_delivered, dev.pulses_dropped]))
+        with open(p.with_suffix(".tmp"), "wb") as f:
+            np.savez(f, **arrays)
+        os.replace(p.with_suffix(".tmp"), p)
+        row["dump"] = str(p)
     (out / "jobs").mkdir(exist_ok=True)
     (out / "jobs" / f"{key}.json").write_text(json.dumps(row))
     ck.path.unlink(missing_ok=True)
