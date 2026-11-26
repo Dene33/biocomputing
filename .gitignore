@@ -19,6 +19,10 @@ outputs/**/jobs/
 outputs/**/smoke/
 outputs/**/heartbeat/
 outputs/**/ckpt/
+outputs/**/*smoke*.json
+
+# Per-burst detail behind a summary JSON (MBs, regenerable from the recordings)
+outputs/**/*.bursts.json
 
 # Third-party weights: Menlo's teacher policy exported to numpy (rebuilt by wsp/controller/export_teacher.py), not ours to publish
 wsp/controller/teacher_weights.npz

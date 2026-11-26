@@ -247,3 +247,65 @@ def test_takeover_reading_finds_a_planted_direction_and_only_there():
         assert m["rank_of_winner"] <= 3 and m["peak_dist_to_winner_um"] <= 150 and m["corr_with_dist_to_winner"] < -0.5
     assert res["after_run"]["within"]["winner"] > 10 * res["after_run"]["within"]["winner_se"]
     assert abs(flat["after_run"]["within"]["winner"]) < 3 * flat["after_run"]["within"]["winner_se"]
+
+
+def test_burst_spread_recovers_planted_waves_on_wagenaars_layout():
+    BS = load("burst_spread")
+    xy = BS.wagenaar_xy()
+    assert np.isnan(xy[14]).all() and np.isfinite(np.delete(xy, 14, 0)).all()  # 59 electrodes, 14 the reference
+    assert tuple(xy[23]) == (200.0, 0.0) and tuple(xy[53]) == (1200.0, 1400.0)
+    ok = np.flatnonzero(np.isfinite(xy).all(1))
+    P, centre, rng = xy[ok], xy[ok].mean(0), np.random.default_rng(0)
+    noise = rng.normal(0, 1.0, len(ok))
+    plane = BS.classify(P, P[:, 0] / 50.0 + noise, centre, rng)  # 50 mm/s along x
+    assert plane["class"] == "plane" and abs(plane["speed_plane_mm_s"] - 50) < 5
+    src = BS.classify(P, np.linalg.norm(P - P[7], axis=1) / 100.0 + noise, centre, rng)  # 100 mm/s from electrode
+    assert src["class"] == "source" and abs(src["speed_source_mm_s"] - 100) < 15
+    assert np.hypot(*(np.array(src["site"]) - P[7])) <= 200
+    shuffled = [BS.classify(P, rng.permutation(P[:, 0] / 50.0), centre, rng)["class"] for _ in range(20)]
+    assert shuffled.count("complex") >= 15
+
+
+def test_burst_truth_v2_finds_the_wave_start_despite_early_background_spikes():
+    BS = load("burst_spread")
+    rng = np.random.default_rng(0)
+    n, dt_ms = 20000, 0.5
+    pos = np.c_[rng.uniform(-2000, 2000, (n, 2)), np.zeros(n)].astype(np.float32)
+    start = np.array([300.0, -200.0])
+    # One burst at 1.0 s: every neuron spikes twice as a wave from ``start`` passes (100 um/ms), plus background.
+    d = np.linalg.norm(pos[:, :2] - start, axis=1)
+    tw = 1.0 + d / 100.0 / 1000.0
+    ts = np.concatenate([tw + rng.normal(0, 0.002, n), tw + 0.005 + rng.normal(0, 0.002, n),
+                         rng.uniform(0.85, 1.1, n // 4)])
+    ids = np.concatenate([np.arange(n), np.arange(n), rng.integers(0, n, n // 4)])
+    o = np.argsort(ts, kind="stable")
+    z = {"dt_ms": np.array(dt_ms), "n_step": np.round(ts[o] * 1000 / dt_ms).astype(np.int64), "n_id": ids[o],
+         "pos": pos}
+    gy, gx = np.mgrid[0:8, 0:8]
+    exy = np.c_[gx.ravel() * 200.0 - 700, gy.ravel() * 200.0 - 700]
+    (tr,) = BS.truth_v2(z, [{"start_s": 1.0, "end_s": 1.05}], exy)
+    assert tr["inside"] and np.hypot(*(np.array(tr["site"]) - start)) <= 150
+    assert tr["class"] == "source" and 70 <= tr["speed_source_mm_s"] <= 140
+
+
+def test_burst_spread_per_culture_skips_recordings_without_bursts():
+    BS = load("burst_spread")
+    full = {"n": 4, "class_share": {"source": 0.5, "plane": 0.25, "rotation": 0.25, "complex": 0.0},
+            "speed_source_mm_s_median": 40.0, "top_start_share": 0.25, "starts_for_80pct": 3}
+    per = {"a": {"culture": "1-1", "summary": full}, "b": {"culture": "1-1", "summary": {"n": 0}},
+           "c": {"culture": "2-1", "summary": {"n": 0}}}
+    pc = BS.per_culture(per)
+    assert list(pc) == ["1-1"] and pc["1-1"]["speed"] == 40.0 and pc["1-1"]["source"] == 0.5
+
+
+def test_burst_onsets_from_burstlets_and_from_smoothed_rates():
+    BS = load("burst_spread")
+    # Three electrodes join a burst at 0, 20 and 40 ms after its start (1.0 s), each with 6 spikes 5 ms apart.
+    t = np.concatenate([1.0 + d + np.arange(6) * 0.005 for d in (0.0, 0.02, 0.04)])
+    ch = np.repeat([0, 1, 2], 6)
+    burst = (1.0, 1.065, {0, 1, 2})
+    bl = [(1.0 + d, 1.025 + d, c) for c, d in zip((0, 1, 2), (0.0, 0.02, 0.04))]
+    on0 = BS.onsets(t, ch, burst, bl, 0)
+    assert np.allclose([on0[c] for c in (0, 1, 2)], [0, 20, 40])
+    on5 = BS.onsets(t, ch, burst, bl, 5)
+    assert np.allclose(np.diff([on5[c] for c in (0, 1, 2)]), [20, 20], atol=1.01)

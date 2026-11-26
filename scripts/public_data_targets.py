@@ -162,13 +162,38 @@ def spike_stats(t: np.ndarray, ch: np.ndarray, duration_s: float, n_ch: int, min
                 min_channels: int = 3) -> dict:
     """Electrode-level spontaneous statistics; see the module docstring. ``t`` in seconds, ``ch`` in 0..n_ch-1."""
     t, ch = np.asarray(t, float), np.asarray(ch, int)
-    rates = np.bincount(ch, minlength=n_ch)[:n_ch] / duration_s
-    active = np.flatnonzero(rates >= min_rate)
+    rates, active, bursts, _ = network_bursts(t, ch, duration_s, n_ch, min_rate, min_channels)
     out = {"duration_s": round(duration_s, 1), "n_active": int(len(active))}
     if len(active) == 0:
         return out
     out["rate_hz_median"] = round(float(np.median(rates[active])), 3)
     out["rate_hz_mean"] = round(float(rates[active].mean()), 3)
+    out["n_bursts"] = len(bursts)
+    out["burst_rate_per_min"] = round(len(bursts) / duration_s * 60, 3)
+    in_active = np.isin(ch, active)
+    if bursts:
+        starts = np.array([b[0] for b in bursts])
+        ends = np.array([b[1] for b in bursts])
+        dur = ends - starts
+        out["burst_duration_ms_median"] = round(float(np.median(dur) * 1000), 1)
+        out["recruitment_median"] = round(float(np.median([len(b[2]) / len(active) for b in bursts])), 3)
+        idx = np.searchsorted(starts, t[in_active], side="right") - 1
+        inside = (idx >= 0) & (t[in_active] <= ends[np.maximum(idx, 0)])
+        out["spikes_in_bursts"] = round(float(inside.mean()), 3)
+        if len(bursts) > 2:
+            ibi = np.diff(starts)
+            out["ibi_s_median"] = round(float(np.median(ibi)), 3)
+            out["ibi_cv"] = round(float(ibi.std() / ibi.mean()), 3)
+    return out
+
+
+def network_bursts(t: np.ndarray, ch: np.ndarray, duration_s: float, n_ch: int, min_rate: float = 0.1,
+                   min_channels: int = 3):
+    """``spike_stats``'s detector: per-electrode rates, active electrodes, network bursts [(start, end, channels)]
+    and every electrode's burstlets [(start, end, channel)], times in seconds."""
+    t, ch = np.asarray(t, float), np.asarray(ch, int)
+    rates = np.bincount(ch, minlength=n_ch)[:n_ch] / duration_s
+    active = np.flatnonzero(rates >= min_rate)
     bl = []  # (start, end, channel)
     for c in active:
         ts = np.sort(t[ch == c])
@@ -192,23 +217,7 @@ def spike_stats(t: np.ndarray, ch: np.ndarray, duration_s: float, n_ch: int, min
                 cur_s, cur_e, chans = s, e, {c}
         bursts.append((cur_s, cur_e, chans))
     bursts = [x for x in bursts if len(x[2]) >= min_channels]
-    out["n_bursts"] = len(bursts)
-    out["burst_rate_per_min"] = round(len(bursts) / duration_s * 60, 3)
-    in_active = np.isin(ch, active)
-    if bursts:
-        starts = np.array([b[0] for b in bursts])
-        ends = np.array([b[1] for b in bursts])
-        dur = ends - starts
-        out["burst_duration_ms_median"] = round(float(np.median(dur) * 1000), 1)
-        out["recruitment_median"] = round(float(np.median([len(b[2]) / len(active) for b in bursts])), 3)
-        idx = np.searchsorted(starts, t[in_active], side="right") - 1
-        inside = (idx >= 0) & (t[in_active] <= ends[np.maximum(idx, 0)])
-        out["spikes_in_bursts"] = round(float(inside.mean()), 3)
-        if len(bursts) > 2:
-            ibi = np.diff(starts)
-            out["ibi_s_median"] = round(float(np.median(ibi)), 3)
-            out["ibi_cv"] = round(float(ibi.std() / ibi.mean()), 3)
-    return out
+    return rates, active, bursts, bl
 
 
 def load_spk(path: Path):
