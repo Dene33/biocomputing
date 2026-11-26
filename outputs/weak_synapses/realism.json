@@ -1,0 +1,1738 @@
+{
+ "pre_registered": "see scripts/weak_synapses.py",
+ "structure": {
+  "control": {
+   "synapses_per_neuron": 99.21,
+   "exc_input_mean": 174.437,
+   "inh_input_mean": 113.153,
+   "exc_input_cv": 0.199,
+   "delay_capped": 0.0033
+  },
+  "s190": {
+   "synapses_per_neuron": 188.55,
+   "exc_input_mean": 174.559,
+   "inh_input_mean": 113.107,
+   "exc_input_cv": 0.178,
+   "delay_capped": 0.0033
+  },
+  "s400": {
+   "synapses_per_neuron": 398.67,
+   "exc_input_mean": 175.397,
+   "inh_input_mean": 113.535,
+   "exc_input_cv": 0.186,
+   "delay_capped": 0.0001
+  },
+  "s1000": {
+   "synapses_per_neuron": 1000.29,
+   "exc_input_mean": 176.024,
+   "inh_input_mean": 113.923,
+   "exc_input_cv": 0.205,
+   "delay_capped": 0.0037
+  }
+ },
+ "controls": {
+  "0": {
+   "equals_stored_scorecard": true,
+   "picks_stored_electrodes": true
+  },
+  "1": {
+   "equals_stored_scorecard": true,
+   "picks_stored_electrodes": true
+  },
+  "2": {
+   "equals_stored_scorecard": true,
+   "picks_stored_electrodes": true
+  }
+ },
+ "variants": {
+  "s190": {
+   "overrides": {
+    "synapses_per_neuron": 190.0,
+    "w_exc": 1.1578947368421053,
+    "w_inh": -3.1578947368421053,
+    "w_max": 5.2631578947368425
+   },
+   "scorecard": {
+    "rate_hz_median": {
+     "model_per_culture": [
+      0.577,
+      0.582,
+      0.555,
+      0.55,
+      0.562
+     ],
+     "model_median": 0.562,
+     "real_median": 2.825,
+     "real_p5_p95": [
+      0.739,
+      10.343
+     ],
+     "cultures_in_range": 0,
+     "n": 5,
+     "in_range": false,
+     "gated": true
+    },
+    "burst_rate_per_min": {
+     "model_per_culture": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "model_median": 0.0,
+     "real_median": 4.228,
+     "real_p5_p95": [
+      1.207,
+      15.354
+     ],
+     "cultures_in_range": 0,
+     "n": 5,
+     "in_range": false,
+     "gated": true
+    },
+    "burst_duration_ms_median": {
+     "model_per_culture": [],
+     "model_median": null,
+     "real_median": 556.0,
+     "real_p5_p95": [
+      79.18,
+      1787.92
+     ],
+     "cultures_in_range": 0,
+     "n": 0,
+     "in_range": false,
+     "gated": true
+    },
+    "ibi_cv": {
+     "model_per_culture": [],
+     "model_median": null,
+     "real_median": 0.868,
+     "real_p5_p95": [
+      0.558,
+      1.988
+     ],
+     "cultures_in_range": 0,
+     "n": 0,
+     "in_range": false,
+     "gated": true
+    },
+    "spikes_in_bursts": {
+     "model_per_culture": [],
+     "model_median": null,
+     "real_median": 0.63,
+     "real_p5_p95": [
+      0.1,
+      0.927
+     ],
+     "cultures_in_range": 0,
+     "n": 0,
+     "in_range": false,
+     "gated": true
+    },
+    "n_active": {
+     "model_per_culture": [
+      60,
+      60,
+      60,
+      60,
+      60
+     ],
+     "model_median": 60.0,
+     "real_median": 56.0,
+     "real_p5_p95": [
+      51.0,
+      58.6
+     ],
+     "cultures_in_range": 0,
+     "n": 5,
+     "in_range": false,
+     "gated": false
+    },
+    "rate_hz_mean": {
+     "model_per_culture": [
+      0.746,
+      0.694,
+      0.776,
+      0.714,
+      0.817
+     ],
+     "model_median": 0.746,
+     "real_median": 4.533,
+     "real_p5_p95": [
+      1.811,
+      11.12
+     ],
+     "cultures_in_range": 0,
+     "n": 5,
+     "in_range": false,
+     "gated": false
+    },
+    "ibi_s_median": {
+     "model_per_culture": [],
+     "model_median": null,
+     "real_median": 11.954,
+     "real_p5_p95": [
+      0.851,
+      41.516
+     ],
+     "cultures_in_range": 0,
+     "n": 0,
+     "in_range": false,
+     "gated": false
+    },
+    "recruitment_median": {
+     "model_per_culture": [],
+     "model_median": null,
+     "real_median": 0.588,
+     "real_p5_p95": [
+      0.077,
+      0.998
+     ],
+     "cultures_in_range": 0,
+     "n": 0,
+     "in_range": false,
+     "gated": false
+    },
+    "evoked_burst_median": {
+     "model_per_culture": [
+      0.0,
+      0.04,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "model_median": 0.0,
+     "real_median": 0.065,
+     "real_p5_p95": [
+      0.0,
+      0.16
+     ],
+     "cultures_in_range": 5,
+     "n": 5,
+     "in_range": true,
+     "gated": true
+    }
+   },
+   "in_range": [
+    "evoked_burst_median"
+   ],
+   "out_of_range": [
+    "rate_hz_median",
+    "burst_rate_per_min",
+    "burst_duration_ms_median",
+    "ibi_cv",
+    "spikes_in_bursts"
+   ],
+   "complete": false,
+   "pass": false,
+   "configs": {
+    "0": {
+     "enc": [
+      130,
+      109
+     ],
+     "dec": [
+      146,
+      110
+     ],
+     "train": [
+      223,
+      241,
+      211,
+      200,
+      23,
+      205,
+      156,
+      24
+     ],
+     "score": 1.76,
+     "c1_ab": 0.92,
+     "c1_cd": 0.88,
+     "c1_ad": 0.04,
+     "c1_cb": 0.0,
+     "burst_enc": [
+      0.0,
+      0.0
+     ],
+     "c1_mean": 0.027,
+     "burst_mean": 0.01
+    },
+    "1": {
+     "enc": [
+      25,
+      250
+     ],
+     "dec": [
+      24,
+      251
+     ],
+     "train": [
+      101,
+      188,
+      197,
+      36,
+      136,
+      217,
+      47,
+      158
+     ],
+     "score": 1.7,
+     "c1_ab": 1.0,
+     "c1_cd": 0.76,
+     "c1_ad": 0.04,
+     "c1_cb": 0.0,
+     "burst_enc": [
+      0.08,
+      0.12
+     ],
+     "c1_mean": 0.023,
+     "burst_mean": 0.08
+    },
+    "2": {
+     "enc": [
+      235,
+      158
+     ],
+     "dec": [
+      234,
+      157
+     ],
+     "train": [
+      214,
+      223,
+      248,
+      53,
+      148,
+      207,
+      4,
+      252
+     ],
+     "score": 1.92,
+     "c1_ab": 1.0,
+     "c1_cd": 0.96,
+     "c1_ad": 0.0,
+     "c1_cb": 0.04,
+     "burst_enc": [
+      0.0,
+      0.0
+     ],
+     "c1_mean": 0.032,
+     "burst_mean": 0.01
+    },
+    "3": {
+     "enc": [
+      202,
+      204
+     ],
+     "dec": [
+      186,
+      188
+     ],
+     "train": [
+      255,
+      78,
+      1,
+      218,
+      224,
+      147,
+      134,
+      182
+     ],
+     "score": 1.82,
+     "c1_ab": 0.92,
+     "c1_cd": 0.92,
+     "c1_ad": 0.0,
+     "c1_cb": 0.0,
+     "burst_enc": [
+      0.0,
+      0.04
+     ],
+     "c1_mean": 0.035,
+     "burst_mean": 0.01
+    },
+    "4": {
+     "enc": [
+      157,
+      196
+     ],
+     "dec": [
+      156,
+      197
+     ],
+     "train": [
+      109,
+      104,
+      158,
+      168,
+      122,
+      214,
+      189,
+      191
+     ],
+     "score": 1.72,
+     "c1_ab": 0.92,
+     "c1_cd": 0.84,
+     "c1_ad": 0.04,
+     "c1_cb": 0.0,
+     "burst_enc": [
+      0.04,
+      0.0
+     ],
+     "c1_mean": 0.032,
+     "burst_mean": 0.01
+    }
+   },
+   "rows": [
+    {
+     "seed": 0,
+     "neuron_rate_hz": 0.08,
+     "stats": {
+      "duration_s": 600.0,
+      "n_active": 60,
+      "rate_hz_median": 0.577,
+      "rate_hz_mean": 0.746,
+      "n_bursts": 0,
+      "burst_rate_per_min": 0.0
+     },
+     "evoked_burst_median": 0.0,
+     "config": {
+      "enc": [
+       130,
+       109
+      ],
+      "dec": [
+       146,
+       110
+      ],
+      "train": [
+       223,
+       241,
+       211,
+       200,
+       23,
+       205,
+       156,
+       24
+      ],
+      "score": 1.76,
+      "c1_ab": 0.92,
+      "c1_cd": 0.88,
+      "c1_ad": 0.04,
+      "c1_cb": 0.0,
+      "burst_enc": [
+       0.0,
+       0.0
+      ],
+      "c1_mean": 0.027,
+      "burst_mean": 0.01
+     }
+    },
+    {
+     "seed": 1,
+     "neuron_rate_hz": 0.08,
+     "stats": {
+      "duration_s": 600.0,
+      "n_active": 60,
+      "rate_hz_median": 0.582,
+      "rate_hz_mean": 0.694,
+      "n_bursts": 0,
+      "burst_rate_per_min": 0.0
+     },
+     "evoked_burst_median": 0.04,
+     "config": {
+      "enc": [
+       25,
+       250
+      ],
+      "dec": [
+       24,
+       251
+      ],
+      "train": [
+       101,
+       188,
+       197,
+       36,
+       136,
+       217,
+       47,
+       158
+      ],
+      "score": 1.7,
+      "c1_ab": 1.0,
+      "c1_cd": 0.76,
+      "c1_ad": 0.04,
+      "c1_cb": 0.0,
+      "burst_enc": [
+       0.08,
+       0.12
+      ],
+      "c1_mean": 0.023,
+      "burst_mean": 0.08
+     }
+    },
+    {
+     "seed": 2,
+     "neuron_rate_hz": 0.076,
+     "stats": {
+      "duration_s": 600.0,
+      "n_active": 60,
+      "rate_hz_median": 0.555,
+      "rate_hz_mean": 0.776,
+      "n_bursts": 0,
+      "burst_rate_per_min": 0.0
+     },
+     "evoked_burst_median": 0.0,
+     "config": {
+      "enc": [
+       235,
+       158
+      ],
+      "dec": [
+       234,
+       157
+      ],
+      "train": [
+       214,
+       223,
+       248,
+       53,
+       148,
+       207,
+       4,
+       252
+      ],
+      "score": 1.92,
+      "c1_ab": 1.0,
+      "c1_cd": 0.96,
+      "c1_ad": 0.0,
+      "c1_cb": 0.04,
+      "burst_enc": [
+       0.0,
+       0.0
+      ],
+      "c1_mean": 0.032,
+      "burst_mean": 0.01
+     }
+    },
+    {
+     "seed": 3,
+     "neuron_rate_hz": 0.083,
+     "stats": {
+      "duration_s": 600.0,
+      "n_active": 60,
+      "rate_hz_median": 0.55,
+      "rate_hz_mean": 0.714,
+      "n_bursts": 0,
+      "burst_rate_per_min": 0.0
+     },
+     "evoked_burst_median": 0.0,
+     "config": {
+      "enc": [
+       202,
+       204
+      ],
+      "dec": [
+       186,
+       188
+      ],
+      "train": [
+       255,
+       78,
+       1,
+       218,
+       224,
+       147,
+       134,
+       182
+      ],
+      "score": 1.82,
+      "c1_ab": 0.92,
+      "c1_cd": 0.92,
+      "c1_ad": 0.0,
+      "c1_cb": 0.0,
+      "burst_enc": [
+       0.0,
+       0.04
+      ],
+      "c1_mean": 0.035,
+      "burst_mean": 0.01
+     }
+    },
+    {
+     "seed": 4,
+     "neuron_rate_hz": 0.08,
+     "stats": {
+      "duration_s": 600.0,
+      "n_active": 60,
+      "rate_hz_median": 0.562,
+      "rate_hz_mean": 0.817,
+      "n_bursts": 0,
+      "burst_rate_per_min": 0.0
+     },
+     "evoked_burst_median": 0.0,
+     "config": {
+      "enc": [
+       157,
+       196
+      ],
+      "dec": [
+       156,
+       197
+      ],
+      "train": [
+       109,
+       104,
+       158,
+       168,
+       122,
+       214,
+       189,
+       191
+      ],
+      "score": 1.72,
+      "c1_ab": 0.92,
+      "c1_cd": 0.84,
+      "c1_ad": 0.04,
+      "c1_cb": 0.0,
+      "burst_enc": [
+       0.04,
+       0.0
+      ],
+      "c1_mean": 0.032,
+      "burst_mean": 0.01
+     }
+    }
+   ]
+  },
+  "s400": {
+   "overrides": {
+    "synapses_per_neuron": 400.0,
+    "w_exc": 0.55,
+    "w_inh": -1.5,
+    "w_max": 2.5,
+    "length_um": 225.0,
+    "delay_buckets": 16
+   },
+   "scorecard": {
+    "rate_hz_median": {
+     "model_per_culture": [
+      0.553,
+      0.562,
+      0.537,
+      0.537,
+      0.55
+     ],
+     "model_median": 0.55,
+     "real_median": 2.825,
+     "real_p5_p95": [
+      0.739,
+      10.343
+     ],
+     "cultures_in_range": 0,
+     "n": 5,
+     "in_range": false,
+     "gated": true
+    },
+    "burst_rate_per_min": {
+     "model_per_culture": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "model_median": 0.0,
+     "real_median": 4.228,
+     "real_p5_p95": [
+      1.207,
+      15.354
+     ],
+     "cultures_in_range": 0,
+     "n": 5,
+     "in_range": false,
+     "gated": true
+    },
+    "burst_duration_ms_median": {
+     "model_per_culture": [],
+     "model_median": null,
+     "real_median": 556.0,
+     "real_p5_p95": [
+      79.18,
+      1787.92
+     ],
+     "cultures_in_range": 0,
+     "n": 0,
+     "in_range": false,
+     "gated": true
+    },
+    "ibi_cv": {
+     "model_per_culture": [],
+     "model_median": null,
+     "real_median": 0.868,
+     "real_p5_p95": [
+      0.558,
+      1.988
+     ],
+     "cultures_in_range": 0,
+     "n": 0,
+     "in_range": false,
+     "gated": true
+    },
+    "spikes_in_bursts": {
+     "model_per_culture": [],
+     "model_median": null,
+     "real_median": 0.63,
+     "real_p5_p95": [
+      0.1,
+      0.927
+     ],
+     "cultures_in_range": 0,
+     "n": 0,
+     "in_range": false,
+     "gated": true
+    },
+    "n_active": {
+     "model_per_culture": [
+      60,
+      60,
+      60,
+      60,
+      60
+     ],
+     "model_median": 60.0,
+     "real_median": 56.0,
+     "real_p5_p95": [
+      51.0,
+      58.6
+     ],
+     "cultures_in_range": 0,
+     "n": 5,
+     "in_range": false,
+     "gated": false
+    },
+    "rate_hz_mean": {
+     "model_per_culture": [
+      0.694,
+      0.647,
+      0.715,
+      0.665,
+      0.746
+     ],
+     "model_median": 0.694,
+     "real_median": 4.533,
+     "real_p5_p95": [
+      1.811,
+      11.12
+     ],
+     "cultures_in_range": 0,
+     "n": 5,
+     "in_range": false,
+     "gated": false
+    },
+    "ibi_s_median": {
+     "model_per_culture": [],
+     "model_median": null,
+     "real_median": 11.954,
+     "real_p5_p95": [
+      0.851,
+      41.516
+     ],
+     "cultures_in_range": 0,
+     "n": 0,
+     "in_range": false,
+     "gated": false
+    },
+    "recruitment_median": {
+     "model_per_culture": [],
+     "model_median": null,
+     "real_median": 0.588,
+     "real_p5_p95": [
+      0.077,
+      0.998
+     ],
+     "cultures_in_range": 0,
+     "n": 0,
+     "in_range": false,
+     "gated": false
+    },
+    "evoked_burst_median": {
+     "model_per_culture": [
+      0.04,
+      0.04,
+      0.04,
+      0.04,
+      0.02
+     ],
+     "model_median": 0.04,
+     "real_median": 0.065,
+     "real_p5_p95": [
+      0.0,
+      0.16
+     ],
+     "cultures_in_range": 5,
+     "n": 5,
+     "in_range": true,
+     "gated": true
+    }
+   },
+   "in_range": [
+    "evoked_burst_median"
+   ],
+   "out_of_range": [
+    "rate_hz_median",
+    "burst_rate_per_min",
+    "burst_duration_ms_median",
+    "ibi_cv",
+    "spikes_in_bursts"
+   ],
+   "complete": false,
+   "pass": false,
+   "configs": {
+    "0": {
+     "enc": [
+      222,
+      109
+     ],
+     "dec": [
+      223,
+      110
+     ],
+     "train": [
+      211,
+      241,
+      200,
+      156,
+      24,
+      205,
+      25,
+      23
+     ],
+     "score": 1.88,
+     "c1_ab": 1.0,
+     "c1_cd": 0.92,
+     "c1_ad": 0.0,
+     "c1_cb": 0.04,
+     "burst_enc": [
+      0.12,
+      0.04
+     ],
+     "c1_mean": 0.027,
+     "burst_mean": 0.04
+    },
+    "1": {
+     "enc": [
+      198,
+      250
+     ],
+     "dec": [
+      197,
+      251
+     ],
+     "train": [
+      101,
+      188,
+      121,
+      217,
+      24,
+      47,
+      158,
+      36
+     ],
+     "score": 1.88,
+     "c1_ab": 0.96,
+     "c1_cd": 0.92,
+     "c1_ad": 0.0,
+     "c1_cb": 0.0,
+     "burst_enc": [
+      0.08,
+      0.04
+     ],
+     "c1_mean": 0.019,
+     "burst_mean": 0.04
+    },
+    "2": {
+     "enc": [
+      158,
+      223
+     ],
+     "dec": [
+      157,
+      207
+     ],
+     "train": [
+      248,
+      214,
+      252,
+      4,
+      107,
+      234,
+      148,
+      198
+     ],
+     "score": 1.88,
+     "c1_ab": 0.96,
+     "c1_cd": 0.92,
+     "c1_ad": 0.0,
+     "c1_cb": 0.0,
+     "burst_enc": [
+      0.04,
+      0.08
+     ],
+     "c1_mean": 0.026,
+     "burst_mean": 0.03
+    },
+    "3": {
+     "enc": [
+      94,
+      101
+     ],
+     "dec": [
+      110,
+      100
+     ],
+     "train": [
+      186,
+      224,
+      255,
+      1,
+      134,
+      218,
+      129,
+      78
+     ],
+     "score": 1.92,
+     "c1_ab": 1.0,
+     "c1_cd": 0.92,
+     "c1_ad": 0.0,
+     "c1_cb": 0.0,
+     "burst_enc": [
+      0.12,
+      0.08
+     ],
+     "c1_mean": 0.031,
+     "burst_mean": 0.04
+    },
+    "4": {
+     "enc": [
+      99,
+      197
+     ],
+     "dec": [
+      100,
+      213
+     ],
+     "train": [
+      109,
+      104,
+      156,
+      158,
+      214,
+      191,
+      176,
+      189
+     ],
+     "score": 1.88,
+     "c1_ab": 0.96,
+     "c1_cd": 0.92,
+     "c1_ad": 0.0,
+     "c1_cb": 0.0,
+     "burst_enc": [
+      0.04,
+      0.08
+     ],
+     "c1_mean": 0.024,
+     "burst_mean": 0.03
+    }
+   },
+   "rows": [
+    {
+     "seed": 0,
+     "neuron_rate_hz": 0.064,
+     "stats": {
+      "duration_s": 600.0,
+      "n_active": 60,
+      "rate_hz_median": 0.553,
+      "rate_hz_mean": 0.694,
+      "n_bursts": 0,
+      "burst_rate_per_min": 0.0
+     },
+     "evoked_burst_median": 0.04,
+     "config": {
+      "enc": [
+       222,
+       109
+      ],
+      "dec": [
+       223,
+       110
+      ],
+      "train": [
+       211,
+       241,
+       200,
+       156,
+       24,
+       205,
+       25,
+       23
+      ],
+      "score": 1.88,
+      "c1_ab": 1.0,
+      "c1_cd": 0.92,
+      "c1_ad": 0.0,
+      "c1_cb": 0.04,
+      "burst_enc": [
+       0.12,
+       0.04
+      ],
+      "c1_mean": 0.027,
+      "burst_mean": 0.04
+     }
+    },
+    {
+     "seed": 1,
+     "neuron_rate_hz": 0.064,
+     "stats": {
+      "duration_s": 600.0,
+      "n_active": 60,
+      "rate_hz_median": 0.562,
+      "rate_hz_mean": 0.647,
+      "n_bursts": 0,
+      "burst_rate_per_min": 0.0
+     },
+     "evoked_burst_median": 0.04,
+     "config": {
+      "enc": [
+       198,
+       250
+      ],
+      "dec": [
+       197,
+       251
+      ],
+      "train": [
+       101,
+       188,
+       121,
+       217,
+       24,
+       47,
+       158,
+       36
+      ],
+      "score": 1.88,
+      "c1_ab": 0.96,
+      "c1_cd": 0.92,
+      "c1_ad": 0.0,
+      "c1_cb": 0.0,
+      "burst_enc": [
+       0.08,
+       0.04
+      ],
+      "c1_mean": 0.019,
+      "burst_mean": 0.04
+     }
+    },
+    {
+     "seed": 2,
+     "neuron_rate_hz": 0.061,
+     "stats": {
+      "duration_s": 600.0,
+      "n_active": 60,
+      "rate_hz_median": 0.537,
+      "rate_hz_mean": 0.715,
+      "n_bursts": 0,
+      "burst_rate_per_min": 0.0
+     },
+     "evoked_burst_median": 0.04,
+     "config": {
+      "enc": [
+       158,
+       223
+      ],
+      "dec": [
+       157,
+       207
+      ],
+      "train": [
+       248,
+       214,
+       252,
+       4,
+       107,
+       234,
+       148,
+       198
+      ],
+      "score": 1.88,
+      "c1_ab": 0.96,
+      "c1_cd": 0.92,
+      "c1_ad": 0.0,
+      "c1_cb": 0.0,
+      "burst_enc": [
+       0.04,
+       0.08
+      ],
+      "c1_mean": 0.026,
+      "burst_mean": 0.03
+     }
+    },
+    {
+     "seed": 3,
+     "neuron_rate_hz": 0.066,
+     "stats": {
+      "duration_s": 600.0,
+      "n_active": 60,
+      "rate_hz_median": 0.537,
+      "rate_hz_mean": 0.665,
+      "n_bursts": 0,
+      "burst_rate_per_min": 0.0
+     },
+     "evoked_burst_median": 0.04,
+     "config": {
+      "enc": [
+       94,
+       101
+      ],
+      "dec": [
+       110,
+       100
+      ],
+      "train": [
+       186,
+       224,
+       255,
+       1,
+       134,
+       218,
+       129,
+       78
+      ],
+      "score": 1.92,
+      "c1_ab": 1.0,
+      "c1_cd": 0.92,
+      "c1_ad": 0.0,
+      "c1_cb": 0.0,
+      "burst_enc": [
+       0.12,
+       0.08
+      ],
+      "c1_mean": 0.031,
+      "burst_mean": 0.04
+     }
+    },
+    {
+     "seed": 4,
+     "neuron_rate_hz": 0.065,
+     "stats": {
+      "duration_s": 600.0,
+      "n_active": 60,
+      "rate_hz_median": 0.55,
+      "rate_hz_mean": 0.746,
+      "n_bursts": 0,
+      "burst_rate_per_min": 0.0
+     },
+     "evoked_burst_median": 0.02,
+     "config": {
+      "enc": [
+       99,
+       197
+      ],
+      "dec": [
+       100,
+       213
+      ],
+      "train": [
+       109,
+       104,
+       156,
+       158,
+       214,
+       191,
+       176,
+       189
+      ],
+      "score": 1.88,
+      "c1_ab": 0.96,
+      "c1_cd": 0.92,
+      "c1_ad": 0.0,
+      "c1_cb": 0.0,
+      "burst_enc": [
+       0.04,
+       0.08
+      ],
+      "c1_mean": 0.024,
+      "burst_mean": 0.03
+     }
+    }
+   ]
+  },
+  "s1000": {
+   "overrides": {
+    "synapses_per_neuron": 1000.0,
+    "w_exc": 0.22000000000000003,
+    "w_inh": -0.6,
+    "w_max": 1.0,
+    "length_um": 370.0,
+    "delay_buckets": 16
+   },
+   "scorecard": {
+    "rate_hz_median": {
+     "model_per_culture": [
+      0.544,
+      0.561,
+      0.532,
+      0.532,
+      0.542
+     ],
+     "model_median": 0.542,
+     "real_median": 2.825,
+     "real_p5_p95": [
+      0.739,
+      10.343
+     ],
+     "cultures_in_range": 0,
+     "n": 5,
+     "in_range": false,
+     "gated": true
+    },
+    "burst_rate_per_min": {
+     "model_per_culture": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "model_median": 0.0,
+     "real_median": 4.228,
+     "real_p5_p95": [
+      1.207,
+      15.354
+     ],
+     "cultures_in_range": 0,
+     "n": 5,
+     "in_range": false,
+     "gated": true
+    },
+    "burst_duration_ms_median": {
+     "model_per_culture": [],
+     "model_median": null,
+     "real_median": 556.0,
+     "real_p5_p95": [
+      79.18,
+      1787.92
+     ],
+     "cultures_in_range": 0,
+     "n": 0,
+     "in_range": false,
+     "gated": true
+    },
+    "ibi_cv": {
+     "model_per_culture": [],
+     "model_median": null,
+     "real_median": 0.868,
+     "real_p5_p95": [
+      0.558,
+      1.988
+     ],
+     "cultures_in_range": 0,
+     "n": 0,
+     "in_range": false,
+     "gated": true
+    },
+    "spikes_in_bursts": {
+     "model_per_culture": [],
+     "model_median": null,
+     "real_median": 0.63,
+     "real_p5_p95": [
+      0.1,
+      0.927
+     ],
+     "cultures_in_range": 0,
+     "n": 0,
+     "in_range": false,
+     "gated": true
+    },
+    "n_active": {
+     "model_per_culture": [
+      60,
+      60,
+      60,
+      60,
+      60
+     ],
+     "model_median": 60.0,
+     "real_median": 56.0,
+     "real_p5_p95": [
+      51.0,
+      58.6
+     ],
+     "cultures_in_range": 0,
+     "n": 5,
+     "in_range": false,
+     "gated": false
+    },
+    "rate_hz_mean": {
+     "model_per_culture": [
+      0.659,
+      0.613,
+      0.671,
+      0.633,
+      0.705
+     ],
+     "model_median": 0.659,
+     "real_median": 4.533,
+     "real_p5_p95": [
+      1.811,
+      11.12
+     ],
+     "cultures_in_range": 0,
+     "n": 5,
+     "in_range": false,
+     "gated": false
+    },
+    "ibi_s_median": {
+     "model_per_culture": [],
+     "model_median": null,
+     "real_median": 11.954,
+     "real_p5_p95": [
+      0.851,
+      41.516
+     ],
+     "cultures_in_range": 0,
+     "n": 0,
+     "in_range": false,
+     "gated": false
+    },
+    "recruitment_median": {
+     "model_per_culture": [],
+     "model_median": null,
+     "real_median": 0.588,
+     "real_p5_p95": [
+      0.077,
+      0.998
+     ],
+     "cultures_in_range": 0,
+     "n": 0,
+     "in_range": false,
+     "gated": false
+    },
+    "evoked_burst_median": {
+     "model_per_culture": [
+      0.04,
+      0.02,
+      0.02,
+      0.0,
+      0.0
+     ],
+     "model_median": 0.02,
+     "real_median": 0.065,
+     "real_p5_p95": [
+      0.0,
+      0.16
+     ],
+     "cultures_in_range": 5,
+     "n": 5,
+     "in_range": true,
+     "gated": true
+    }
+   },
+   "in_range": [
+    "evoked_burst_median"
+   ],
+   "out_of_range": [
+    "rate_hz_median",
+    "burst_rate_per_min",
+    "burst_duration_ms_median",
+    "ibi_cv",
+    "spikes_in_bursts"
+   ],
+   "complete": false,
+   "pass": false,
+   "configs": {
+    "0": {
+     "enc": [
+      130,
+      109
+     ],
+     "dec": [
+      146,
+      110
+     ],
+     "train": [
+      223,
+      211,
+      23,
+      241,
+      205,
+      24,
+      102,
+      200
+     ],
+     "score": 1.9,
+     "c1_ab": 1.0,
+     "c1_cd": 0.92,
+     "c1_ad": 0.0,
+     "c1_cb": 0.0,
+     "burst_enc": [
+      0.08,
+      0.0
+     ],
+     "c1_mean": 0.021,
+     "burst_mean": 0.04
+    },
+    "1": {
+     "enc": [
+      157,
+      198
+     ],
+     "dec": [
+      158,
+      197
+     ],
+     "train": [
+      188,
+      101,
+      47,
+      136,
+      24,
+      217,
+      36,
+      21
+     ],
+     "score": 1.8,
+     "c1_ab": 0.96,
+     "c1_cd": 0.92,
+     "c1_ad": 0.04,
+     "c1_cb": 0.04,
+     "burst_enc": [
+      0.12,
+      0.04
+     ],
+     "c1_mean": 0.021,
+     "burst_mean": 0.04
+    },
+    "2": {
+     "enc": [
+      113,
+      158
+     ],
+     "dec": [
+      114,
+      157
+     ],
+     "train": [
+      248,
+      223,
+      214,
+      207,
+      148,
+      53,
+      4,
+      252
+     ],
+     "score": 1.96,
+     "c1_ab": 1.0,
+     "c1_cd": 0.96,
+     "c1_ad": 0.0,
+     "c1_cb": 0.0,
+     "burst_enc": [
+      0.04,
+      0.04
+     ],
+     "c1_mean": 0.027,
+     "burst_mean": 0.02
+    },
+    "3": {
+     "enc": [
+      101,
+      93
+     ],
+     "dec": [
+      100,
+      77
+     ],
+     "train": [
+      186,
+      1,
+      255,
+      224,
+      218,
+      134,
+      147,
+      78
+     ],
+     "score": 1.92,
+     "c1_ab": 1.0,
+     "c1_cd": 0.92,
+     "c1_ad": 0.0,
+     "c1_cb": 0.0,
+     "burst_enc": [
+      0.08,
+      0.12
+     ],
+     "c1_mean": 0.031,
+     "burst_mean": 0.02
+    },
+    "4": {
+     "enc": [
+      197,
+      177
+     ],
+     "dec": [
+      213,
+      176
+     ],
+     "train": [
+      109,
+      104,
+      158,
+      189,
+      156,
+      214,
+      168,
+      191
+     ],
+     "score": 1.88,
+     "c1_ab": 0.96,
+     "c1_cd": 0.92,
+     "c1_ad": 0.0,
+     "c1_cb": 0.0,
+     "burst_enc": [
+      0.16,
+      0.04
+     ],
+     "c1_mean": 0.025,
+     "burst_mean": 0.02
+    }
+   },
+   "rows": [
+    {
+     "seed": 0,
+     "neuron_rate_hz": 0.053,
+     "stats": {
+      "duration_s": 600.0,
+      "n_active": 60,
+      "rate_hz_median": 0.544,
+      "rate_hz_mean": 0.659,
+      "n_bursts": 0,
+      "burst_rate_per_min": 0.0
+     },
+     "evoked_burst_median": 0.04,
+     "config": {
+      "enc": [
+       130,
+       109
+      ],
+      "dec": [
+       146,
+       110
+      ],
+      "train": [
+       223,
+       211,
+       23,
+       241,
+       205,
+       24,
+       102,
+       200
+      ],
+      "score": 1.9,
+      "c1_ab": 1.0,
+      "c1_cd": 0.92,
+      "c1_ad": 0.0,
+      "c1_cb": 0.0,
+      "burst_enc": [
+       0.08,
+       0.0
+      ],
+      "c1_mean": 0.021,
+      "burst_mean": 0.04
+     }
+    },
+    {
+     "seed": 1,
+     "neuron_rate_hz": 0.053,
+     "stats": {
+      "duration_s": 600.0,
+      "n_active": 60,
+      "rate_hz_median": 0.561,
+      "rate_hz_mean": 0.613,
+      "n_bursts": 0,
+      "burst_rate_per_min": 0.0
+     },
+     "evoked_burst_median": 0.02,
+     "config": {
+      "enc": [
+       157,
+       198
+      ],
+      "dec": [
+       158,
+       197
+      ],
+      "train": [
+       188,
+       101,
+       47,
+       136,
+       24,
+       217,
+       36,
+       21
+      ],
+      "score": 1.8,
+      "c1_ab": 0.96,
+      "c1_cd": 0.92,
+      "c1_ad": 0.04,
+      "c1_cb": 0.04,
+      "burst_enc": [
+       0.12,
+       0.04
+      ],
+      "c1_mean": 0.021,
+      "burst_mean": 0.04
+     }
+    },
+    {
+     "seed": 2,
+     "neuron_rate_hz": 0.051,
+     "stats": {
+      "duration_s": 600.0,
+      "n_active": 60,
+      "rate_hz_median": 0.532,
+      "rate_hz_mean": 0.671,
+      "n_bursts": 0,
+      "burst_rate_per_min": 0.0
+     },
+     "evoked_burst_median": 0.02,
+     "config": {
+      "enc": [
+       113,
+       158
+      ],
+      "dec": [
+       114,
+       157
+      ],
+      "train": [
+       248,
+       223,
+       214,
+       207,
+       148,
+       53,
+       4,
+       252
+      ],
+      "score": 1.96,
+      "c1_ab": 1.0,
+      "c1_cd": 0.96,
+      "c1_ad": 0.0,
+      "c1_cb": 0.0,
+      "burst_enc": [
+       0.04,
+       0.04
+      ],
+      "c1_mean": 0.027,
+      "burst_mean": 0.02
+     }
+    },
+    {
+     "seed": 3,
+     "neuron_rate_hz": 0.055,
+     "stats": {
+      "duration_s": 600.0,
+      "n_active": 60,
+      "rate_hz_median": 0.532,
+      "rate_hz_mean": 0.633,
+      "n_bursts": 0,
+      "burst_rate_per_min": 0.0
+     },
+     "evoked_burst_median": 0.0,
+     "config": {
+      "enc": [
+       101,
+       93
+      ],
+      "dec": [
+       100,
+       77
+      ],
+      "train": [
+       186,
+       1,
+       255,
+       224,
+       218,
+       134,
+       147,
+       78
+      ],
+      "score": 1.92,
+      "c1_ab": 1.0,
+      "c1_cd": 0.92,
+      "c1_ad": 0.0,
+      "c1_cb": 0.0,
+      "burst_enc": [
+       0.08,
+       0.12
+      ],
+      "c1_mean": 0.031,
+      "burst_mean": 0.02
+     }
+    },
+    {
+     "seed": 4,
+     "neuron_rate_hz": 0.054,
+     "stats": {
+      "duration_s": 600.0,
+      "n_active": 60,
+      "rate_hz_median": 0.542,
+      "rate_hz_mean": 0.705,
+      "n_bursts": 0,
+      "burst_rate_per_min": 0.0
+     },
+     "evoked_burst_median": 0.0,
+     "config": {
+      "enc": [
+       197,
+       177
+      ],
+      "dec": [
+       213,
+       176
+      ],
+      "train": [
+       109,
+       104,
+       158,
+       189,
+       156,
+       214,
+       168,
+       191
+      ],
+      "score": 1.88,
+      "c1_ab": 0.96,
+      "c1_cd": 0.92,
+      "c1_ad": 0.0,
+      "c1_cb": 0.0,
+      "burst_enc": [
+       0.16,
+       0.04
+      ],
+      "c1_mean": 0.025,
+      "burst_mean": 0.02
+     }
+    }
+   ]
+  }
+ },
+ "passed": [],
+ "verdict": "no variant passes part 1: step 4 fails, part 2 doesn't run, track B closes for good"
+}

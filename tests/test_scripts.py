@@ -309,3 +309,60 @@ def test_burst_onsets_from_burstlets_and_from_smoothed_rates():
     assert np.allclose([on0[c] for c in (0, 1, 2)], [0, 20, 40])
     on5 = BS.onsets(t, ch, burst, bl, 5)
     assert np.allclose(np.diff([on5[c] for c in (0, 1, 2)]), [20, 20], atol=1.01)
+
+
+def weak_row(seed, scale, rate=1.0, shift=0.0, minutes=10, cross=0.5, homeo=0.0, rule="additive"):
+    """A drift arm as weak_synapses.py reads it: per-minute rate against rest and per-minute gains (own 2, cross
+    ``cross``, noise shared by one culture's arms), ``shift`` added to one cross gain over the last 3 minutes."""
+    r = drift_row(seed, scale, homeo, minutes, shift, rule=rule)
+    g = np.array(r["gain_60s"]) + (cross - 0.5) * (1 - np.eye(2))
+    return r | {"gain_60s": g.tolist(), "rate_ratio_60s": [1.05] * (minutes - 3) + [1.05 * rate] * 3}
+
+
+def test_weak_synapse_variants_scale_count_weights_and_cap_together():
+    WS = load("weak_synapses")
+    o = WS.overrides("s400")
+    assert o["synapses_per_neuron"] == 400.0 and o["length_um"] == 225.0 and o["delay_buckets"] == 16
+    assert np.isclose(o["w_exc"] * 4, 2.2) and np.isclose(o["w_inh"] * 4, -6.0) and np.isclose(o["w_max"] * 4, 10.0)
+    assert set(WS.overrides("s190")) == {"synapses_per_neuron", "w_exc", "w_inh", "w_max"}  # reach as now
+
+
+def test_weak_synapse_gate_needs_calm_kept_and_separate_cultures():
+    WS = load("weak_synapses")
+    ok = [weak_row(s, x) for s in range(5) for x in (0.0, 1.0)]
+    g = WS.drift_gate(ok)
+    assert g["passed"] == 5 and g["pass"]
+    hot = [weak_row(s, x, rate=3.0 if x and s < 3 else 1.0) for s in range(5) for x in (0.0, 1.0)]
+    g = WS.drift_gate(hot)  # three cultures run hot: 2 of 5 left
+    assert g["passed"] == 2 and not g["pass"] and g["per_culture"]["0"]["calm_ratio_last3"] == 3.0
+    moved = [weak_row(s, x, shift=5.0 if x and s < 3 else 0.0) for s in range(5) for x in (0.0, 1.0)]
+    g = WS.drift_gate(moved)
+    assert g["passed"] == 2 and not g["per_culture"]["0"]["pathways_kept"]
+    mixed = [weak_row(s, x, cross=1.5) for s in range(5) for x in (0.0, 1.0)]
+    assert WS.drift_gate(mixed)["passed"] == 0  # no separate pathway to keep without plasticity
+    missing = [r for r in ok if not (r["seed"] in (0, 1, 2) and r["scale"])]  # no encoders: arm absent
+    assert WS.drift_gate(missing)["passed"] == 2
+    short = [weak_row(s, x, minutes=2) for s in range(5) for x in (0.0, 1.0)]
+    assert WS.drift_gate(short)["passed"] == 0
+    # Only the no-plasticity arm and STDP x1 with the 5 s step count; scaling and weight-dependent arms are ignored.
+    other = ok + [weak_row(s, 1.0, rate=5.0, homeo=1e-5) for s in range(5)] + [
+        weak_row(s, 1.0, rate=5.0, rule="multiplicative") for s in range(5)]
+    assert WS.drift_gate(other)["passed"] == 5
+
+
+def test_scorecard_jobs_keep_their_names_unless_the_culture_changes():
+    RS = load("realism_scorecard")
+    sz = {"warm_s": 10.0, "record_s": 600.0, "evoked": True, "evoked_reps": 25, "smoke": False}
+    assert RS.job_name("live", 0, sz) == "live_s0_ed5a2d31"  # the stored scorecard's recordings
+    assert RS.job_name("live", 0, sz | {"tag": "_s190"}) == "live_s0_ed5a2d31"
+    assert RS.job_name("live", 0, sz | {"culture": {"w_exc": 1.1}}) != "live_s0_ed5a2d31"
+
+
+def test_configure_returns_none_without_two_eligible_pairs():
+    k = 6
+    first = np.full((k, k), 0.5)
+    np.fill_diagonal(first, 0.0)
+    cand, rate = np.arange(10, 10 + k), np.arange(k, 0, -1.0)
+    assert CP.configure(cand, rate, first, np.ones(k)) is None  # every encoder bursts on all its pulses
+    cfg = CP.configure(cand, rate, first, np.zeros(k))
+    assert len(set(cfg["enc"] + cfg["dec"])) == 4

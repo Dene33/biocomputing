@@ -223,7 +223,9 @@ class CartPole:
         return abs(self.s[2]) > LIMIT
 
 
-def build(seed):
+def build(seed, culture=None):
+    """The replication's culture (gpu_20k on the 256-electrode grid), 2 s settled. ``culture``: overrides of the
+    culture's config (weak_synapses.py's variants); none gives the culture of every stored run."""
     import torch
 
     from biocompute.culture.network import make_config
@@ -232,14 +234,17 @@ def build(seed):
     from biocompute.mea.electrodes import make_mea_config
 
     torch.set_num_threads(1)
-    dev = SimulatedBiocomputer(make_config("gpu_20k", seed=seed), make_mea_config("grid256", seed=seed))
+    dev = SimulatedBiocomputer(make_config("gpu_20k", seed=seed, **(culture or {})),
+                               make_mea_config("grid256", seed=seed))
     dev.step(2000.0)
     c = dev.culture
     w_in0 = c.excitatory_input()
     return dev, STDP(), w_in0
 
 
-def characterise(dev, reps=25, isi_ms=250.0):
+def characterise(dev, reps=25, isi_ms=250.0, beat=None):
+    """``beat(done, total)``: optional progress call after each electrode (a heartbeat for slow cultures; it
+    changes nothing measured)."""
     bins = np.zeros((200, dev.n_channels))
     neuron = np.zeros(dev.culture.n)
     for i in range(200):
@@ -267,6 +272,8 @@ def characterise(dev, reps=25, isi_ms=250.0):
             hit[j[t < 10.0]] = True
             first[i] += hit
             totals[i, r] = float((t < 200.0).sum())
+        if beat is not None:
+            beat(i + 1, k)
     first /= reps
     np.fill_diagonal(first, 0.0)
     med = np.median(totals)
@@ -286,6 +293,8 @@ def configure(cand, rate, first, burst):
         s = first[a, b] + first[c, d] - first[a, d] - first[c, b] - 0.5 * (first[a, c] + first[c, a])
         if s > bs:
             best, bs = (a, b, c, d), s
+    if best is None:  # fewer than two pairs with an encoder that bursts on at most half its pulses
+        return None
     a, b, c, d = best
     rest = [i for i in np.argsort(rate)[::-1] if i not in best][:8]
     return {"enc": [int(cand[a]), int(cand[c])], "dec": [int(cand[b]), int(cand[d])],
@@ -466,6 +475,21 @@ def gate_b1(rows, eta=1e-5):
     return out
 
 
+def pathway_change(r, off):
+    """One plastic arm's four encoder -> decoder gains (own and cross) against its culture's no-plasticity arm: over
+    the last 3 minutes, a gain has moved when the difference exceeds 2 SE, SE from both arms' per-minute spread over
+    minutes 2-10. Arms shorter than the gate have no spread to test against (SE NaN) and are marked untested."""
+    ok = long_enough(r) and long_enough(off)
+    g, g0 = np.array(r["gain_60s"]), np.array(off["gain_60s"])  # [minute, decoder, encoder]
+    se = np.sqrt(g[1:].std(0, ddof=1) ** 2 / 3 + g0[1:].std(0, ddof=1) ** 2 / 3) if ok else np.nan
+    diff = g[-3:].mean(0) - g0[-3:].mean(0)
+    moved = np.abs(diff) > 2 * se
+    return {"tested": ok, "own_diff": [round(float(diff[k, k]), 2) for k in (0, 1)],
+            "cross_diff": [round(float(diff[k, 1 - k]), 2) for k in (0, 1)],
+            "moved_own": int(moved[0, 0] + moved[1, 1]) if ok else None,
+            "moved_cross": int(moved[0, 1] + moved[1, 0]) if ok else None}
+
+
 def pathways_vs_off(rows, eta=1e-5, max_moved=1):
     """Pathways against the noise floor (bl1_rep_analysis.py's test): for each plastic arm, each encoder -> decoder
     gain (own and cross) over the last 3 minutes against the same culture's no-plasticity arm; it has moved when the
@@ -478,22 +502,8 @@ def pathways_vs_off(rows, eta=1e-5, max_moved=1):
         off = by.get((sd, 0.0, 0.0))
         if off is None:
             continue
-        g0 = np.array(off["gain_60s"])  # [minute, decoder, encoder]
-        cult = {}
-        for (s2, x, h), r in sorted(by.items()):
-            if s2 != sd or (x == 0 and not h):
-                continue
-            ok = long_enough(r) and long_enough(off)  # shorter arms have no spread to test against (SE NaN)
-            g = np.array(r["gain_60s"])
-            se = np.sqrt(g[1:].std(0, ddof=1) ** 2 / 3 + g0[1:].std(0, ddof=1) ** 2 / 3) if ok else np.nan
-            diff = g[-3:].mean(0) - g0[-3:].mean(0)
-            moved = np.abs(diff) > 2 * se
-            cult[f"x{x:g}_homeo{h:g}"] = {
-                "tested": ok, "own_diff": [round(float(diff[k, k]), 2) for k in (0, 1)],
-                "cross_diff": [round(float(diff[k, 1 - k]), 2) for k in (0, 1)],
-                "moved_own": int(moved[0, 0] + moved[1, 1]) if ok else None,
-                "moved_cross": int(moved[0, 1] + moved[1, 0]) if ok else None}
-        out["per_culture"][str(sd)] = cult
+        out["per_culture"][str(sd)] = {f"x{x:g}_homeo{h:g}": pathway_change(r, off)
+                                       for (s2, x, h), r in sorted(by.items()) if s2 == sd and (x or h)}
     key = f"x1_homeo{eta:g}"
     arms = [c.get(key) for c in out["per_culture"].values()]
     rates = [by.get((int(sd), 1.0, eta), {}).get("rate_ratio") for sd in out["per_culture"]]
@@ -527,10 +537,11 @@ def drift(job):
     dump, ref = opts.get("dump", False), opts.get("ref")
     _start_job()
     g = Guard(f"drift_{arm}", out)
-    enc, dec = DRIFT_CONFIGS[seed]
+    # A culture variant (``culture``: config overrides) brings its own encoders and decoders, chosen on it.
+    enc, dec = (spec["enc"], spec["dec"]) if "enc" in spec else DRIFT_CONFIGS[seed]
     ck = Checkpoint(out / "ckpt" / f"{key}.pt")
     rng = np.random.default_rng(1)
-    dev, _, w_in0 = build(seed)
+    dev, _, w_in0 = build(seed, spec.get("culture"))
     stdp = make_stdp(spec)
     c = dev.culture
     stdp_on = spec["scale"] > 0 or spec["eta"] > 0

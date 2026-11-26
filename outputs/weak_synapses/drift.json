@@ -1,0 +1,118 @@
+{
+ "pre_registered": "see scripts/weak_synapses.py",
+ "positive_control": {
+  "per_culture": {
+   "0": {
+    "tested": true,
+    "calm_ratio_last3": 6.52,
+    "calm": false,
+    "pathways": {
+     "tested": true,
+     "own_diff": [
+      7.89,
+      1.31
+     ],
+     "cross_diff": [
+      0.26,
+      24.01
+     ],
+     "moved_own": 1,
+     "moved_cross": 1
+    },
+    "pathways_kept": false,
+    "off_mean_gains": [
+     [
+      1.79,
+      -0.08
+     ],
+     [
+      0.4,
+      1.24
+     ]
+    ],
+    "off_separate": true,
+    "rate_vs_rest_last3": [
+     1.07,
+     6.97
+    ],
+    "pass": false
+   },
+   "1": {
+    "tested": true,
+    "calm_ratio_last3": 7.15,
+    "calm": false,
+    "pathways": {
+     "tested": true,
+     "own_diff": [
+      -0.03,
+      -0.12
+     ],
+     "cross_diff": [
+      0.63,
+      0.21
+     ],
+     "moved_own": 0,
+     "moved_cross": 0
+    },
+    "pathways_kept": true,
+    "off_mean_gains": [
+     [
+      2.4,
+      0.47
+     ],
+     [
+      0.69,
+      1.79
+     ]
+    ],
+    "off_separate": true,
+    "rate_vs_rest_last3": [
+     1.12,
+     8.01
+    ],
+    "pass": false
+   },
+   "2": {
+    "tested": true,
+    "calm_ratio_last3": 5.51,
+    "calm": false,
+    "pathways": {
+     "tested": true,
+     "own_diff": [
+      1.57,
+      10.16
+     ],
+     "cross_diff": [
+      18.46,
+      -0.88
+     ],
+     "moved_own": 1,
+     "moved_cross": 1
+    },
+    "pathways_kept": false,
+    "off_mean_gains": [
+     [
+      1.55,
+      0.35
+     ],
+     [
+      0.44,
+      3.16
+     ]
+    ],
+    "off_separate": true,
+    "rate_vs_rest_last3": [
+     0.99,
+     5.46
+    ],
+    "pass": false
+   }
+  },
+  "passed": 0,
+  "need": 3,
+  "of": 3,
+  "pass": false
+ },
+ "variants": {},
+ "verdict": "no variant passed part 1: step 4 fails, track B closes for good"
+}

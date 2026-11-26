@@ -93,7 +93,10 @@ DEAD_MAX_PER_MIN = 1.2
 
 
 def job_name(kind: str, seed: int, sz: dict) -> str:
-    return job_key(f"{kind}_s{seed}", {k: sz[k] for k in ("warm_s", "record_s", "evoked")})
+    """Named by the settings; ``culture`` (config overrides, weak_synapses.py) only when set, so the stored jobs of the
+    unchanged culture keep their names."""
+    return job_key(f"{kind}_s{seed}", {k: sz[k] for k in ("warm_s", "record_s", "evoked")} | (
+        {"culture": sz["culture"]} if sz.get("culture") else {}))
 
 
 def record_job(job):
@@ -104,7 +107,7 @@ def record_job(job):
     kind, seed, out, sz = job
     stem = job_name(kind, seed, sz)
     CP._start_job()
-    g = Guard(f"record_{kind}_s{seed}", out)
+    g = Guard(f"record_{kind}_s{seed}{sz.get('tag', '')}", out)  # tag: a culture variant's name, for the log
     torch.set_num_threads(1)
     rec = out / "rec" / f"{stem}.npz"
     if not rec.exists():  # a finished recording isn't redone when only the evoked measure was stopped
@@ -114,13 +117,15 @@ def record_job(job):
                "n_channels": int(len(z["electrode_xy"])),
                "neuron_rate_hz": round(float(len(z["n_id"]) / len(z["pos"]) / sz["record_s"]), 3)}
     if kind == "live" and sz["evoked"]:
-        CP.STOP["phase"] = "setup"  # a stop here redoes the evoked measure (~5 min)
-        dev2, _, _ = CP.build(seed)
-        cand, _, _, burst, _, _ = CP.characterise(dev2, reps=sz["evoked_reps"])
+        CP.STOP["phase"] = "setup"  # a stop here redoes the evoked measure (~5 min; ~30 min for s1000)
+        dev2, _, _ = CP.build(seed, sz.get("culture"))
+        cand, rate, first, burst, _, _ = CP.characterise(dev2, reps=sz["evoked_reps"],
+                                                         beat=lambda i, n: g.beat(i, n, phase="evoked"))
         row |= {"evoked_burst_median": round(float(np.median(burst)), 3),
                 "evoked_burst_mean": round(float(burst.mean()), 3), "evoked_burst_per_candidate": burst.tolist(),
-                "evoked_candidates": [int(x) for x in cand]}
-        if seed in LOGGED_BURST_MEAN and not sz["smoke"]:
+                "evoked_candidates": [int(x) for x in cand],
+                "config": CP.configure(cand, rate, first, burst)}  # the replication's encoders and decoders
+        if seed in LOGGED_BURST_MEAN and not sz["smoke"] and not sz.get("culture"):
             g.check(round(float(burst.mean()), 2) == LOGGED_BURST_MEAN[seed],
                     f"evoked burst mean {burst.mean():.3f} != the replication's {LOGGED_BURST_MEAN[seed]}")
         del dev2
@@ -141,8 +146,8 @@ def record(kind, seed, out, sz, stem, rec, g):
     from biocompute.device import SimulatedBiocomputer
     from biocompute.mea.electrodes import make_mea_config
 
-    dev = SimulatedBiocomputer(make_config("gpu_20k", seed=seed), make_mea_config("mcs60", seed=seed),
-                               keep_raster=True)
+    dev = SimulatedBiocomputer(make_config("gpu_20k", seed=seed, **(sz.get("culture") or {})),
+                               make_mea_config("mcs60", seed=seed), keep_raster=True)
     c = dev.culture
     if kind == "dead":  # as biocompute.train.setup builds the dead culture
         c.w.zero_()
@@ -205,6 +210,17 @@ def _record_safe(job):
         return {"stopped": str(e)}
 
 
+def load_row(out: Path, kind: str, seed: int, sz: dict) -> dict | None:
+    """A finished job's row with B0's statistics (``spike_stats``) of its recording; None while it hasn't finished."""
+    p = out / "jobs" / f"{job_name(kind, seed, sz)}.json"
+    if not p.exists():
+        return None
+    r = json.loads(p.read_text())
+    with np.load(r["rec"]) as z:
+        r["stats"] = PDT.spike_stats(z["e_t_s"], z["e_ch"].astype(int), float(z["record_s"]), r["n_channels"])
+    return r
+
+
 def score(rows: list, targets: dict, smoke: bool = False) -> dict:
     tw = targets["wagenaar_2006_dense_div21_35"]["targets_across_cultures"]
     te = targets["robbins_2026_organoids"]["evoked_burst_percent_median_per_experiment"]
@@ -253,12 +269,9 @@ def main():
         CP.pool_map(_record_safe, todo, min(a.workers, len(todo)))
     rows = []
     for kind, seed, *_ in jobs:
-        p = out / "jobs" / f"{job_name(kind, seed, sz)}.json"
-        if not p.exists():
+        r = load_row(out, kind, seed, sz)
+        if r is None:
             continue
-        r = json.loads(p.read_text())
-        with np.load(r["rec"]) as z:
-            r["stats"] = PDT.spike_stats(z["e_t_s"], z["e_ch"].astype(int), float(z["record_s"]), r["n_channels"])
         rows.append(r)
         print(json.dumps({"kind": kind, "seed": seed, "neuron_rate_hz": r["neuron_rate_hz"], **r["stats"],
                           **{k: r[k] for k in ("evoked_burst_median", "evoked_burst_mean") if k in r}}), flush=True)
