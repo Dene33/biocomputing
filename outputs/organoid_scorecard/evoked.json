@@ -1,0 +1,150 @@
+{
+ "protocol": {
+  "warm_s": 10.0,
+  "isi_ms": 200.0,
+  "stims": 38,
+  "cycles": 5,
+  "amplitude": 1.0
+ },
+ "real": {
+  "groups": [
+   "group1",
+   "group2"
+  ],
+  "responding_share": [
+   0.19642857142857142,
+   0.30357142857142855
+  ],
+  "median_responding_gain": [
+   1.396,
+   1.392
+  ],
+  "excess_pct": [
+   5.2,
+   2.45
+  ]
+ },
+ "model": [
+  {
+   "seed": 0,
+   "responding": 0,
+   "responding_share": 0.0,
+   "median_responding_gain": null,
+   "after_stim_pct": 12.43,
+   "chance_pct": 12.57,
+   "excess_pct": -0.14,
+   "strongest_input_per_output": [
+    2,
+    2,
+    0,
+    2,
+    2,
+    2,
+    2,
+    2
+   ]
+  },
+  {
+   "seed": 1,
+   "responding": 0,
+   "responding_share": 0.0,
+   "median_responding_gain": null,
+   "after_stim_pct": 12.7,
+   "chance_pct": 12.4,
+   "excess_pct": 0.3,
+   "strongest_input_per_output": [
+    7,
+    2,
+    1,
+    5,
+    0,
+    7,
+    1,
+    5
+   ]
+  },
+  {
+   "seed": 2,
+   "responding": 0,
+   "responding_share": 0.0,
+   "median_responding_gain": null,
+   "after_stim_pct": 13.95,
+   "chance_pct": 13.64,
+   "excess_pct": 0.31,
+   "strongest_input_per_output": [
+    7,
+    0,
+    0,
+    7,
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "seed": 3,
+   "responding": 0,
+   "responding_share": 0.0,
+   "median_responding_gain": null,
+   "after_stim_pct": 13.16,
+   "chance_pct": 12.72,
+   "excess_pct": 0.44,
+   "strongest_input_per_output": [
+    2,
+    2,
+    4,
+    4,
+    3,
+    4,
+    2,
+    3
+   ]
+  },
+  {
+   "seed": 4,
+   "responding": 0,
+   "responding_share": 0.0,
+   "median_responding_gain": null,
+   "after_stim_pct": 13.16,
+   "chance_pct": 12.22,
+   "excess_pct": 0.94,
+   "strongest_input_per_output": [
+    4,
+    4,
+    6,
+    0,
+    0,
+    4,
+    4,
+    4
+   ]
+  }
+ ],
+ "reading": {
+  "responding_share": {
+   "model_median": 0.0,
+   "band": [
+    0.09821428571428571,
+    0.6071428571428571
+   ],
+   "like_real": false
+  },
+  "median_responding_gain": {
+   "model_median": null,
+   "band": [
+    0.696,
+    2.792
+   ],
+   "like_real": false
+  },
+  "excess_pct": {
+   "model_median": 0.31,
+   "band": [
+    null,
+    10.4
+   ],
+   "like_real": true
+  }
+ }
+}

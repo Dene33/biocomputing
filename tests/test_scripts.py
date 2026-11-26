@@ -486,6 +486,38 @@ def test_real_pathways_series_found_and_read():
     assert RP.series_test(d2, pre, blk, 8)["reading"] == "they drift up (potentiation)"
 
 
+def test_organoid_blocks_and_group_days():
+    """mcs60 (8 x 8 at 200 um, corners missing) holds 31 complete 2 x 4 blocks per orientation; a group-day needs
+    enough windows with enough active electrodes."""
+    OS = load("organoid_scorecard")
+    g = (np.arange(8) - 3.5) * 200.0
+    xy = np.array([(x, y) for y in g for x in g if not (abs(x) == 700 and abs(y) == 700)])
+    blocks = OS.blocks_of(xy)
+    assert len(xy) == 60 and len(blocks) == 62 and all(len(set(b)) == 8 for b in blocks)
+    w = {"rate_hz_median": 1.0, "burst_rate_per_min": 1.0, "burst_duration_ms_median": 500.0, "ibi_cv": 1.0,
+         "spikes_in_bursts": 0.3, "rate_hz_mean": 1.0, "ibi_s_median": 10.0, "recruitment_median": 0.5}
+    rows = [w | {"group": 1, "day": 0, "n_active": 4}] * 6 + [w | {"group": 2, "day": 0, "n_active": 2}] * 6
+    rows += [w | {"group": 1, "day": 1, "n_active": 5}] * 5
+    gd = OS.group_days(rows)
+    assert [(x["group"], x["day"]) for x in gd] == [(1, 0)]
+
+
+def test_organoid_map_measures_find_a_planted_pathway():
+    """A model mapping recording where input 2 makes output 5 fire once 20 ms after each pulse: one responding
+    pathway of 56, gain 1, strongest input of output 5 is 2; no bursts, so no excess over chance."""
+    OS = load("organoid_scorecard")
+    block = [10, 11, 12, 13, 18, 19, 20, 21]
+    stim_t = np.arange(8 * 40) * 200.0 + 1000.0
+    stim_in = np.repeat(np.arange(8), 40)
+    k = stim_in == 2
+    e_t = stim_t[k] + 20.0
+    e_ch = np.full(k.sum(), block[5])
+    spont = (np.array([1.0, 2.0]), np.array([block[0], block[1]]), 10.0)
+    m = OS.map_measures(e_t, e_ch, stim_t, stim_in, block, spont)
+    assert m["responding"] == 1 and m["median_responding_gain"] == 1.0
+    assert m["strongest_input_per_output"][5] == 2 and m["excess_pct"] == 0.0
+
+
 def test_day_drift_doses_interpolate_and_flag_unreachable_targets():
     pt = lambda x, y: {"shift": x, "evoked_electrode_abs": y, "evoked_electrode_signed": -y,  # noqa: E731
                        "evoked_culture": -y, "spont_culture": -2 * y}
@@ -519,3 +551,13 @@ def test_a2d_sessions_are_named_by_their_shift_and_a2_names_stay():
     assert gate["per_condition"]["day7_down"]["evoked_change"] == 1.0
     by[("s32", "day7_stress", "refit60")]["full"] = 20
     assert not cls.gate_a2d(by, 40, sessions)["pass"]
+
+
+def test_organoid_reading_without_responding_pathways_is_not_like_real():
+    OS = load("organoid_scorecard")
+    real = {"responding_share": [0.2, 0.3], "median_responding_gain": [1.4, 1.4], "excess_pct": [5.2, 2.5]}
+    model = [{"responding_share": 0.0, "median_responding_gain": None, "excess_pct": 15.0}] * 5
+    r = OS.like_real(model, real)
+    assert r["median_responding_gain"] == {"model_median": None, "band": [0.7, 2.8], "like_real": False}
+    assert not r["responding_share"]["like_real"] and not r["excess_pct"]["like_real"]
+    assert r["excess_pct"]["band"][1] == 10.4
