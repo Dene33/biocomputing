@@ -35,3 +35,8 @@ fs369*/
 fs437*/
 fs369*.zip
 fs437*.zip
+# FinalSpark's datasets are confidential (research use with citation): per-day, per-session and per-electrode tables derived from them stay local
+outputs/day_drift/day_drift.json
+outputs/day_drift/real_*.json
+outputs/real_pathways/
+outputs/organoid_scorecard/spontaneous.json

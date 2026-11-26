@@ -342,7 +342,7 @@ the recalibration. The old decoder, fitted on 312 s, reads grav_x with noise 0.9
 protocol is therefore "refit the edit", from 30–60 s of replay. Shown on one new dish (one culture seed).
 
 A2d, A2c under day-to-day change of real size (same script, seeds 9400–9439, 26 November). FinalSpark's fs369
-organoids change much more between days than `aging.py`: each electrode's evoked response by a median ×1.13 in a day
+organoids (data: FinalSpark) change much more between days than `aging.py`: each electrode's evoked response by a median ×1.13 in a day
 and ×1.6 in a week (`scripts/day_drift.py`; `aging.py`: ×1.04 and ×1.16). Seven sessions add a shift of every
 neuron's excitability, calibrated so the evoked change matches (two largest targets not reached). Full runs of 40:
 

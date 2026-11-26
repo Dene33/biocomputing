@@ -192,6 +192,19 @@ def test_no_new_markdown():
     assert set(repo_files("*.md")) == MARKDOWN, set(repo_files("*.md")) ^ MARKDOWN
 
 
+def test_finalspark_derived_tables_stay_out_of_git():
+    import subprocess
+
+    derived = ["outputs/day_drift/day_drift.json", "outputs/day_drift/real_*.json", "outputs/real_pathways/*",
+               "outputs/organoid_scorecard/spontaneous.json", "outputs/public_data/raw/*"]
+    tracked = subprocess.run(["git", "ls-files", "--", *derived], cwd=SCRIPTS.parent, capture_output=True, text=True,
+                             check=True).stdout.split()
+    assert not tracked, tracked
+    probe = SCRIPTS.parent / "outputs/real_pathways/probe.json"
+    ignored = subprocess.run(["git", "check-ignore", "-q", str(probe)], cwd=SCRIPTS.parent).returncode == 0
+    assert ignored
+
+
 def test_a2c_refit_edit_recovers_the_channel_and_scores_the_rest():
     from biocompute.eval.dish_channel import IMU_SPREAD
 

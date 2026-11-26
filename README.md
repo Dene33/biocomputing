@@ -44,6 +44,12 @@ The robot side is reused, not copied. The following paths are read from sibling 
 
 `tests/test_robot.py` checks that the stepwise `AsimovEnv` driven by the teacher reproduces `cyclotron.sim2sim.play_velocity` exactly.
 
+**Data from FinalSpark.** The whole-life datasets fs369 and fs437 come from FinalSpark's Neuroplatform
+(finalspark.com; Jordan et al. 2024, *Front. Artif. Intell.* 7:1376042). They are confidential and used here for
+research with FinalSpark cited as the data source. Neither the datasets nor the per-day, per-session or
+per-electrode tables derived from them are in this repository (`outputs/public_data/raw/finalspark/` and the derived
+outputs are gitignored, and a test fails if one is tracked). Only summary results appear here and in the commit log.
+
 ## Running
 
 ```sh
@@ -182,7 +188,7 @@ It also responds to single-electrode stimulation. Bursts end because short-term 
 
 ## Status and findings (26 November 2026)
 
-Built: everything in the layout above, with 58 passing tests. Teacher parity with cyclotron is exact.
+Built: everything in the layout above, with 59 passing tests. Teacher parity with cyclotron is exact.
 
 **Baselines** (`scripts/baselines.py`, 5 seeds, 20 s, 1-step latency):
 
@@ -293,7 +299,7 @@ Public data for track B (`scripts/public_data_targets.py`): 81 recordings of 29 
 Wagenaar et al. 2006, and the cart-pole organoids' Zenodo record, give the ranges the model must match. The
 organoids' game logs also give the rate half of a real drift test (`scripts/real_drift.py`): under the input pulses
 alone, real rates don't climb. Whether real pathways stay put can't be read from them. FinalSpark's whole-life
-exports (received 26 November; `outputs/public_data/raw/finalspark/`, not committed) add organoids with spike times
+exports (received 26 November; data: FinalSpark, confidential, see Setup) add organoids with spike times
 and every stimulation, but they can't answer it either (`scripts/real_pathways.py`): no stimulation repeats in a
 usable way. Two logged sessions never reached the array at all, so every use checks for the stimulation artifact.
 

@@ -256,7 +256,8 @@ the track with a write-up, and learning questions wait for a dish.
 
 - **B0. Public data** (CPU, alongside A1). Recordings of real cultures from other labs:
   - Wagenaar et al. 2006, dissociated cortical cultures (spontaneous, plus stimulation sets if published);
-  - FinalSpark's whole-life exports, received 26 November: fs369 (one MEA for 21.7 days, four organoid groups of 8
+  - FinalSpark's whole-life exports (data: FinalSpark, cited as the source; confidential, so neither they nor the
+    per-day, per-session or per-electrode tables derived from them are committed), received 26 November: fs369 (one MEA for 21.7 days, four organoid groups of 8
     electrodes, mostly spontaneous, with four whole-array stimulation sweeps and one mapping session) and fs437 (a
     dying MEA, 6 days, stimulated by many clients). Spike events with times, every stimulation, 3 ms raw snippets.
     Read with h5py only (`scripts/finalspark_data.py`; two logged sessions never reached the array, so every use
