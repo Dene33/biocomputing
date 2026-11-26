@@ -89,6 +89,10 @@ results; code changes are not in the name, so after one, run into a fresh `--out
 seed gives the same result on the GPU, also across a stop and resume. Sums go through ordered operations
 (`OrganoidCulture.excitatory_input`, the delivery matrix), and a test fails on any new atomic float sum.
 
+The code carries no docstrings or prose comments: facts live in the code, the commit messages and these .md
+files, and no new .md file is added. A test fails on any docstring, on any comment other than `# noqa` or a reviewed
+one-line warning (`REVIEWED_COMMENTS` in `tests/test_scripts.py`), and on any .md file beyond the existing ones.
+
 The commands behind the committed experiment results. Each run's numbers are in its commit, cited in the route doc's
 results table. Each script's original description (design, gates, controls, results) was taken out of the code
 after commit d3c85c4 and stays readable with `git show d3c85c4:<path>`. Long runs use the `launch.py` / `watch.py` pair above with the same unit and log, and
@@ -178,7 +182,7 @@ It also responds to single-electrode stimulation. Bursts end because short-term 
 
 ## Status and findings (26 November 2026)
 
-Built: everything in the layout above, with 55 passing tests. Teacher parity with cyclotron is exact.
+Built: everything in the layout above, with 58 passing tests. Teacher parity with cyclotron is exact.
 
 **Baselines** (`scripts/baselines.py`, 5 seeds, 20 s, 1-step latency):
 

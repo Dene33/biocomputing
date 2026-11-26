@@ -9,7 +9,7 @@ __pycache__/
 outputs/**
 !outputs/**/
 !outputs/**/*.json
-!outputs/**/*.md
+!outputs/report.md
 !outputs/probe/*.py
 !outputs/probe/*.sh
 !outputs/probe/*.jsonl

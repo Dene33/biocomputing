@@ -126,6 +126,72 @@ def test_no_atomic_float_sums_outside_the_reviewed_places():
     assert found <= set(reviewed), found - set(reviewed)
 
 
+REVIEWED_COMMENTS = {
+    "scripts/closed_loop_vestibular.py": {
+        "# close() + join(), not the context manager: its terminate() hangs on workers that catch SIGTERM."},
+    "scripts/bl1_drift.py": {
+        "# close() + join(), not the context manager: its terminate() hangs on workers that catch SIGTERM.",
+        "# once: a second SIGTERM mid-unwind must not escape _guarded",
+        "# a later SIGTERM must not raise Stopped inside the pool's own code",
+        "# several arms share the 8 GB GPU"},
+    "scripts/cartpole_replication.py": {"# an idle pool's shutdown can hang on workers that catch SIGTERM"},
+    "src/biocompute/culture/network.py": {
+        "# Built on the CPU: the sort's temporaries would crowd the GPU.",
+        "# An ordered sum, so runs repeat bit for bit; index_add_ on the GPU sums with atomics in a varying order."},
+    "src/biocompute/culture/plasticity.py": {"# a state saved from other rules must not load partly"},
+    "scripts/burst_spread.py": {"# ts is time-ordered, so within a square the order stays by time"},
+    "scripts/public_data_targets.py": {"# e.g. 5-3-24: the archived copy always ends at the same byte"},
+    "wsp/controller/track_b.py": {
+        "# Action indices (policy order) and mirror signs: the right leg's pitch axes point the other way."},
+    "src/biocompute/robot/asimov.py": {
+        "# _MujocoRobot reads the limits from its run, so give it a copy with the weakened limits."},
+}
+MARKDOWN = {"README.md", "docs/literature-notes.md", "docs/next-steps.md", "docs/organoid-control-ideas.md",
+            "docs/route-to-computation.md", "outputs/report.md", "wsp/controller/log.md", "wsp/controller/program.md"}
+
+
+def repo_files(pattern):
+    import subprocess
+
+    out = subprocess.run(["git", "ls-files", "-co", "--exclude-standard", pattern], cwd=SCRIPTS.parent,
+                         capture_output=True, text=True, check=True).stdout
+    return sorted(set(out.split()))
+
+
+def prose_in(path, src):
+    import ast
+    import io
+    import re
+    import tokenize
+
+    found = [f"{path}:{n.lineno} docstring" for n in ast.walk(ast.parse(src))
+             if isinstance(n, ast.Expr) and isinstance(n.value, ast.Constant) and isinstance(n.value.value, str)]
+    for t in tokenize.generate_tokens(io.StringIO(src).readline):
+        if (t.type == tokenize.COMMENT and not re.match(r"#\s*noqa\b", t.string)
+                and t.string not in REVIEWED_COMMENTS.get(path, ())):
+            found.append(f"{path}:{t.start[0]} {t.string}")
+    return found
+
+
+def test_no_docstrings_or_prose_comments():
+    root = SCRIPTS.parent
+    found = [f for p in repo_files("*.py") if (root / p).exists() for f in prose_in(p, (root / p).read_text())]
+    assert not found, found
+
+
+def test_prose_check_catches_docstrings_and_unreviewed_comments():
+    src = '"""Module."""\nx = 1  # why\n"""attr"""\ndef f():\n    """Doc."""\n    return x  # noqa: E731\n'
+    assert [f.split(" ")[0] for f in prose_in("scripts/new.py", src)] == [
+        "scripts/new.py:1", "scripts/new.py:3", "scripts/new.py:5", "scripts/new.py:2"]
+    kept = "# a state saved from other rules must not load partly"
+    assert prose_in("src/biocompute/culture/plasticity.py", f"x = 1  {kept}\n") == []
+    assert prose_in("scripts/other.py", f"x = 1  {kept}\n") != []
+
+
+def test_no_new_markdown():
+    assert set(repo_files("*.md")) == MARKDOWN, set(repo_files("*.md")) ^ MARKDOWN
+
+
 def test_a2c_refit_edit_recovers_the_channel_and_scores_the_rest():
     from biocompute.eval.dish_channel import IMU_SPREAD
 
