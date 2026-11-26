@@ -445,3 +445,26 @@ def test_day_drift_doses_interpolate_and_flag_unreachable_targets():
     assert not up["reached"] and up["shift"] == 2.0  # the largest tried, flagged
     assert DD.dose_for(pts, -1, 0.05)["shift"] == 0.0  # already there without a shift
     assert DD.dose_for([], 1, 0.5) == {"shift": None, "reached": False}  # a lag without sessions
+
+
+def test_a2d_sessions_are_named_by_their_shift_and_a2_names_stay():
+    cls = load("closed_loop_sessions")
+    sz = {"data": "outputs/probe/teacher_data_20k.pkl", "a1": "outputs/closed_loop_vestibular_affine",
+          "recal_steps": 3000, "seconds": 20.0}
+    assert cls.session_stem("s32", "day1", sz) == "s32_day1_c9438b40"  # A2's and A2c's stored sessions
+    assert cls.A2_CONDS == ["day0", "day1", "day3", "day7", "newdish"] and set(cls.A2D_CONDS) <= set(cls.CONDITIONS)
+    a, b = cls.session_stem("s32", "day7_down", sz), cls.session_stem("s32", "day7", sz)
+    assert a.startswith("s32_day7_down_") and a.split("_")[-1] != b.split("_")[-1]
+    o = Path("out")
+    assert cls.episode_file(o, "s32", "day1", "stale", 9200, sz).name == cls.episode_file(
+        o, "s32", "day1", "stale", 9200, sz).name
+    by = {("s32", c, arm): {"full": f, "n": 40} for c in ["day0"] + cls.A2D_CONDS for arm, f in
+          (("refit60", 36), ("stale", 30 if "7" in c else 38))}
+    rate0 = [10.0] * 4
+    sessions = {"s32_day0": {"replay_rate_per_channel": rate0},
+                "s32_day7_down": {"replay_rate_per_channel": [5.0] * 4}}
+    gate = cls.gate_a2d(by, 40, sessions)
+    assert gate["pass"] and gate["complete"] and gate["tested"]
+    assert gate["per_condition"]["day7_down"]["evoked_change"] == 1.0
+    by[("s32", "day7_stress", "refit60")]["full"] = 20
+    assert not cls.gate_a2d(by, 40, sessions)["pass"]

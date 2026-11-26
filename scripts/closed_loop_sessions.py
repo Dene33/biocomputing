@@ -165,6 +165,87 @@ replay rate 65.99 vs 65.96 Hz; no GUARD FAIL.
 Decision: route 3's session protocol is "refit the edit" (two numbers per IMU channel, from 30-60 s of replay; 10 s
 suffices on an aged dish but leaves the new dish's gains loose). A2 is done. Limit: one new dish (one culture seed),
 so the transfer of a decoder to a new culture is shown once, not across cultures.
+
+A2d: A2c under day-to-day change of the size real organoids show (pre-registered 26 Nov 2026, before its first seed)
+--------------------------------------------------------------------------------------------------------------------
+
+Why (scripts/day_drift.py, parts 1 and 2). In FinalSpark's fs369 organoids the evoked response per electrode changes
+by a median of 0.17 log2 in ~1 day and 0.66 in ~7 days (75th percentile 1.99), mostly coherently within an organoid;
+aging.py moves A2's culture by only 0.05 and 0.22, so A2/A2c's "aging is harmless" was shown under too gentle a
+change. Part 2 calibrated one knob, a shift of every neuron's excitability on top of A2's aged state (seed 11),
+and fixed these sessions (``A2D_DOSES``; outputs/day_drift/calibration.json):
+
+| Session      | Days | Shift  | Evoked change, calibrated / target | Spontaneous change (culture, log2) |
+|--------------|------|--------|-------------------------------------|------------------------------------|
+| day1_down    | 1    | -0.597 | 0.174 / 0.174                       | -0.85                              |
+| day1_up      | 1    | +0.734 | 0.174 / 0.174                       | +1.10                              |
+| day3_down    | 3    | -1.003 | 0.336 / 0.336                       | -1.08                              |
+| day3_up      | 3    | +1.626 | 0.336 / 0.336                       | +1.72                              |
+| day7_down    | 7    | -1.583 | 0.659 / 0.659                       | -2.09                              |
+| day7_up      | 7    | +2.0   | 0.353 / 0.659 (not reached)         | +1.84                              |
+| day7_stress  | 7    | -3.0   | 1.217 / 1.99 (not reached)          | -3.60 (spontaneously near silent)  |
+
+The real groups' signed spontaneous medians are -0.16 / -0.72 / -1.56 at 1 / 3 / 7 days: the down doses match the
+direction and roughly the size (a little too large); the up doses stand for the groups that respond more (after
+fs369's medium change two of three did).
+
+Everything else is A2c: the session code (the shift is applied after aging.py's step), A1b's decoder kept, its affine
+edit refitted on the session's replay. Arms on s32: ``refit60`` (gated) and ``stale`` (A1b's decoder and edit
+unchanged), plus the ideal-IMU and zero-action baselines; day 0 rebuilt as the control (it must equal A2's stored
+session bit for bit, as in A2c). Fresh seeds 9400-9439. Each session row now also stores every electrode's replay
+rate (``replay_rate_per_channel``), from which the realized evoked change against day 0 is reported per session.
+
+    uv run scripts/launch.py --unit bio-a2d-run --log outputs/closed_loop_sessions_a2d/run.log -- \\
+        scripts/closed_loop_sessions.py --conds day0 day1_down day1_up day3_down day3_up day7_down day7_up \\
+        day7_stress --arms refit60 stale ideal_imu zero_action --seed-base 9400 \\
+        --out outputs/closed_loop_sessions_a2d --workers 3
+
+Gate A2d: refit60 reaches >= 34/40 full 20 s runs in every session, day 0 included. Pass: route 3's session protocol
+("refit the edit", two numbers per IMU channel) holds under realistic day-to-day change. Fail: name the sessions
+where it breaks; a session protocol then needs more than the edit there (a decoder refit from a longer calibration,
+or a new decoder). The test only tests where stale drops below 34/40; where stale holds, that is reported. The two
+flagged sessions are below their targets, so a pass there understates the stress and a fail there is a fail.
+
+Positive controls (GUARD FAIL otherwise): day 0 equals A2's stored session; aging on its nominal dose; the shift
+applied exactly (mean excitability moves by it); no weight moves; decoded IMU finite.
+
+Expected (reasoning, not measured): the down sessions scale the evoked rates coherently, which an affine edit
+corrects, so refit60 holds there and stale drops at day 3 and 7; day7_stress (evoked x0.43) and the up sessions
+(spontaneous bursting rises 2-3x, more noise in the decoder's input) are the uncertain ones.
+
+Results A2d (run 26 Nov 2026, 13:17-15:20, 720 episodes; outputs/closed_loop_sessions_a2d). Full 20 s runs of 40,
+the same seeds in every arm:
+
+| Session     | Shift  | Evoked change, realized (target) | refit60 (gated) | stale          |
+|-------------|--------|----------------------------------|-----------------|----------------|
+| day 0       | 0      | -                                | 40/40           | 38/40          |
+| day1_down   | -0.597 | 0.181 (0.174)                    | 39/40           | 40/40          |
+| day1_up     | +0.734 | 0.175 (0.174)                    | 39/40           | 39/40          |
+| day3_down   | -1.003 | 0.339 (0.336)                    | 40/40           | 38/40          |
+| day3_up     | +1.626 | 0.336 (0.336)                    | 37/40           | 37/40          |
+| day7_down   | -1.583 | 0.629 (0.659)                    | 37/40           | 38/40          |
+| day7_up     | +2.0   | 0.351 (0.659, not reached)       | 35/40           | **19/40**, 14.1 s |
+| day7_stress | -3.0   | 1.212 (1.99, not reached)        | 39/40           | 37/40          |
+
+Ideal IMU 40/40, zero action 0/40 (4.7 s).
+
+Gate A2d: passed. refit60 reaches 35-40/40 in every session (bar 34). It is tested in one session only: day7_up,
+the only place the stale relay drops (19/40). There the stale decoder's closed-loop offsets are +0.48 / +0.60 /
++0.53 spreads on gyro_z / grav_x / grav_y and -0.46 on gyro_x; the 60 s edit brings every offset within 0.09 and
+the relay back to 35/40, at the cost of some noise (edited grav_x noise 0.72 against the stale decoder's 0.62).
+Against the prediction, stale holds in every down session, the stress one included (37/40), although its offsets
+there reach -0.45 / -1.07 / -0.66 spreads on gyro_z / grav_x / grav_y: offsets that read the robot as leaning one
+way are tolerated where the other sign is not.
+
+Positive controls held: day 0 equals A2's stored session bit for bit (replay 65.99 Hz); each shift applied exactly;
+aging on its nominal dose; no weight moved; the realized evoked changes match the calibration (day7_down 0.629
+against its 0.659, the rest within 0.01). A2's and A2c's stored summaries regenerate unchanged with this code.
+
+Decision: route 3's session protocol ("refit the edit", two numbers per IMU channel from 60 s of replay) holds under
+day-to-day changes as large as FinalSpark's organoids show over a week, for this model's kind of change. Limits: one
+culture and one aging seed; the change is a coherent shift of excitability, so the electrode-specific part of the real
+change, the loss of a whole organoid's responses and changes in which electrodes respond are not modelled; the two
+largest targets were not reached (day7_up 0.35 of 0.66; stress 1.21 of 1.99).
 """
 
 from __future__ import annotations
@@ -191,6 +272,15 @@ SEEDS = list(range(9200, 9240))
 CONDITIONS = {"day0": dict(days=0.0), "day1": dict(days=1.0), "day3": dict(days=3.0), "day7": dict(days=7.0),
               "newdish": dict(days=0.0, culture_seed=1)}
 AGED = ["day1", "day3", "day7", "newdish"]
+A2_CONDS = list(CONDITIONS)  # A2's and A2c's sessions
+# A2d (docstring; scripts/day_drift.py part 2, outputs/day_drift/calibration.json): A2's aging at day L plus one shift
+# of every neuron's excitability (current units), sized so the evoked change per electrode matches FinalSpark's.
+A2D_DOSES = {"day1_down": (1.0, -0.597), "day1_up": (1.0, 0.734), "day3_down": (3.0, -1.003), "day3_up": (3.0, 1.626),
+             "day7_down": (7.0, -1.583), "day7_up": (7.0, 2.0), "day7_stress": (7.0, -3.0)}
+A2D_TARGETS = {"day1_down": 0.174, "day1_up": 0.174, "day3_down": 0.336, "day3_up": 0.336, "day7_down": 0.659,
+               "day7_up": 0.659, "day7_stress": 1.99}  # real evoked change per electrode (median |log2|)
+CONDITIONS |= {k: dict(days=d, shift=x) for k, (d, x) in A2D_DOSES.items()}
+A2D_CONDS = list(A2D_DOSES)
 REFIT = {"refit60": 3000, "refit30": 1500, "refit10": 500}  # A2c: replay steps (20 ms) the edit is refitted on
 ARMS = {"stale": dict(dish=True), "recal": dict(dish=True), **{k: dict(dish=True) for k in REFIT},
         "ideal_imu": dict(dish=False), "zero_action": dict(dish=False)}
@@ -217,14 +307,19 @@ def _episode_safe(job):
         return {"stopped": str(e)}
 
 
+def cond_settings(cond: str) -> dict:
+    """The condition's own settings that name its files: A2d's shift (none for A2's conditions, so their names stay)."""
+    return {"shift": CONDITIONS[cond]["shift"]} if "shift" in CONDITIONS.get(cond, {}) else {}
+
+
 def session_stem(cfg: str, cond: str, sz: dict) -> str:
     """File stem of a session (sessions/): ``<cfg>_<cond>`` plus a digest of the settings it is built with."""
-    return job_key(f"{cfg}_{cond}", {k: sz[k] for k in SESSION_KEYS})
+    return job_key(f"{cfg}_{cond}", {k: sz[k] for k in SESSION_KEYS} | cond_settings(cond))
 
 
 def episode_file(out: Path, cfg: str, cond: str, arm: str, seed: int, sz: dict) -> Path:
     """One episode's result: jobs/<cfg>/<cond>/<arm>/<seed>_<digest of its settings>.json."""
-    key = job_key(str(seed), {k: sz[k] for k in SESSION_KEYS + ("seconds",)})
+    key = job_key(str(seed), {k: sz[k] for k in SESSION_KEYS + ("seconds",)} | cond_settings(cond))
     return out / "jobs" / cfg / cond / arm / f"{key}.json"
 
 
@@ -332,6 +427,11 @@ def session_job(job):
     if days and not sz["smoke"]:
         g.check(abs(alive / alive0 - 0.98 ** days) < 0.01, f"alive share {alive / alive0:.4f} vs {0.98 ** days:.4f}")
         g.check(abs(exc_sd / (0.5 * days ** 0.5) - 1) < 0.1, f"excitability sd {exc_sd:.3f} vs {0.5 * days ** 0.5:.3f}")
+    shift = CONDITIONS[cond].get("shift", 0.0)
+    if shift:  # A2d: one shift for every neuron, after the aging (whose checks above it leaves unchanged)
+        m0 = float(cu.excitability.mean())
+        cu.excitability += shift
+        g.check(abs(float(cu.excitability.mean()) - m0 - shift) < 1e-4, f"excitability shift {shift} not applied")
     s = sum(map(ord, name))
     cu.torch_gen.manual_seed(1000 + s)
     dev.mea.gen.manual_seed(2000 + s)
@@ -356,6 +456,7 @@ def session_job(job):
     zero_rows = float((F[:, : 2 * C].sum(1) == 0).mean())
     g.check(zero_rows < 0.01, f"{zero_rows:.1%} of replay steps have no spikes at all")
     rate = float((F[:, : 2 * C] ** 2).sum(1).mean() / C / 0.02)
+    rate_ch = ((F[:, :C] ** 2 + F[:, C:2 * C] ** 2).sum(0) / n / 0.02).round(4).tolist()  # per electrode (A2d)
     T = seg[:, :6]
     stand = np.array(row0["stand_imu"])
     # Stale: A1b's decoder on this session's replay.
@@ -409,7 +510,7 @@ def session_job(job):
             "warm": dev.state(), "obs0": obs0, "cols": cols}
     p = out / "sessions" / f"{session_stem(cfg, cond, sz)}.pkl"
     a2 = Path(sz["a2"]) / "sessions" / p.name if sz.get("a2") else None
-    if a2 is not None and not sz["smoke"] and a2.resolve() != p.resolve():
+    if a2 is not None and cond in A2_CONDS and not sz["smoke"] and a2.resolve() != p.resolve():
         # Positive control: plasticity off, the GPU sums ordered: the session must repeat A2's bit for bit.
         g.check(a2.exists(), f"no stored A2 session {a2} to compare with (--a2 '' skips the check)")
         old = pickle.loads(a2.read_bytes())
@@ -418,6 +519,8 @@ def session_job(job):
         g.check(not diff, f"session {name} differs from A2's stored one in {diff}")
         row["equals_a2_session"] = str(a2)
     row["refit_edit"] = refit
+    row["shift"] = shift
+    row["replay_rate_per_channel"] = rate_ch
     p.parent.mkdir(parents=True, exist_ok=True)
     tmp = p.with_suffix(".tmp")
     tmp.write_bytes(pickle.dumps(blob))
@@ -546,7 +649,7 @@ def summarize(out: Path, configs, conds, seeds, sz) -> dict:
     by = {(e["cfg"], e["cond"], e["arm"]): e for e in table}
     bar = int(np.ceil(0.85 * len(seeds)))
     gate = None
-    if "s32" in configs and any(k[2] == "stale" for k in by):
+    if "s32" in configs and any(k[2] == "stale" for k in by) and any(c in conds for c in AGED):
         per = {}
         for cond in [c for c in AGED if c in conds]:
             st, rc = by.get(("s32", cond, "stale")), by.get(("s32", cond, "recal"))
@@ -564,7 +667,9 @@ def summarize(out: Path, configs, conds, seeds, sz) -> dict:
     res = {"seeds": [seeds[0], seeds[-1]], "seconds": sz["seconds"], "table": table}
     if gate is not None or not any(k[2] in REFIT for k in by):
         res["gate_A2"] = gate
-    if any(k[2] in REFIT for k in by):
+    if any(k[1] in A2D_CONDS for k in by):
+        res["gate_A2d"] = gate_a2d(by, len(seeds), sessions)
+    elif any(k[2] in REFIT for k in by):
         res["gate_A2c"] = gate_a2c(by, fulls, len(seeds))
     res["sessions"] = sessions
     clv.write_json(out / "results.json", res)
@@ -579,7 +684,7 @@ def gate_a2c(by: dict, fulls: dict, n_seeds: int) -> dict:
     also the paired comparison with recal on the same seeds: seeds where only one of the two runs the full 20 s."""
     bar = int(np.ceil(0.85 * n_seeds))
     per = {}
-    for cond in CONDITIONS:
+    for cond in A2_CONDS:
         e = by.get(("s32", cond, "refit60"))
         if e is None:
             continue
@@ -592,15 +697,41 @@ def gate_a2c(by: dict, fulls: dict, n_seeds: int) -> dict:
         if both:
             per[cond]["only_refit60_full"] = [s for s in both if a[s] and not b[s]]
             per[cond]["only_recal_full"] = [s for s in both if b[s] and not a[s]]
-    complete = all(by.get(("s32", c, "refit60"), {}).get("n") == n_seeds for c in CONDITIONS)
+    complete = all(by.get(("s32", c, "refit60"), {}).get("n") == n_seeds for c in A2_CONDS)
     return {"bar": f">= {bar}/{n_seeds}", "arm": "refit60", "per_condition": per, "complete": complete,
+            "pass": bool(complete and all(v["holds"] for v in per.values()))}
+
+
+def gate_a2d(by: dict, n_seeds: int, sessions: dict) -> dict:
+    """Gate A2d: refit60 >= 85% full runs on s32 in day 0 and every A2d session, all seeds done. Reported: stale,
+    whether it drops (the test is only a test where it does), and each session's realized evoked change per electrode
+    (median |log2| of the replay rate against the day-0 session) next to its target."""
+    bar = int(np.ceil(0.85 * n_seeds))
+    d0 = sessions.get("s32_day0", {}).get("replay_rate_per_channel")
+    per = {}
+    for cond in ["day0"] + A2D_CONDS:
+        e, st = by.get(("s32", cond, "refit60")), by.get(("s32", cond, "stale"))
+        if e is None:
+            continue
+        per[cond] = {"refit60": f"{e['full']}/{e['n']}", "holds": e["full"] >= bar,
+                     "stale": None if st is None else f"{st['full']}/{st['n']}",
+                     "stale_drops": None if st is None else st["full"] < bar, "shift": CONDITIONS[cond].get("shift", 0.0)}
+        r = sessions.get(f"s32_{cond}", {}).get("replay_rate_per_channel")
+        if d0 is not None and r is not None and cond != "day0":
+            a, b = np.array(d0), np.array(r)
+            live = a >= 0.1
+            per[cond]["evoked_change"] = round(float(np.median(np.abs(np.log2(np.maximum(b[live], 0.01) / a[live])))), 3)
+            per[cond]["target"] = A2D_TARGETS[cond]
+    complete = all(by.get(("s32", c, "refit60"), {}).get("n") == n_seeds for c in ["day0"] + A2D_CONDS)
+    return {"bar": f">= {bar}/{n_seeds}", "arm": "refit60", "per_condition": per, "complete": complete,
+            "tested": any(v["stale_drops"] for v in per.values() if v["stale_drops"] is not None),
             "pass": bool(complete and all(v["holds"] for v in per.values()))}
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--configs", nargs="+", default=["s32"], choices=list(clv.CONFIGS))
-    ap.add_argument("--conds", nargs="+", default=list(CONDITIONS), choices=list(CONDITIONS))
+    ap.add_argument("--conds", nargs="+", default=A2_CONDS, choices=list(CONDITIONS))
     ap.add_argument("--arms", nargs="+", default=A2_ARMS, choices=list(ARMS))
     ap.add_argument("--seeds", type=int, default=len(SEEDS))
     ap.add_argument("--seed-base", type=int, default=SEEDS[0])
