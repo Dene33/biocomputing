@@ -1,8 +1,3 @@
-"""Spontaneous and evoked activity of a digital organoid, compared with what organoids on MEAs show.
-
-    uv run scripts/characterise_culture.py --preset cpu_2k --seconds 30
-"""
-
 import argparse
 import json
 from pathlib import Path
@@ -14,7 +9,6 @@ from biocompute.device import SimulatedBiocomputer
 from biocompute.eval.metrics import culture_stats
 from biocompute.mea.electrodes import make_mea_config
 
-# Ranges reported for cortical organoids and dissociated cultures on MEAs (see README, "Culture realism").
 TARGETS = {
     "mean_rate_hz": (0.1, 10.0),
     "burst_rate_per_min": (1.0, 30.0),
@@ -46,7 +40,6 @@ raster = np.concatenate(rasters)
 stats = culture_stats(raster, c.cfg.dt_ms)
 stats["mea_rate_per_channel_hz"] = float(np.sum(detections) / args.seconds / dev.n_channels)
 
-# Evoked: one pulse on a central channel, 20 repeats, spikes in the 50 ms after vs before.
 ch = int(np.argmin(np.linalg.norm(dev.mea.xy, axis=1)))
 evoked, base = [], []
 for _ in range(20):

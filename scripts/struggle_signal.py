@@ -1,18 +1,3 @@
-"""Route finding, adaptation route on a real robot: can the coach learn from *struggling* instead of falling?
-
-A real Asimov can't fall dozens of times while a dish learns. Under gentle pushes the robot may survive even with the
-wrong correction; if it visibly struggles more (larger tilt after each push), that graded signal can drive the coach
-without falls. Conditions and corrections as scripts/adaptation_slot.py: weak knees (45% torque) need a knee bias
-of -0.6, a 20 kg payload needs IMU gain 1.5.
-
-Per (condition, correction, push force range): survival over 20 s with a push every 3 s (20 seeds), and the struggle
-signal: the peak tilt *excursion* in the 1 s after each push, |grav_xy - grav_xy before the push| (each correction
-has its own posture: the knee fix leans the robot ~0.2 rad even when healthy), averaged over the pushes survived;
-and the knee tracking error |target - actual| (rad), which a weak motor should raise.
-
-    uv run scripts/struggle_signal.py
-"""
-
 import importlib.util
 import json
 import multiprocessing as mp
@@ -26,7 +11,7 @@ spec = importlib.util.spec_from_file_location("adaptation_slot", HERE / "adaptat
 A = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(A)
 
-INV = np.argsort([0, 1, 6, 7, 12, 13, 14, 18, 19, 2, 3, 8, 9, 15, 16, 20, 21, 4, 5, 10, 11, 17, 22])  # obs slot order
+INV = np.argsort([0, 1, 6, 7, 12, 13, 14, 18, 19, 2, 3, 8, 9, 15, 16, 20, 21, 4, 5, 10, 11, 17, 22])
 CORR = {"none": (1.0, 0.0, 1.0), "knee_fix": (1.0, -0.6, 1.0), "payload_fix": (1.0, 0.0, 1.5)}
 FORCES = {"gentle_40-80N": (40.0, 80.0), "medium_80-120N": (80.0, 120.0), "task_120-200N": (120.0, 200.0)}
 
@@ -52,7 +37,7 @@ def episode(job):
             base = np.mean(hist, 0) if hist else np.zeros(2)
         o = env.observe()
         hist.append(o[3:5].copy())
-        track.append(float(np.abs(0.25 * o[55:78] - o[9:32][INV])[[3, 9]].mean()))  # knees: target vs actual
+        track.append(float(np.abs(0.25 * o[55:78] - o[9:32][INV])[[3, 9]].mean()))
         if since is not None and s - since < 50:
             cur = max(cur, float(np.linalg.norm(o[3:5] - base)))
         o2 = o.copy()

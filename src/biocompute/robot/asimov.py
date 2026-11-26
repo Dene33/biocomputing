@@ -1,11 +1,3 @@
-"""Asimov 1 in MuJoCo, stepped one control step (20 ms) at a time.
-
-Built on cyclotron's sim2sim (``PolicyRun``, ``_MujocoRobot``, ``velocity_observation``), so the robot, its PD
-control, torque limits, firmware ankle clamp and the policy's observation are exactly those of
-``cyclotron.sim2sim.play_velocity``. The difference is that the caller supplies each action, so anything (the
-teacher policy, a culture's readout) can drive the joints.
-"""
-
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -23,15 +15,10 @@ OBS_DIM = 78
 
 @dataclass
 class Perturbation:
-    """Changes to the robot, for robustness and adaptation experiments."""
-
     foot_friction: float | None = None
-    """Sliding friction of the feet (MJCF: 0.6)."""
     effort_scale: dict[str, float] = field(default_factory=dict)
-    """Joint name regex → multiplier on its torque limit, e.g. ``{"left_knee_joint": 0.5}`` for a weak knee."""
     motor_speed_ratio: float | None = None
     delay: int = 0
-    """Physics steps (5 ms) before a joint target is used."""
 
 
 @dataclass
@@ -42,8 +29,6 @@ class StepResult:
 
 
 class AsimovEnv:
-    """One Asimov 1, starting standing in the default pose, driven by policy actions (23, normalized)."""
-
     def __init__(
         self,
         policy_dir: str | Path = paths.POLICY_DIR,
@@ -92,12 +77,10 @@ class AsimovEnv:
         self.push_steps_left = 0
 
     def observe(self) -> np.ndarray:
-        """The policy observation (78) now, with the current command. Call once per control step, before ``step``:
-        a policy that sees past steps keeps its history here."""
         d = self.data
         return sim2sim.velocity_observation(
             self.run,
-            d.qvel[3:6],  # free joint angular velocity, in the pelvis frame
+            d.qvel[3:6],
             sim2sim.projected_gravity(d.qpos[3:7]),
             self.command,
             d.qpos[self.robot.qpos],
@@ -110,7 +93,6 @@ class AsimovEnv:
         self.command = np.asarray(command, dtype=np.float64)
 
     def push(self, force_xy, seconds: float = 0.1) -> None:
-        """Push the pelvis with a horizontal force (N) for ``seconds``."""
         self.data.xfrc_applied[self.pelvis, :2] = force_xy
         self.push_steps_left = max(1, int(round(seconds / self.dt)))
 

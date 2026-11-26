@@ -1,10 +1,3 @@
-"""The biocomputer as the robot sees it: channels to stimulate and spikes to read, nothing else.
-
-``Biocomputer`` is the contract a real device adapter (Cortical Labs CL1, FinalSpark Neuroplatform, a MaxWell
-system) would implement. ``SimulatedBiocomputer`` implements it with a digital organoid on a simulated MEA.
-Only the simulator offers ``oracle_counts`` (every neuron's spikes), for the oracle-readout control.
-"""
-
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -19,15 +12,12 @@ from biocompute.mea.electrodes import MEA, MEAConfig
 
 @dataclass
 class SpikeBlock:
-    """Detected spikes during one ``step``: channel and time (ms from the step's start) of each."""
-
     channels: np.ndarray
     times_ms: np.ndarray
     duration_ms: float
     n_channels: int
 
     def counts(self, bins: int = 1) -> np.ndarray:
-        """(bins, channels) spike counts in ``bins`` equal time bins."""
         edges = np.minimum((self.times_ms / self.duration_ms * bins).astype(int), bins - 1)
         out = np.zeros((bins, self.n_channels), dtype=np.float32)
         np.add.at(out, (edges, self.channels), 1.0)
@@ -38,10 +28,10 @@ class Biocomputer(Protocol):
     n_channels: int
 
     def stimulate(self, channels: np.ndarray, times_ms: np.ndarray, amplitudes: np.ndarray) -> None:
-        """Queue biphasic pulses for the next ``step``: channel, time from the step's start (ms), amplitude (0–1)."""
+        ...
 
     def step(self, ms: float) -> SpikeBlock:
-        """Let the culture run ``ms`` with the queued pulses; return what the electrodes detected."""
+        ...
 
 
 class SimulatedBiocomputer:
@@ -63,8 +53,6 @@ class SimulatedBiocomputer:
         return self.culture.device
 
     def state(self) -> dict:
-        """Everything needed to resume this device (culture, electrode noise, rate limits). Plasticity objects
-        hold their own state (``STDP.state``)."""
         return {"culture": self.culture.state(), "mea_gen": self.mea.gen.get_state(), "mea_dead": self.mea.dead.copy(),
                 "last_pulse_ms": self._last_pulse_ms.copy(), "queue": list(self._queue),
                 "pulses": (self.pulses_delivered, self.pulses_dropped)}
@@ -96,7 +84,7 @@ class SimulatedBiocomputer:
                     self.pulses_dropped += 1
                     continue
                 if t0 + t - self._last_pulse_ms[c] < min_gap - 1e-9:
-                    self.pulses_dropped += 1  # over the electrode's rate limit
+                    self.pulses_dropped += 1
                     continue
                 self._last_pulse_ms[c] = t0 + t
                 amps[s, c] = max(amps[s, c], min(a, self.mea.cfg.max_amplitude))

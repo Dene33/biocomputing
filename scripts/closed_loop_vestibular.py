@@ -1,106 +1,3 @@
-"""Track A, step A1 (docs/route-to-computation.md, "Order of work without a dish"; Phase 3.3 of docs/next-steps.md):
-the simulated culture in the robot's loop, as its vestibular organ.
-
-Only the 6 IMU values (obs[0:6]: gyro x0.25, projected gravity) go through the dish. Joint positions, joint
-velocities and the last action go straight to the controller, the teacher's own network in numpy
-(wsp/controller/track_a.py). Everything is fixed before the first closed-loop seed:
-
-- Dish: Phase 3.1's setup exactly (scripts/vestibular_probe.py): gpu_20k culture, 1 well, grid256 MEA, stimulation
-  reach 120 um, ``axis`` encoding of obs[0:6] on 12 (CL1-sized, main) or 32 electrodes, amplitude coding at gain 0.5,
-  4 pulse slots per 20 ms step. Plasticity is off: a relay doesn't need it, and the model's plasticity is its known
-  flaw (an in-run guard checks that no weight moves).
-- Decoder: ridge from the spike features (two 10 ms bins + the 40 ms trace of every recording electrode) to the IMU,
-  fitted on an open-loop replay of teacher stand_push episodes (outputs/probe/teacher_data_20k.pkl, 19k steps with
-  DART action noise, as in Phase 3.1): the first ~80% (cut at an episode boundary), penalty by contiguous 5-fold CV.
-  grav_z is rebuilt from x, y.
-- Weight edit (WSP track a): the teacher's first-layer IMU columns x 1/gain, the gain being the slope of decoded on
-  true IMU in the held-out ~20% of the replay (in-range steps: every IMU value within 3 teacher spreads of standing).
-- Each episode starts from the same warmed-up culture state (after the replay, 1 s of the standing IMU as input) with
-  its own noise stream (seeded by the push seed), and the decoder's traces are pre-rolled for 100 ms with the standing
-  IMU. So every (configuration, arm, seed) is independent of run order, and a stop loses at most one episode.
-
-Arms, stand_push, 20 s, 1-step action latency (as Phase 3.1's eval_controller.py), 40 fresh seeds (9000-9039; no
-earlier script used them):
-
-- ``culture_edit``   culture -> decoder -> teacher with the 1/gain edit (the main arm)
-- ``culture_plain``  culture -> decoder -> teacher unchanged
-- ``silenced``       the culture gets no stimulation (its decoder reads spontaneous activity) -> edited teacher
-- ``dead_edit``      dead culture (recurrent synapses removed) with its own decoder and its own edit
-- ``ideal_imu``      true IMU -> teacher unchanged (no culture; the ceiling)
-- ``zero_action``    the default pose under PD (the floor)
-
-The first four run per configuration (``s12`` = 1 well x 12, main; ``s32`` = 1 well x 32, comparison).
-
-Gate A1: ``culture_edit`` on s12 reaches >= 34/40 full 20 s runs and ``silenced`` 0/40. The dead culture will
-probably match the live one; if so, the dish relays and computes nothing, and we say so.
-
-Positive control before the closed loop: the held-out open-loop channel must reproduce Phase 3.1's gains for the same
-configuration (outputs/vestibular_probe/channel_models.json, within 0.2) and the numpy teacher must match the ONNX
-teacher; otherwise GUARD FAIL. Every episode also records the closed-loop channel (decoded vs true IMU), to compare
-with the open-loop one the edit was fitted on.
-
-Run (guarded, resumable):
-
-    uv run scripts/launch.py --unit bio-a1 --log outputs/closed_loop_vestibular/run.log -- \\
-        scripts/closed_loop_vestibular.py --workers 3
-    uv run scripts/watch.py --unit bio-a1 --log outputs/closed_loop_vestibular/run.log
-    systemctl --user stop bio-a1     # graceful: replays checkpoint, the running episode is redone on resume
-
-Outputs (<out> = outputs/closed_loop_vestibular): setups/<cfg>_<dish>_<key>.json (+ .pkl: decoder, edit, warm
-state), jobs/<cfg>/<arm>/<seed>_<key>.json (one per episode), results.json (the table and the gate). <key> is a
-digest of the settings the file depends on (``job_key``: data and replay steps; for an episode also its length and
-edit), so a rerun into the same --out with a setting changed runs anew instead of reusing other settings' results.
-Stop: workers share a lock-free stop flag, checked every control step; a replay saves its checkpoint (ckpt/), an
-episode is dropped and redone. Relaunch the same command to resume. GPU runs repeat bit for bit (25 Nov: four A1b
-episodes replayed from the saved setups equal their stored rows).
-
-Run 2 (A1b), after run 1 failed: ``--edit affine --seed-base 9100 --out outputs/closed_loop_vestibular_affine``.
-
-Results (24 Nov 2026; results.json in each output folder). Full 20 s runs of 40, mean survival:
-
-| Arm                         | Run 1: 1/gain edit, 9000-9039 | Run 2: affine edit, 9100-9139 |
-|-----------------------------|-------------------------------|-------------------------------|
-| 1 x 12 culture, edited      | **0/40**, 5.6 s               | **23/40**, 15.2 s             |
-| 1 x 12 culture, unchanged   | 0/40, 3.7 s                   | 0/40, 3.5 s                   |
-| 1 x 12 silenced             | 0/40, 1.6 s                   | 0/40, 1.0 s                   |
-| 1 x 12 dead, own edit       | 23/40, 16.5 s                 | 32/40, 18.8 s                 |
-| 1 x 32 culture, edited      | 36/40, 19.0 s                 | **40/40**, 20.0 s             |
-| 1 x 32 culture, unchanged   | 38/40, 19.4 s                 | 38/40, 19.3 s                 |
-| 1 x 32 silenced             | 0/40, 0.7 s                   | 0/40, 0.8 s                   |
-| 1 x 32 dead, own edit       | 38/40, 19.3 s                 | 36/40, 19.2 s                 |
-| ideal IMU                   | 40/40                         | 40/40                         |
-| zero action                 | 0/40, 5.0 s                   | 0/40, 4.6 s                   |
-
-Gate A1 (1 x 12): not passed in either run. The 1 x 32 well clears the same bar (40/40, silenced 0/40) with the
-affine edit. The dead culture does as well as the live one or better in every configuration: the dish relays the
-IMU and computes nothing, and the live culture's own activity costs fidelity.
-
-Positive controls held: open-loop held-out gains reproduce Phase 3.1 (1 x 12: 0.53-0.63 vs 0.61-0.70; 1 x 32:
-0.78-0.93 vs 0.84-0.94), replay rate 24.79 Hz as in Phase 3.1, numpy teacher = ONNX teacher to 7e-6, no weight moved.
-
-Why run 1 failed (diagnosed by decoding in the shadow of an ideal-IMU episode, seed 9000): the robot stands at
-grav_x = -0.063, not 0 (the teacher's posture, 3.4 of grav_x's teacher spreads from 0). The ridge decoder shrinks
-toward the replay's mean, so the channel is p = a + g t with a = -0.022 on grav_x; at quiet standing it decodes
--0.060 for a true -0.063 (bias 0.17 spreads). The 1/gain edit rescales around 0, so the edited teacher saw
--0.060 / 0.56 = -0.107: a false forward lean of 2.35 spreads. It leaned back to grav_x = +0.078, beyond the replay's
-range (-0.088 to -0.007), where the grav_x electrodes saturate (closed-loop slope 0.02), and fell. Phase 3.1's channel
-model (gain around (0, 0, 0, 0, 0, -1), no offset) could not show this, and its "in range" window (3 spreads around
-0) leaves out quiet standing. Run 2's edit inverts the affine channel (1/g on the IMU columns plus a first-layer bias
-shift, a and g fitted on held-out replay around the measured standing posture) and was evaluated on fresh seeds
-because it was designed after seeing run 1. Closed-loop bias fell to <= 0.5 spreads. The remaining 1 x 12 falls
-are not explained by the stationary channel statistics (closed-loop gain 0.41-0.58, noise 0.46-0.63 spreads, close to
-the open-loop model that gave 58/60 as a statistical channel). They follow pushes from the front (scripts/
-closed_loop_falls.py): 12 of 41 such pushes lead to a fall (dead culture 2/52; side pushes 5/96 vs 6/119; pushes
-from behind 0). In three traced falls, the relay reads the pitch rate 2.4-2.5 spreads too high in the second after
-the push. The teacher under-corrects the forward lean of its recovery, the lean passes the encoder's input limit
-(4 replay SDs, 7.9 spreads) about 1 s after the push, the teacher's view stops near 9 spreads while the lean reaches
-33-42, and the robot falls about 1 s later.
-
-Stop handling, tested on run 1 itself with more jobs than workers (4 replays on 3 workers, then 40 episode jobs):
-stop during the replays took 5.9 s and resumed from the checkpoints (step 1778 of 19334); stop during the episodes
-took 14.8 s, the three running episodes were redone, the 137 finished ones kept.
-"""
-
 from __future__ import annotations
 
 import argparse
@@ -132,15 +29,14 @@ ARMS = {
     "zero_action": dict(dish=None, teacher=None, stim=False),
 }
 CULTURE_ARMS = [k for k, v in ARMS.items() if v["dish"]]
-SETUP_KEYS = ("data", "replay_steps")  # the settings a setup depends on
-EPISODE_KEYS = SETUP_KEYS + ("seconds", "edit")  # ... and an episode
+SETUP_KEYS = ("data", "replay_steps")
+EPISODE_KEYS = SETUP_KEYS + ("seconds", "edit")
 PREROLL_STEPS = 5
 WARM_STEPS = 50
 
 
-# --- Stop and resume (as bl1_drift.py) -----------------------------------------------------------------------------
 STOP = {"requested": False}
-EVENT = {"stop": None}  # in workers: the shared stop flag, a RawValue byte (no locks in signal handlers)
+EVENT = {"stop": None}
 
 
 class Stopped(Exception):
@@ -163,10 +59,10 @@ def _worker_init(ev=None, threads=4):
 
     import torch
 
-    torch.set_num_threads(threads)  # 16 threads per worker oversubscribed the CPU while cultures were built
+    torch.set_num_threads(threads)
     EVENT["stop"] = ev
     signal.signal(signal.SIGTERM, _on_term)
-    faulthandler.register(signal.SIGUSR1)  # `kill -USR1 <pid>` dumps every thread's stack to the log
+    faulthandler.register(signal.SIGUSR1)
 
 
 def _guarded(fn):
@@ -190,8 +86,6 @@ _MAIN_EVENT = {}
 
 
 def pool_map(fn, jobs, workers, threads=4):
-    """Jobs in fresh worker processes (one per job). On SIGTERM this process sets the shared flag and waits: running
-    jobs save and return, queued ones start, see the flag and return at once."""
     ctx = mp.get_context("spawn")
     if "ev" not in _MAIN_EVENT:
         _MAIN_EVENT["ev"] = ctx.RawValue("b", 0)
@@ -204,9 +98,9 @@ def pool_map(fn, jobs, workers, threads=4):
     if ev.value == 1:
         print(json.dumps({"stopped": "before start", "resume": "run the same command again"}), flush=True)
         raise SystemExit(0)
-    # close() + join(), not the context manager: its terminate() SIGTERMs workers that catch SIGTERM, then hangs.
-    for k in ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS"):  # read when a worker imports numpy
+    for k in ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS"):
         os.environ[k] = str(threads)
+    # close() + join(), not the context manager: its terminate() hangs on workers that catch SIGTERM.
     pool = ctx.Pool(workers, initializer=_worker_init, initargs=(ev, threads), maxtasksperchild=1)
     try:
         res = list(pool.imap_unordered(fn, jobs))
@@ -229,9 +123,7 @@ def write_json(path: Path, obj) -> None:
     os.replace(tmp, path)
 
 
-# --- Pieces reused from the project -----------------------------------------------------------------------------------
 def make_setup(n_stim: int, dish: str):
-    """Phase 3.1's setup (vestibular_probe.py), with the dead culture as ``source="dead"``."""
     from biocompute.train.setup import Setup
 
     return Setup(culture="gpu_20k", mea="grid256", mea_overrides={"stim_length_um": 120.0}, n_stim=n_stim,
@@ -254,10 +146,6 @@ def track_a():
 
 
 def teacher_weights(gain=None, icpt=None) -> dict:
-    """The teacher's weights with its first-layer IMU columns x 1/gain (track_a.py's edit); ``None``: unchanged.
-    With ``icpt`` the edit inverts the affine channel p = icpt + gain * t instead: the scaled columns also move the
-    first-layer bias by -column / gain * icpt, so the teacher sees (p - icpt) / gain (track_a.py does the same for
-    grav_z's operating point). grav_z keeps gain 1: it is rebuilt from x, y."""
     ta = track_a()
     g = np.ones(5) if gain is None else np.asarray(gain, float)
     old = ta.GYRO_GAIN, ta.GRAV_GAIN
@@ -279,10 +167,6 @@ def rebuild_grav_z(v: np.ndarray) -> np.ndarray:
 
 
 def channel_stats(T: np.ndarray, P: np.ndarray, min_steps: int = 30, center=None) -> dict:
-    """Decoded ``P`` vs true ``T`` IMU, in teacher spreads, on in-range steps (every IMU value within 3 spreads of
-    ``center``; default Phase 3.1's (0, 0, 0, 0, 0, -1), but the robot stands at grav_x ~ -0.065, 3.5 spreads away,
-    so later runs centre on the measured standing posture): per-dimension gain (slope), intercept, bias (mean
-    decoded - true), noise around the fitted line, its correlation time (steps), RMSE; R² over all steps."""
     from biocompute.eval.dish_channel import IMU_SPREAD, STANDING_IMU
 
     sp = IMU_SPREAD
@@ -314,8 +198,6 @@ def channel_stats(T: np.ndarray, P: np.ndarray, min_steps: int = 30, center=None
 
 
 class VestibularController:
-    """The controller ``run_episode`` drives: obs[0:6] through the dish (or not), the rest straight to the teacher."""
-
     def __init__(self, dish, readout, cols, W, stim, obs0):
         self.dish, self.readout, self.cols, self.W, self.stim, self.obs0 = dish, readout, cols, W, stim, obs0
         self.true, self.decoded, self.spikes = [], [], 0
@@ -324,7 +206,7 @@ class VestibularController:
         self.true, self.decoded, self.spikes = [], [], 0
         if self.dish is not None:
             self.dish.reset_readout_state()
-            for _ in range(PREROLL_STEPS):  # the dish runs before the controller engages, as on hardware
+            for _ in range(PREROLL_STEPS):
                 self.dish.sense(self.obs0, stimulate=self.stim)
         if self.W is not None:
             track_a().reset(self.W)
@@ -346,14 +228,11 @@ class VestibularController:
         return np.asarray(a, np.float32), np.zeros(0, np.float32)
 
 
-# --- Setup: replay, decoder, edit, warm state -------------------------------------------------------------------------
 def setup_stem(cfg: str, dish: str, sz: dict) -> str:
-    """File stem of a setup (setups/, ckpt/): ``<cfg>_<dish>`` plus a digest of the settings it is built with."""
     return job_key(f"{cfg}_{dish}", {k: sz[k] for k in SETUP_KEYS})
 
 
 def episode_file(out: Path, cfg: str, arm: str, seed: int, sz: dict) -> Path:
-    """One episode's result: jobs/<cfg>/<arm>/<seed>_<digest of its settings>.json."""
     return out / "jobs" / cfg / arm / f"{job_key(str(seed), {k: sz[k] for k in EPISODE_KEYS})}.json"
 
 
@@ -363,8 +242,6 @@ def load_replay(path: str, steps: int) -> np.ndarray:
 
 
 def standing_imu(seconds: float = 3.0) -> np.ndarray:
-    """The robot's own standing posture: the unchanged teacher with the true IMU, no pushes, mean IMU over the last
-    half (deterministic). grav_x settles near -0.065, not 0."""
     from biocompute.robot.asimov import AsimovEnv
 
     env, W = AsimovEnv(), teacher_weights(None)
@@ -375,7 +252,7 @@ def standing_imu(seconds: float = 3.0) -> np.ndarray:
         o = env.observe()
         imu.append(o[0:6].copy())
         nxt = np.asarray(track_a().act(W, o[9:32], o[32:55], o[55:78], o[0:6]), np.float32)
-        env.step(a)  # 1-step latency, as in the episodes
+        env.step(a)
         a = nxt
     return np.mean(imu[len(imu) // 2:], 0)
 
@@ -397,7 +274,7 @@ def setup_job(job):
 
     cfg, dish, out, sz = job
     name = f"{cfg}_{dish}"
-    if stop_requested():  # a queued job started after the stop: don't build a culture just to save it
+    if stop_requested():
         raise Stopped(f"replay {name} before start")
     g = Guard(f"setup_{name}", out)
     O = load_replay(sz["data"], sz["replay_steps"])
@@ -417,7 +294,7 @@ def setup_job(job):
         F, i0 = s["F"], s["i"]
         print(json.dumps({"setup": name, "resumed_at": i0, "of": n}), flush=True)
     else:
-        dev.step(1000.0)  # as vestibular_probe.py
+        dev.step(1000.0)
         i0 = 0
     if F is None:
         F = np.zeros((n, ctrl.features.dim), np.float32)
@@ -435,15 +312,12 @@ def setup_job(job):
                 raise Stopped(f"replay {name} at step {i}/{n}")
         F[i] = ctrl.sense(O[i])
         if g.due():
-            # Rate over the last 1 s only once a full second has run: the first stimulated step after the quiet
-            # warm-up answers with an onset burst (331 Hz per electrode in one 20 ms step, s32 smoke).
             win = F[i - 49:i + 1, :2 * (F.shape[1] // 4)] if i - i0 >= 49 else None
             g.culture(cu, rate_hz=None if win is None else float((win ** 2).sum(1).mean() / (F.shape[1] // 4) / 0.02))
             g.check(bool(torch.equal(cu.w, w_ref)), "weights moved with plasticity off")
             g.beat(i + 1, n, ms_per_step=round((time.time() - t0) / max(i + 1 - i0, 1) * 1000, 1))
-    C = F.shape[1] // 4  # layout: 2 bins x channels, then the 40 and 160 ms traces
+    C = F.shape[1] // 4
     cols = 3 * C
-    # A resume that skipped steps would leave rows at zero (stimulated cultures fire ~25-70 Hz per electrode).
     zero_rows = float((F[:, : 2 * C].sum(1) == 0).mean())
     g.check(zero_rows < 0.01, f"{zero_rows:.1%} of replay steps have no spikes at all")
     T = O[:, :6]
@@ -456,7 +330,7 @@ def setup_job(job):
     P = rebuild_grav_z(ro.predict(F[split:, :cols]))
     held = channel_stats(T[split:], P)
     stand = standing_imu()
-    held_stand = channel_stats(T[split:], P, center=stand)  # the window the affine edit is fitted on
+    held_stand = channel_stats(T[split:], P, center=stand)
     rate = float((F[:, : 2 * C] ** 2).sum(1).mean() / C / 0.02)
     g.check(bool(np.isfinite(P).all()), "decoder predictions not finite")
     gain = held.get("gain")
@@ -475,7 +349,6 @@ def setup_job(job):
         g.check(probe is not None, f"no Phase 3.1 channel model for {cfg}")
         diff = np.abs(np.array(gain) - np.array(probe["gain"][:5]))
         g.check(bool((diff < 0.2).all()), f"held-out gains {gain} don't reproduce Phase 3.1's {probe['gain'][:5]}")
-    # Teacher parity: the numpy teacher (gain 1) against the ONNX policy on replay observations.
     from biocompute.robot.teacher import Teacher
 
     teacher, W = Teacher(), teacher_weights(None)
@@ -483,7 +356,6 @@ def setup_job(job):
     idx = np.linspace(0, n - 1, min(n, 200)).astype(int)
     diffs = [np.abs(teacher(O[k]) - ta.act(W, O[k, 9:32], O[k, 32:55], O[k, 55:78], O[k, 0:6])).max() for k in idx]
     g.check(max(diffs) < 1e-3, f"numpy teacher differs from ONNX by {max(diffs):.3g}")
-    # Warm state: 1 s of the standing IMU as input after the replay; every episode starts here.
     obs0 = standing_obs()
     for _ in range(WARM_STEPS):
         ctrl.sense(obs0)
@@ -516,7 +388,6 @@ def setup_job(job):
     return row
 
 
-# --- Closed-loop episodes -----------------------------------------------------------------------------------------------
 def episode_job(job):
     from biocompute.interface.decoders import LinearReadout
     from biocompute.loop import run_episode
@@ -540,7 +411,7 @@ def episode_job(job):
 
         blob = pickle.loads((out / "setups" / f"{setup_stem(cfg, spec['dish'], sz)}.pkl").read_bytes())
         O = load_replay(sz["data"], sz["replay_steps"])
-        dish = build(make_setup(CONFIGS[cfg], spec["dish"]), O)  # same encoder fit as the setup's
+        dish = build(make_setup(CONFIGS[cfg], spec["dish"]), O)
         cu = dish.device.culture
         g.check(cu.plasticity is None, "plasticity is on")
         readout = LinearReadout(blob["cols"], 6)
@@ -597,7 +468,6 @@ def episode_job(job):
     return {"done": n_done}
 
 
-# --- Summary ------------------------------------------------------------------------------------------------------------
 def summarize(out: Path, combos, seeds, sz) -> dict:
     table = []
     for cfg, arm in combos:
@@ -624,7 +494,7 @@ def summarize(out: Path, combos, seeds, sz) -> dict:
     if ("s12", "culture_edit") in by and ("s12", "silenced") in by:
         ce, si = by[("s12", "culture_edit")], by[("s12", "silenced")]
         complete = ce["n"] == len(seeds) and si["n"] == len(seeds)
-        bar = int(np.ceil(0.85 * len(seeds)))  # 34/40
+        bar = int(np.ceil(0.85 * len(seeds)))
         gate = {"culture_edit_full": f"{ce['full']}/{ce['n']}", "silenced_full": f"{si['full']}/{si['n']}",
                 "bar": f">= {bar}/{len(seeds)} and 0/{len(seeds)}", "complete": complete,
                 "pass": bool(complete and ce["full"] >= bar and si["full"] == 0)}
@@ -651,7 +521,7 @@ def summarize(out: Path, combos, seeds, sz) -> dict:
 
 
 def main():
-    ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    ap = argparse.ArgumentParser()
     ap.add_argument("--configs", nargs="+", default=list(CONFIGS), choices=list(CONFIGS))
     ap.add_argument("--arms", nargs="+", default=list(ARMS), choices=list(ARMS))
     ap.add_argument("--seeds", type=int, default=len(SEEDS), help="how many seeds from --seed-base")
@@ -695,7 +565,6 @@ def main():
     for c, arm in combos:
         left = [s for s in seeds if not episode_file(out, c, arm, s, sz).exists()]
         jobs += [(c, arm, left[i:i + a.chunk], out, sz) for i in range(0, len(left), a.chunk)]
-    # Long jobs first, so the short ones fill in at the end.
     jobs.sort(key=lambda j: (ARMS[j[1]]["dish"] is None, j[1] == "silenced"))
     if jobs:
         pool_map(_episode_safe, jobs, min(a.workers, len(jobs)), threads)

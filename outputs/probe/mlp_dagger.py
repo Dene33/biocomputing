@@ -1,4 +1,3 @@
-"""Can ANY student imitate the teacher on stand_push with 1-step latency? DAgger with an MLP on obs."""
 import sys
 
 import numpy as np
@@ -20,7 +19,7 @@ from biocompute.interface.decoders import LinearReadout
 import os
 GAIN = float(os.environ.get("GAIN", 1.5)); WEIGHT = float(os.environ.get("WEIGHT", 0)); MEM = int(os.environ.get("MEM", 0))
 TAG = os.environ.get("TAG", "")
-DRIVES = int(os.environ.get("DRIVES", 0))  # >0: features see only the culture's input: DRIVES diverse wells × 32
+DRIVES = int(os.environ.get("DRIVES", 0))
 ENC = None
 if DRIVES:
     from biocompute.interface.encoders import Encoder, ObsNormalizer
@@ -36,7 +35,7 @@ if DRIVES:
     ENC = Encoder(np.arange(NS), normalizer=ObsNormalizer.fit(_O), gain=float(os.environ.get("EGAIN", 1.5)))
     if os.environ.get("PROJ", "supervised") == "pca":
         ENC.fit_pca(_O)
-    elif os.environ.get("PROJ") == "identity":  # one channel per z-scored obs dim (skip the constant command)
+    elif os.environ.get("PROJ") == "identity":
         dims = [i for i in range(78) if i not in (6, 7, 8)]
         ENC.W = np.eye(78)[dims]; ENC.b = -ENC.W @ ENC.normalizer(_O).mean(0)
     else:
@@ -52,7 +51,7 @@ Wrf = np.random.default_rng(1).standard_normal((hidden, IN)) / np.sqrt(IN) * GAI
 brf = np.random.default_rng(2).standard_normal(hidden) * 0.5
 
 
-SNOISE = float(os.environ.get("SNOISE", 0))  # noise (× std) on every state dim except the last action
+SNOISE = float(os.environ.get("SNOISE", 0))
 _SD = None
 
 

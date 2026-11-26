@@ -1,79 +1,3 @@
-"""Realism scorecard, organoid column: does the model culture look like FinalSpark's organoids, measured the same way
-on both sides? Pre-registered 26 Nov 2026, before any number below was computed.
-
-Why. The realism scorecard (scripts/realism_scorecard.py) put the model against Wagenaar's dissociated rat cultures
-(59 electrodes): in range on 3 of 6 measures. FinalSpark's whole-life exports (scripts/finalspark_data.py) are the
-organoids we could rent: 8 electrodes under each ~500 um organoid (Jordan et al. 2024, Front. Artif. Intell.
-7:1376042; the electrode size, spacing and layout are not published there). This session's exploration had already
-run spike_stats on 10-minute windows of both records (fs369 medians: rate 1.1-2.7 Hz, 0.5-1.1 bursts per minute,
-bursts 0.5-1.2 s, interval CV 1.0-1.25, 15-50% of spikes in bursts), so the real side is not blind; the model side
-on 8-electrode blocks has not been computed.
-
-Part A (CPU), spontaneous:
-- Real: spike_stats (scripts/public_data_targets.py, unchanged; 8 channels) on 10-minute windows of each organoid
-  group's clean events (|amplitude| <= 300 uV), windows with no stimulation inside or in the 60 s before. A group-day
-  counts if it has >= 6 windows and its median window has >= 3 active electrodes; its value is the median over its
-  windows. Targets: median and 5-95% range across the group-days of fs369 and fs437 together (each also reported).
-- Model: the five stored scorecard recordings (gpu_20k, seeds 0-4, mcs60 at 200 um, 600 s, plasticity off; nothing
-  re-simulated), scored on every complete 2 x 4 block of adjacent electrodes, both orientations (200 x 600 um, about
-  one organoid). Per culture: the median over its blocks.
-- In range: the median over the five cultures lies inside the real 5-95% range (as the scorecard), for the
-  scorecard's gated measures: electrode rate, bursts per minute, burst duration, interval CV, spikes in bursts.
-  Expected (reasoning): rate in range; bursts too frequent, too short, too regular, holding too many spikes.
-
-Part B (GPU, after part A), evoked, on the protocol of fs369's mapping session (day 12.9): inputs of one 8-electrode
-group take turns 0 -> 7, 38 stimulations each at 5 Hz, 5 cycles. Model: the central 2 x 4 block of mcs60
-(y = -100 and 100 um, x = -300 to 300 um), cultures 0-4, plasticity off, the replication's single pulse (amplitude 1).
-Measures, the same code on both sides (real: fs369 map, live groups 1 and 2):
-- specificity: the share of the 56 pathways s -> r that respond ([14, 60] ms gain >= 0.1 spikes per stimulation and
-  > 3 SE, as scripts/real_pathways.py), and the median responding gain;
-- bursts: the share of stimulations followed within 200 ms by a network burst onset (spike_stats' detector on the
-  group's 8 electrodes, events within 14 ms of a stimulation removed), minus the chance of an onset in any 200 ms of
-  the same group's spontaneous activity (real: the hour before the session; model: its stored 600 s recording, same
-  block).
-Like real (per measure, on the median over the five cultures): responding share and median gain within a factor 2
-of the real groups' range (from half the lower to twice the upper); burst excess at most max(2 x the larger real
-excess, that excess + 2 points). Real values are computed in part A and printed before part B is run.
-
-Result of part A (26 Nov 2026; spontaneous.json). Real targets from 64 group-days (fs369 60, fs437 4); the model on
-62 blocks per culture:
-
-| Measure                 | Model, median (range over 5 cultures) | FinalSpark organoids, median [5-95%] | In range   |
-|-------------------------|---------------------------------------|--------------------------------------|------------|
-| electrode rate (Hz)     | 5.31 (4.42-8.93)                      | 1.61 [0.43-4.64]                     | no, 1 of 5 |
-| bursts per minute       | 39.3 (36.7-42.9)                      | 0.85 [0-4.9]                         | no, 0 of 5 |
-| burst duration (ms)     | 41 (36-54)                            | 752 [305-2398]                       | no, 0 of 5 |
-| interval CV             | 0.32 (0.31-0.38)                      | 1.08 [0.58-2.55]                     | no, 0 of 5 |
-| spikes in bursts        | 0.80 (0.68-0.88)                      | 0.35 [0.02-0.59]                     | no, 0 of 5 |
-
-0 of 5 in range (against Wagenaar's cultures on the full array: 3 of 6). Against the expectation the rate is out
-too, just above the 95th percentile. On 8 electrodes the model's bursts are shorter than on the whole array (41 ms
-against 103): a burst crosses a block quickly. Real bursts are 18x longer and come 46x less often.
-
-Result of part B (run 26 Nov 2026, 15:21-15:34; evoked.json). Real (fs369's map, groups 1 and 2): responding share
-0.20 / 0.30, median responding gain 1.40 / 1.39 spikes per stimulation, burst excess 5.2 / 2.5 points. Model: no
-pathway responds in any culture (0 of 56), so no gain; burst excess -0.1 to +0.9 points (12.4-14.0% of pulses
-followed by a burst onset, against 12.2-13.6% by chance). Reading: specificity not like real (0 against the band
-0.10-0.61), gain not like real (none), burst excess like real (0.3 <= 10.4), trivially: the model's pulses set off
-no bursts beyond its spontaneous ones.
-
-Diagnostic (not pre-registered; latency profiles of the stored recordings): a pulse drives the electrode it is given
-on (700-800 Hz at 2-4 ms, back to baseline by ~14 ms) and nothing else; the neighbours 200 um away stay at their
-baseline at every latency. In this model a single pulse at the replication's amplitude excites the neurons under its
-electrode, and the activity neither reaches the next electrode nor sets off a burst. Real organoids carry a pulse to
-2-3 neighbours (about 1.4 spikes each at 14-60 ms) and set off bursts 2.5-5 points above chance. A consequence for the
-20% evoked-burst figure of the realism scorecard (the replication's measure: a pulse "sets off a burst" when the 0-200
-ms count exceeds median + 3 MAD): that measure doesn't subtract chance, and at the model's 39-45 bursts per minute a
-200 ms window holds a burst onset 12-14% of the time by chance, so much of the 20% may be spontaneous. Not tested.
-Limits: FinalSpark's electrode spacing is unknown (the model's 200 um may be wider than theirs); one amplitude; the
-real side is two organoids of one MEA on one day.
-
-    uv run python -I scripts/organoid_scorecard.py              # part A (CPU, ~1 min)
-    uv run scripts/launch.py --unit bio-orgsc --log outputs/organoid_scorecard/run.log -- \\
-        python -I scripts/organoid_scorecard.py --evoked --workers 3      # part B (GPU)
-Outputs (outputs/organoid_scorecard): spontaneous.json (part A), evoked.json (part B).
-"""
-
 from __future__ import annotations
 
 import argparse
@@ -100,14 +24,13 @@ REPORTED = ("n_active", "rate_hz_mean", "ibi_s_median", "recruitment_median")
 P = dict(art_uv=300.0, window_s=600.0, pre_stim_s=60.0, min_windows=6, min_active=3, artifact_ms=14.0,
          burst_window_ms=200.0, chance_s=3600.0)
 MODEL_REC = ROOT / "outputs/realism_scorecard/rec"
-MODEL_STEM = "live_s{seed}_ed5a2d31"  # realism_scorecard.job_name("live", seed, its settings)
+MODEL_STEM = "live_s{seed}_ed5a2d31"
 CULTURES = (0, 1, 2, 3, 4)
-PROTO = dict(warm_s=10.0, isi_ms=200.0, stims=38, cycles=5, amplitude=1.0)  # fs369's mapping session, model side
-BLOCK_XY = [(x, y) for y in (-100.0, 100.0) for x in (-300.0, -100.0, 100.0, 300.0)]  # the central 2 x 4 block
+PROTO = dict(warm_s=10.0, isi_ms=200.0, stims=38, cycles=5, amplitude=1.0)
+BLOCK_XY = [(x, y) for y in (-100.0, 100.0) for x in (-300.0, -100.0, 100.0, 300.0)]
 
 
 def real_windows(rec: dict, p=P) -> list[dict]:
-    """spike_stats per organoid group and 10-minute spontaneous window, with the window's day."""
     t, e, amp = rec["t"], rec["e"], rec["amp"]
     keep = np.abs(amp) <= p["art_uv"]
     t, e = t[keep], e[keep]
@@ -129,8 +52,6 @@ def real_windows(rec: dict, p=P) -> list[dict]:
 
 
 def group_days(rows: list[dict], p=P) -> list[dict]:
-    """One value per group-day: the median over its windows, for group-days with >= min_windows windows whose median
-    window has >= min_active active electrodes."""
     out = []
     for g, d in sorted({(r["group"], r["day"]) for r in rows}):
         R = [r for r in rows if r["group"] == g and r["day"] == d]
@@ -156,7 +77,6 @@ def targets(gd: list[dict]) -> dict:
 
 
 def blocks_of(xy: np.ndarray, pitch: float = 200.0) -> list[list[int]]:
-    """Every complete 2 x 4 block of adjacent electrodes, both orientations (channel indices into ``xy``)."""
     ij = {(int(round(x / pitch * 2)), int(round(y / pitch * 2))): c for c, (x, y) in enumerate(xy)}
     xs, ys = sorted({a for a, _ in ij}), sorted({b for _, b in ij})
     out = []
@@ -200,7 +120,6 @@ def score(model: list[dict], tg: dict) -> dict:
 
 
 def real_map_bursts(rec: dict, p=P) -> dict:
-    """Burst-onset share after the mapping session's stimulations (per live group) and its chance level."""
     import real_pathways as RP
 
     ev = FD.stim_events(rec["st"])
@@ -232,10 +151,7 @@ def real_map_bursts(rec: dict, p=P) -> dict:
     return out
 
 
-# --- Part B (GPU): the mapping protocol on the model ------------------------------------------------------------------
 def map_job(job):
-    """One culture: warm up, then inputs 0 -> 7 of the central block take turns, ``stims`` pulses each at ``isi_ms``,
-    ``cycles`` times; every electrode's spikes (absolute times, ms) and the stimulation times are kept."""
     import torch
 
     from biocompute.culture.network import make_config
@@ -298,14 +214,12 @@ def _map_safe(job):
 
 
 def map_measures(e_t_ms, e_ch, stim_t_ms, stim_input, block, spont: tuple | None, p=P) -> dict:
-    """The real map's measures (scripts/real_pathways.py, organoid_scorecard part B) on one model recording.
-    ``spont``: (times s, channels, duration s) of the culture's stored spontaneous recording, for the chance level."""
     import real_pathways as RP
 
     lut = -np.ones(int(max(e_ch.max(initial=0), max(block))) + 1, int)
     lut[block] = np.arange(8)
     m = (e_ch < len(lut)) & (lut[np.minimum(e_ch, len(lut) - 1)] >= 0)
-    t = np.round(e_t_ms[m] * FD.MS).astype(np.int64)  # ns, as the real records
+    t = np.round(e_t_ms[m] * FD.MS).astype(np.int64)
     e = lut[e_ch[m]].astype(np.int64)
     o = np.argsort(t, kind="stable")
     t, e = t[o], e[o]
@@ -346,9 +260,8 @@ def map_measures(e_t_ms, e_ch, stim_t_ms, stim_input, block, spont: tuple | None
 
 
 def like_real(model: list[dict], real: dict) -> dict:
-    """Part B's pre-registered reading on the medians over cultures."""
     rs, rg, rx = real["responding_share"], real["median_responding_gain"], real["excess_pct"]
-    def med(k):  # over cultures; None where no culture has a value (no responding pathway: not like real)
+    def med(k):
         v = [m[k] for m in model if m[k] is not None]
         return float(np.median(v)) if v else None
 
@@ -392,7 +305,7 @@ def part_b(out: Path, workers: int, smoke: bool) -> dict:
 
 
 def main():
-    ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    ap = argparse.ArgumentParser()
     ap.add_argument("--out", default="outputs/organoid_scorecard")
     ap.add_argument("--evoked", action="store_true", help="part B (GPU)")
     ap.add_argument("--workers", type=int, default=3)

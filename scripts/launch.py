@@ -1,19 +1,3 @@
-"""Launch a long run safely: smoke test, detached launch, start-up check.
-
-    uv run scripts/launch.py --unit bio-x --log outputs/x/run.log [--with cebra] -- scripts/foo.py --arg ...
-
-1. Smoke: the same script and arguments plus ``--smoke`` (every long script runs its whole pipeline, result writing
-   included, at tiny scale into <out>/smoke), in the foreground, with a timeout. Any failure (exit code, Traceback,
-   GUARD FAIL) stops here. Reports wall time, CPU cores used and GPU busy share, for choosing workers: one core
-   pegged with the GPU idle means a single process is launch-bound and more workers (or batching) will help; the GPU
-   busy throughout means extra processes will only queue.
-2. Launch: ``systemd-run --user --unit=<unit> -p TimeoutStopSec=300``, output appended to the log (folder created
-   first). Resumable scripts save on stop; relaunching the same command resumes.
-3. Start-up check: the unit is still active after ``--verify-s`` and its log is clean.
-
-Then: ``uv run scripts/watch.py --unit <unit> --log <log>`` in the background stops the unit at the first failure.
-"""
-
 import argparse
 import os
 import re

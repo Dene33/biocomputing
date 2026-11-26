@@ -1,127 +1,3 @@
-"""Track A, step A2d, part 1 (pre-registered 26 Nov 2026, before any number below was computed): how much does a real
-culture change from one day to the next, and does our aging model change as much?
-
-Why. A2 and A2c age the culture with ``biocompute.culture.aging.age``: each neuron's excitability drifts on its own
-(0.5 x sqrt(days) current units) and 2% of the neurons die per day. Over 7 days that moved A2's replay rate only from
-66.0 to 58.5 Hz. A2c's decision ("a session needs two numbers per IMU channel") and A2's "aging is harmless" were shown
-under that drift. FinalSpark's whole-life recordings show organoids changing more: before this was written, fs369's
-6-hour table (one organoid group's mean rate per electrode) was seen moving 1.5-4x between days with no stimulation.
-That table mixes in nothing the model saw, so here both sides are measured the same way.
-
-Real data (FinalSpark whole-life exports, outputs/public_data/raw/finalspark/, gitignored; read with h5py only, no
-pandas, no unpickling: the pandas attributes are pickles). fs369 (21.7 days, 4 organoid groups of 8 electrodes, mostly
-spontaneous) is the main record; fs437 (6 days, dying, stimulated by many clients) is reported, not used to decide.
-Electrode ids are taken mod 32 (fs369 sits on 64-95); a group is ``electrode // 8``.
-
-- Spontaneous rate per electrode per day. Day d = [first event + 24 h d, + 24 h). Counted: events with |amplitude|
-  <= 300 uV (spontaneous p99.99 is 282 uV; stimulation artifacts reach mV) in minutes that are recording (any event on
-  any electrode) and not near stimulation: each stimulation session (stimulations less than 5 min apart) is excluded
-  from 10 min before its first to 60 min after its last stimulation. A day counts if >= 12 h remain. Rate = count /
-  usable seconds.
-- Day-to-day change at lags L = 1, 3, 7 days: for every day d with d and d + L both counted, |log2(rate(d + L) /
-  rate(d))|, the later rate floored at 0.01 Hz. Electrode level: electrodes >= 0.1 Hz on day d. Group level: the
-  group's mean over its 8 electrodes, groups >= 0.1 Hz per electrode on day d. Main: every such pair; also reported
-  without pairs whose later day falls in the record's last 5 days (decline before death).
-- Evoked response across days (fs369 only). Whole-array sweeps: stimulation sessions where every stimulation drives
-  all 32 electrodes at once, >= 5 s apart, >= 100 stimulations and >= 12 settings (in fs369: four sweeps of 32
-  settings of both phases' amplitude and width and the polarity, 10-20 stimulations each; the fourth has 22 of
-  them). A setting is every stimulation parameter of the log. A sweep counts only if the stimulation reached the
-  array: the event rate over all electrodes in the 10 ms after a stimulation is >= 2x the rate in the 100 ms before
-  (the hour-227 session in fs369 shows no artifact at all). Response of an electrode to a setting: the mean over its
-  stimulations of the clean count in [14, 60] ms after the stimulation minus the count in [-46, 0] ms (artifacts end
-  before 14 ms: silent groups read 0.0-0.1 Hz from 14 ms on). For a pair of sweeps, each electrode's response is the
-  mean over the settings both share (>= 12 needed), and the change is |log2(later / earlier)|, the later floored at
-  0.05 spikes per stimulation, over electrodes >= 0.5 spikes per stimulation in the earlier sweep (groups: the sum
-  over the group's electrodes, >= 2). Lag classes: ~1 day (0.5-1.5 d) and ~7 days (5-9 d; pooled over the pairs in
-  it). Noise floor: the same change between odd and even stimulations of each setting within one sweep.
-  The medium change of fs369 (28 Feb, ~9.1 days in) falls between the second and third sweeps; it stays in (dishes
-  get medium changes), and is reported.
-
-Model. A2's own sessions on s32 (scripts/closed_loop_sessions.py, the same code): A1b's warm day-0 state, ``age(cu,
-days, seed)`` for days 1, 3, 7 with aging seeds 11 (A2's) to 15, A2's noise seeding (by session name), 1 s rest, A2's
-60 s replay (3000 steps of 20 ms) and its 50 standing steps. Then, new here, 5 s with no input and 120 s of
-spontaneous activity (no stimulation). ``age`` draws the dead neurons from the culture's own generator, restored
-with the warm state, so every aging seed kills the same neurons; only the excitability drift differs (aging.py as
-shipped). Plus ``day0`` and ``day0_rep`` (day 0 again with other noise seeds: the measurement's noise floor).
-- Spontaneous change per electrode (the 256 recording electrodes, >= 0.1 Hz at day 0) and for the whole culture
-  (the counterpart of one organoid group): day L against day 0, as the real data's lag L.
-- Evoked change: each electrode's rate during the replay (the decoder's input; spikes per s), day L against day 0;
-  the model's day 1 is compared with the real ~1 day class, day 7 with the ~7 day class.
-Positive controls (GUARD FAIL otherwise): with aging seed 11 and at day 0, the device state after the replay and
-standing steps equals A2's stored session bit for bit, and the replay rate equals its stored rate; aging on its
-nominal dose (alive share 0.98^days within 0.01; excitability spread 0.5 sqrt(days) within 10%); no weight moves;
-rates plausible.
-
-Reading (fixed now). For each measure, kind and lag: the model is too gentle at that lag if its median |log2 change|
-(electrodes: pooled over channels and aging seeds; culture/group: over aging seeds) is below the real 25th
-percentile, too strong if above the real 75th, else in range. Verdicts:
-- spontaneous, electrode level and group level (lags 1, 3, 7): too gentle (or too strong) at >= 2 of 3 lags;
-- evoked, electrode level (~1 day, ~7 days): too gentle (or too strong) at both;
-- evoked, group level: reported, not used (fs369 has at most 3 live groups per sweep pair).
-Decision: if any of the three verdicts is "too gentle" or "too strong", part 2 fits a realistic day-to-day change
-(its form chosen from these results and pre-registered before it runs) and A2c is rerun under it as a labelled run.
-If all three are "in range", aging.py's drift is realistic in size, A2c's verdict stands and no rerun is needed.
-Reported, not decided on: how the real change grows with the lag (a random walk grows like sqrt(L); a bounded wander
-doesn't), signed medians (direction), the fs437 record, the noise floors.
-
-Result of part 1 (run 26 Nov 2026, 12:06-12:34; day_drift.json). Controls held: aging seed 11 and day 0 reproduce
-A2's stored sessions bit for bit (replay 65.99 / 64.63 / 62.82 / 58.51 Hz at days 0 / 1 / 3 / 7), aging on its
-nominal dose, no weight moved. Median |log2 change| (real 25-75% in brackets; model over 5 aging seeds):
-
-| Measure                        | 1 day                     | 3 days                  | 7 days                  |
-|--------------------------------|---------------------------|-------------------------|-------------------------|
-| spontaneous, electrode         | 0.26 [0.18-0.96] in range | 0.36 [0.46-2.2] gentle  | 0.43 [0.73-4.8] gentle  |
-| spontaneous, culture / group   | 0.27 [0.14-0.73] in range | 0.39 [0.45-1.6] gentle  | 0.40 [0.68-4.0] gentle  |
-| evoked, electrode (~1 / ~7 d)  | 0.05 [0.07-0.31] gentle   |                         | 0.22 [0.34-2.0] gentle  |
-
-Verdicts: spontaneous electrode, spontaneous group and evoked electrode all too gentle (evoked group too, not used).
-Decision: part 2. The model's change stops growing after a day and goes the other way: its spontaneous rate rises
-(+0.27 to +0.40 log2 per culture, every seed) while real groups mostly decline (signed group medians -0.16 / -0.72 /
--1.56; two of fs369's four groups die out). Its evoked rate falls a little (-0.03 / -0.07 / -0.17). Noise floors
-(day 0 again, other noise seeds): electrode 0.05 spontaneous, 0.02 evoked. The aging seeds barely differ (culture
-change 0.24-0.29 at day 1, 0.32-0.46 at day 7): with 20,000 neurons, independent per-neuron drift averages out.
-
-Part 2 (pre-registered 26 Nov 2026, before any calibration session): a realistic day-to-day change for A2c.
-- Form. The real change is mostly coherent (the group's signed medians are close to its absolute ones at 3 and 7
-  days), and the evoked change per electrode is mixed in sign across groups (after the medium change two groups
-  respond more, one collapses). So the knob is a shift x of every neuron's excitability (current units), added to
-  aging.py's day-L state (seed 11, as A2). It sizes the coherent change the electrodes see; no mechanism (cell loss,
-  medium) is claimed. aging.py's per-neuron drift and death stay as they are.
-- Calibration: x in {-3, -2, -1, -0.5, +0.5, +1, +2} at days 1, 3, 7 (21 sessions, part 1's code; x = 0 is part 1's
-  seed-11 row), measured as part 1 against day 0.
-- Targets, on the decoder's input (evoked per electrode, median |log2 change|): day 1 = the real ~1-day median
-  (0.174), day 7 = the real ~7-day median (0.659), day 3 = linear in the lag between them (0.336); a stress dose at
-  day 7 = the real ~7-day 75th percentile (1.99), downward.
-- Doses: per lag and direction (down: x < 0, up: x > 0), the smallest |x| at which the model reaches the target,
-  linear between calibration points; if no point reaches it, the largest tried, flagged. Seven doses: days 1, 3, 7
-  down and up, and the day-7 stress dose.
-- Reported, not fitted: each dose's spontaneous change against the real group's signed medians.
-- Then A2c is rerun on those seven sessions as a labelled run (A2d); its pre-registration and gate (planned:
-  refit60 >= 34/40 full runs in every session; stale reported) go into scripts/closed_loop_sessions.py with the doses,
-  before its first episode.
-
-Result of part 2 (run 26 Nov 2026, 12:38-13:13; calibration.json). The evoked change grows with |x| in both
-directions from x = 0's (day 1: 0.055, day 7: 0.215). Doses: days 1 / 3 / 7 down -0.597 / -1.003 / -1.583, up
-+0.734 / +1.626 / +2.0, stress -3.0. Not reached: day 7 up (+2.0 gives 0.353 of 0.659; an upward shift first undoes
-the 7-day state's own fall) and the stress dose (-3.0 gives 1.217 of 1.99; the culture is then almost silent on its
-own, -3.6 log2 spontaneous, yet still answers the replay at x0.43). The down doses also move the spontaneous rate in
-the real direction, somewhat too far (-0.85 / -1.08 / -2.09 against the real groups' -0.16 / -0.72 / -1.56).
-Part 3 (A2d, scripts/closed_loop_sessions.py) passed: the 60 s edit refit keeps the relay at 35-40/40 in all seven
-sessions; the stale relay drops only at day 7 up (19/40).
-
-Run (guarded, resumable; the real part runs first, on the CPU, ~1 min, cached in <out>/real_<fs>_<key>.json):
-
-    uv run scripts/launch.py --unit bio-a2d --log outputs/day_drift/run.log -- \\
-        python -I scripts/day_drift.py --workers 3
-    uv run scripts/watch.py --unit bio-a2d --log outputs/day_drift/run.log
-    # part 2 (part 1's sessions are reused):
-    uv run scripts/launch.py --unit bio-a2d-cal --log outputs/day_drift/run_calibrate.log -- \\
-        python -I scripts/day_drift.py --calibrate --workers 3
-
-Outputs (outputs/day_drift): calibration.json (part 2), real_<fs>_<key>.json, jobs/<name>_<key>.json (one per model session), rec/<name>_<key>.npz
-(the spontaneous electrode spikes), day_drift.json (both sides, the comparison and the decision).
-"""
-
 from __future__ import annotations
 
 import argparse
@@ -146,21 +22,19 @@ from biocompute.runguard import job_key  # noqa: E402
 ROOT = clv.ROOT
 FS = FD.FS
 MAIN_FS = "fs369"
-S, MS = FD.S, FD.MS  # ns per s, per ms
+S, MS = FD.S, FD.MS
 REAL = dict(art_uv=300.0, live_hz=0.1, floor_hz=0.01, min_day_h=12.0, excl_before_s=600.0, excl_after_s=3600.0,
             session_gap_s=300.0, lags=(1, 3, 7), last_days=5, post_ms=(14.0, 60.0), pre_ms=(-46.0, 0.0),
             resp_el=0.5, resp_group=2.0, floor_resp=0.05, sweep_min_gap_s=5.0, sweep_min_events=100,
             sweep_min_settings=12, delivered_ratio=2.0, lag_classes={"1d": (0.5, 1.5), "7d": (5.0, 9.0)})
 DAYS = (1, 3, 7)
 AGING_SEEDS = (11, 12, 13, 14, 15)
-SHIFTS = (-3.0, -2.0, -1.0, -0.5, 0.5, 1.0, 2.0)  # part 2's calibration grid (excitability, current units)
+SHIFTS = (-3.0, -2.0, -1.0, -0.5, 0.5, 1.0, 2.0)
 CFG = "s32"
 MODEL_KEYS = ("data", "a1", "a2", "recal_steps", "settle_s", "spont_s")
 
 
-# --- Real data ------------------------------------------------------------------------------------------------------
 def day_rates(t, e, amp, stim_t, p=REAL) -> dict:
-    """Spontaneous rate per electrode per day (Hz) and the usable seconds per day (see the module docstring)."""
     t0 = int(t[0])
     mins = ((t - t0) // (60 * S)).astype(np.int64)
     nmin = int(mins[-1]) + 1
@@ -192,7 +66,6 @@ def summary(v) -> dict:
 
 
 def lag_changes(rate, valid, lags, p=REAL, last_days: int | None = None) -> dict:
-    """|log2| day-to-day changes per lag, electrode and group level, plus signed medians (later over earlier)."""
     nd = len(rate)
     out = {}
     for L in lags:
@@ -221,7 +94,6 @@ def _med(v):
 
 
 def sweeps(rec: dict, p=REAL) -> list[dict]:
-    """Whole-array sweeps with per-setting, per-electrode responses (see the module docstring)."""
     t, e, amp, st = rec["t"], rec["e"], rec["amp"], rec["st"]
     keys = sorted(k for k in st if k not in ("time_of_stim", "electrode"))
     P = np.round(np.stack([st[k] for k in keys], 1), 6)
@@ -239,7 +111,6 @@ def sweeps(rec: dict, p=REAL) -> list[dict]:
         if not uniform or len(set(setting)) < p["sweep_min_settings"]:
             continue
         times = ut[idx]
-        # delivery: all events (any amplitude) in the 10 ms after vs the 100 ms before, all electrodes
         n_after = sum(np.searchsorted(t, u + 10 * MS) - np.searchsorted(t, u) for u in times) / 10.0
         n_before = sum(np.searchsorted(t, u) - np.searchsorted(t, u - 100 * MS) for u in times) / 100.0
         ratio = n_after / max(n_before, 1e-9)
@@ -260,8 +131,6 @@ def _resp(sw: dict, shared, part: str) -> np.ndarray:
 
 
 def evoked_changes(sws: list[dict], t_first_event: int, p=REAL) -> dict:
-    """Pairs of delivered sweeps sharing >= sweep_min_settings settings: |log2| changes per electrode and per group;
-    lag classes pooled; noise floor (odd vs even stimulations within a sweep)."""
     sws = [s for s in sws if s["delivered"]]
     pairs, classes = [], {k: {"electrode": [], "group": []} for k in p["lag_classes"]}
     for i in range(len(sws)):
@@ -324,7 +193,6 @@ def real_part(fs: str, out: Path, smoke: bool) -> dict:
     return res
 
 
-# --- Model ----------------------------------------------------------------------------------------------------------
 def model_jobs(out: Path, sz: dict) -> list[tuple]:
     jobs = [("day0", 0.0, None, 0.0, out, sz), ("day0_rep", 0.0, None, 0.0, out, sz)]
     seeds = AGING_SEEDS[:1] if sz["smoke"] else AGING_SEEDS
@@ -334,7 +202,6 @@ def model_jobs(out: Path, sz: dict) -> list[tuple]:
 
 
 def calibration_jobs(out: Path, sz: dict) -> list[tuple]:
-    """Part 2: A2's aging (seed 11) at each lag, plus a shift of every neuron's excitability."""
     days = DAYS[:1] if sz["smoke"] else DAYS
     grid = SHIFTS[:2] if sz["smoke"] else SHIFTS
     return [(f"day{d}", float(d), CLS.AGING_SEED, x, out, sz) for d in days for x in grid]
@@ -370,9 +237,9 @@ def model_job(job):
     if days and not sz["smoke"]:
         g.check(abs(alive / alive0 - 0.98 ** days) < 0.01, f"alive share {alive / alive0:.4f} vs {0.98 ** days:.4f}")
         g.check(abs(exc_sd / (0.5 * days ** 0.5) - 1) < 0.1, f"excitability sd {exc_sd:.3f} vs {0.5 * days ** 0.5:.3f}")
-    if shift:  # part 2: one shift for every neuron (the spread, checked above, is unchanged by it)
+    if shift:
         cu.excitability += shift
-    s = sum(map(ord, f"{CFG}_{cond}"))  # A2's noise seeding, by session name
+    s = sum(map(ord, f"{CFG}_{cond}"))
     cu.torch_gen.manual_seed(1000 + s)
     dev.mea.gen.manual_seed(2000 + s)
     w_ref = cu.w.clone()
@@ -390,7 +257,7 @@ def model_job(job):
             g.culture(cu)
             g.beat(i + 1, n, phase="replay", ms_per_step=round((time.time() - t0) / (i + 1) * 1000, 1))
     C = F.shape[1] // 4
-    rate = float((F[:, : 2 * C] ** 2).sum(1).mean() / C / 0.02)  # A2's replay rate (spikes per electrode per s)
+    rate = float((F[:, : 2 * C] ** 2).sum(1).mean() / C / 0.02)
     per_ch = ((F[:, :C] ** 2 + F[:, C:2 * C] ** 2).sum(0) / n / 0.02).astype(float)
     obs0 = clv.standing_obs()
     for _ in range(clv.WARM_STEPS):
@@ -403,7 +270,6 @@ def model_job(job):
         g.check(CLS.same(dev.state(), old["warm"]), f"{stem}: state after replay differs from A2's stored session")
         g.check(round(rate, 2) == old["row"]["rate_hz"], f"replay rate {rate:.2f} vs A2's {old['row']['rate_hz']}")
         equals_a2 = str(p)
-    # New: spontaneous activity, no stimulation.
     n_settle, n_rec = int(round(sz["settle_s"] * 10)), int(round(sz["spont_s"] * 10))
     for i in range(n_settle):
         dev.step(100.0)
@@ -456,8 +322,6 @@ def _model_safe(job):
 
 
 def model_changes(rows: list[dict], p=REAL) -> dict:
-    """Model day L against day 0: |log2| per electrode (pooled over aging seeds) and per culture (one per seed), for
-    spontaneous and replay rates; the day0_rep noise floor."""
     by = {(r["cond"], r["aging_seed"]): r for r in rows}
     d0 = by.get(("day0", None))
     out = {}
@@ -492,7 +356,6 @@ def model_changes(rows: list[dict], p=REAL) -> dict:
 
 
 def compare(real: dict, model: dict) -> dict:
-    """The pre-registered reading (module docstring)."""
     def at(real_s, model_s):
         if not real_s.get("n") or not model_s.get("n"):
             return None
@@ -532,7 +395,6 @@ def compare(real: dict, model: dict) -> dict:
 
 
 def _evoked(r0: dict, r: dict, p=REAL) -> dict:
-    """Change of ``r`` against day 0 ``r0``: evoked (replay) per electrode and culture, spontaneous per culture."""
     a, b = np.array(r0["replay_rate_per_channel"]), np.array(r["replay_rate_per_channel"])
     live = a >= p["live_hz"]
     el = np.log2(np.maximum(b[live], p["floor_hz"]) / a[live])
@@ -544,8 +406,6 @@ def _evoked(r0: dict, r: dict, p=REAL) -> dict:
 
 
 def dose_for(points: list[dict], sign: int, target: float) -> dict:
-    """The smallest |shift| of ``sign`` (linear between calibration points, x = 0 included) at which the evoked
-    electrode change reaches ``target``; the largest tried, flagged, if none does."""
     pts = sorted([q for q in points if q["shift"] == 0 or np.sign(q["shift"]) == sign], key=lambda q: abs(q["shift"]))
     if not pts:
         return {"shift": None, "reached": False}
@@ -561,7 +421,6 @@ def dose_for(points: list[dict], sign: int, target: float) -> dict:
 
 
 def calibration(rows0: list[dict], cal: list[dict], real: dict) -> dict:
-    """Part 2 (module docstring): the calibration curves, the targets and the doses."""
     d0 = next(r for r in rows0 if r["cond"] == "day0")
     ev = real["evoked"]["classes"]
     t1, t7 = ev["1d"]["electrode"]["median"], ev["7d"]["electrode"]["median"]
@@ -571,7 +430,7 @@ def calibration(rows0: list[dict], cal: list[dict], real: dict) -> dict:
     for L in DAYS:
         base = [r for r in rows0 if r["days"] == L and r["aging_seed"] == CLS.AGING_SEED and not r.get("shift")]
         pts = [_evoked(d0, r) for r in base + [c for c in cal if c["days"] == L]]
-        if not pts:  # a lag without sessions (the smoke run)
+        if not pts:
             continue
         curves[str(L)] = sorted(pts, key=lambda q: q["shift"])
         for sign, label in ((-1, "down"), (1, "up")):
@@ -584,7 +443,7 @@ def calibration(rows0: list[dict], cal: list[dict], real: dict) -> dict:
 
 
 def main():
-    ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    ap = argparse.ArgumentParser()
     ap.add_argument("--workers", type=int, default=3)
     ap.add_argument("--out", default="outputs/day_drift")
     ap.add_argument("--a1", default="outputs/closed_loop_vestibular_affine")
@@ -625,7 +484,7 @@ def main():
     jobs = model_jobs(out, sz)
     todo = [j for j in jobs if not (out / "jobs" / f"{job_name(j[0], j[2], sz, j[3])}.json").exists()]
     if todo:
-        threads = max(1, min(4, (os.cpu_count() or 4) // max(a.workers, 1)))  # as closed_loop_sessions.py
+        threads = max(1, min(4, (os.cpu_count() or 4) // max(a.workers, 1)))
         clv.pool_map(_model_safe, todo, min(a.workers, len(todo)), threads)
     rows = [json.loads((out / "jobs" / f"{job_name(j[0], j[2], sz, j[3])}.json").read_text()) for j in jobs]
     model = model_changes(rows)

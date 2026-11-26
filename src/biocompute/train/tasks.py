@@ -1,5 +1,3 @@
-"""The task ladder: stand, stand under pushes, walk, walk following changing commands."""
-
 from __future__ import annotations
 
 from dataclasses import dataclass

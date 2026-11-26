@@ -1,78 +1,3 @@
-"""The pathway half of the drift test on real tissue (route doc, "Parked until dish access", item 5), from FinalSpark's
-mapping session in fs369. Pre-registered 26 Nov 2026, before the test below was computed.
-
-Why. Our model fails the drift test because under repeated stimulation its STDP hands the network to one input
-within minutes. The Robbins game logs answered only the rate half (no spike times; the smallest visible pathway change
-was larger than the pathways). fs369 (FinalSpark whole-life export, read by scripts/finalspark_data.py) holds one
-session with spike times that maps pathways inside each organoid: what was seen before this was written (this
-session's exploration) is that it lasts 49 min at 5 Hz; every stimulation drives the same local electrode in all four
-organoid groups; the local electrode steps 0 -> 7 in runs of ~38 stimulations (~8 s each), 23 cycles; each cycle uses
-one setting (2 or 4 uA, 100 or 200 us, polarity, shape) and the settings change between cycles, so first-vs-last
-comparisons are confounded by the setting (gains looked 50-100% larger at the end, at 4 uA). Groups 1 and 2 respond
-with specific clustered pathways (1-5 spikes per stimulation at 14-60 ms); groups 0 and 3 are silent (artifact
-control). Eight settings recur in two cycles 2-3 cycles apart (~4.5-7 min): those pairs are the only clean drift test
-in the record.
-
-Measures. Gain of pathway s -> r (s stimulated, r another electrode of the same group): per stimulation, the clean
-count on r (|amplitude| <= 300 uV) in [14, 60] ms after the stimulation minus its count in [-46, 0] ms; per cycle,
-the mean G and its SE over the stimulations of s in that cycle. For each pair of same-setting cycles (c1 earlier):
-- responding pathway: the pair's mean gain (G1 + G2) / 2 >= 0.1 spikes per stimulation and > 3 x its SE;
-- moved: |G2 - G1| > 2 x sqrt(SE1^2 + SE2^2);
-- null (what "moved" gives with no time between): the same test between the odd and even stimulations of s within
-  each of the pair's two cycles, on the same responding pathways;
-- power: the median smallest visible change 2 x sqrt(SE1^2 + SE2^2) against the median responding gain.
-Live groups: baseline rate (the [-46, 0] ms windows) >= 0.1 Hz per electrode over the session. Control (GUARD FAIL
-otherwise): silent groups have no responding pathway.
-
-Reading (fixed now):
-- inconclusive if fewer than 20 responding pathway-pairs, or no power (median 2 SE > median gain);
-- real pathways hold over ~5 minutes of 5 Hz stimulation if the share moved exceeds the null share by <= 10 points;
-- real pathways drift if it exceeds it by >= 25 points;
-- else in between, reported as is.
-Reported, not part of the reading: the signed change per pair in time order (does any change accumulate across the
-49 min?), takeover (per output, whether its strongest input changes between the pair's cycles; distinct strongest
-inputs per group in the first and the last pair), gains at 2 vs 4 uA, the minutes between each pair's cycles.
-Limits: one MEA, one session (day 12.9), eight inputs taking turns rather than the task's two encoders, and ~38
-stimulations per input per cycle. Our model on the same protocol would make the comparison like for like; that is a
-separate step.
-
-Result of the pair test (26 Nov 2026): not possible. No setting recurs: all 23 cycles differ. The "pairs" seen
-before matched on the first phase only (amplitude, width, polarity, shape); their second phase differs (cycle 1:
-2 uA x 200 us, cycle 4: 4 uA x 100 us, the same charge). The script reports this (``pairs: []``) and the map itself.
-
-Amendment (26 Nov 2026, written before it was computed): repeated single-input series. Right after the map, one
-electrode of a live group was stimulated alone with one setting, ~3.5 times a second, in short blocks over hours
-(seen before: fs369 electrode 8, 339 stimulations in 5 blocks over 2.6 h; its map row showed two strong outputs). A
-series: single-electrode stimulations of one electrode with one setting, split where > 4 h apart; blocks split where
-> 60 s apart. It counts if it has >= 200 stimulations in >= 3 blocks, stimulations >= 100 ms apart (the median within
-blocks, so the [14, 60] ms window ends before the next one), it reached the array (event rate over all electrodes in
-the 10 ms after >= 2x the 100 ms before) and its input's group is live. Per block and output r (the input's group's
-other electrodes): G and SE as above. Responding outputs: over the whole series mean >= 0.1 spikes per stimulation
-and > 3 SE. Moved: last block against first, |G_last - G_first| > 2 SE of the difference. Null: odd vs even
-stimulations within the first and the last block. Power: the median 2 SE <= half the median responding gain (a 50%
-change would be seen). Reading per series:
-- inconclusive with fewer than 2 responding outputs or no power;
-- the pathways hold under their own repeated stimulation if no responding output moved;
-- they drift if at least half moved, all in the same direction (up: potentiation, as in our model);
-- else in between.
-Reported: the group's baseline rate in the first and the last block (the rate half), every block's gains, the null.
-fs437 is run the same way (``--fs fs437``) and reported.
-
-Result of the amendment (26 Nov 2026): no series can be read. fs369's only series (electrode 8, 339 stimulations in
-5 blocks over 2.6 h, day 12.9) fails the delivery check: no artifact at all (ratio 0.5; its log gives a pulse period
-of 1 us), like the 30-minute whole-array session at hour 227. In fs437, the series that reached the array and hit a
-live group (electrodes 13, 14, 16, 17, 18, 22; 253-999 stimulations each) have no responding output; the long e19
-and e20 runs (13,396 and 11,444 stimulations) fall on a group already silent. So neither record answers the pathway
-half of the drift test, and it stays open.
-
-What the map shows (fs369, day 12.9, 49 min; not a test): groups 1 and 2 respond with 11 and 17 of 56 possible
-pathways; each output's strongest input differs across outputs (group 1: inputs 2, 4, 5, 7; group 2: 0, 2, 3, 4,
-5, 7); the silent groups 0 and 3 have none (artifact control held). Median responding gain 1.29 spikes per
-stimulation at 2 uA and 1.52 at 4 uA. Outputs: outputs/real_pathways/real_pathways_{fs369,fs437}.json.
-
-    uv run python -I scripts/real_pathways.py     # CPU, under a minute; outputs/real_pathways/real_pathways_<fs>.json
-"""
-
 from __future__ import annotations
 
 import argparse
@@ -93,8 +18,6 @@ P = dict(art_uv=300.0, post_ms=(14.0, 60.0), pre_ms=(-46.0, 0.0), live_hz=0.1, m
 
 
 def find_mapping_session(ev: dict) -> np.ndarray | None:
-    """Indices (into ``ev``) of the first session where every stimulation drives four electrodes, one per group, all
-    with the same local index, with >= min_events stimulations."""
     for a, b in FD.stim_sessions(ev["t"], P["session_gap_s"]):
         idx = np.arange(a, b + 1)
         if len(idx) < P["min_events"]:
@@ -111,7 +34,6 @@ def find_mapping_session(ev: dict) -> np.ndarray | None:
 
 
 def cycles_of(local: np.ndarray) -> np.ndarray:
-    """Cycle number per stimulation: a new cycle starts where the local electrode index goes down."""
     return np.r_[0, np.cumsum(np.diff(local) < 0)]
 
 
@@ -121,7 +43,6 @@ def mean_se(x: np.ndarray) -> tuple[float, float]:
 
 
 def pair_tests(d: np.ndarray, local: np.ndarray, cyc: np.ndarray, pairs, groups, p=P) -> dict:
-    """``d``: (stimulations, 32) gain per stimulation and electrode. Returns per pathway-pair rows and the totals."""
     rows = []
     for c1, c2 in pairs:
         for g in groups:
@@ -168,7 +89,6 @@ def reading(t: dict, p=P) -> str:
 
 
 def find_series(ev: dict, t: np.ndarray, p=P) -> list[dict]:
-    """The amendment's repeated single-input series (module docstring), before the delivery and live checks."""
     single = [i for i in range(len(ev["t"])) if ev["n"][i] == 1 and ev["setting"][i] is not None]
     by = {}
     for i in single:
@@ -189,14 +109,12 @@ def find_series(ev: dict, t: np.ndarray, p=P) -> list[dict]:
 
 
 def delivery_ratio(t: np.ndarray, times: np.ndarray) -> float:
-    """Event rate over all electrodes in the 10 ms after a stimulation over the rate in the 100 ms before."""
     after = sum(np.searchsorted(t, u + 10 * FD.MS) - np.searchsorted(t, u) for u in times) / 10.0
     before = sum(np.searchsorted(t, u) - np.searchsorted(t, u - 100 * FD.MS) for u in times) / 100.0
     return float(after / max(before, 1e-9))
 
 
 def series_test(d: np.ndarray, pre: np.ndarray, blk: np.ndarray, el: int, p=P) -> dict:
-    """First vs last block for each responding output of the input's group (module docstring, amendment)."""
     g = el // 8
     outs = [8 * g + r for r in range(8) if 8 * g + r != el]
     win_s = (p["pre_ms"][1] - p["pre_ms"][0]) / 1000
@@ -234,7 +152,6 @@ def series_test(d: np.ndarray, pre: np.ndarray, blk: np.ndarray, el: int, p=P) -
 
 
 def map_part(rec: dict, ev: dict) -> dict | None:
-    """The mapping session: the pre-registered pair test (if any setting recurs) and the map itself."""
     idx = find_mapping_session(ev)
     if idx is None:
         return None
@@ -259,7 +176,6 @@ def map_part(rec: dict, ev: dict) -> dict | None:
     group_hz = [float(base_hz[8 * g:8 * g + 8].mean()) for g in range(4)]
     live = [g for g in range(4) if group_hz[g] >= P["live_hz"]]
     silent = [g for g in range(4) if g not in live]
-    # the map: whole-session gain of every pathway, responding by the pair test's rule (on all of s's stimulations)
     gains, resp = {}, {}
     for g in range(4):
         G = np.zeros((8, 8))
@@ -303,7 +219,7 @@ def map_part(rec: dict, ev: dict) -> dict | None:
 
 
 def main():
-    ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    ap = argparse.ArgumentParser()
     ap.add_argument("--fs", default="fs369")
     ap.add_argument("--out", default="outputs/real_pathways")
     a = ap.parse_args()

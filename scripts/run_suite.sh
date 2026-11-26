@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# The reservoir comparison on one task: every readout source and MEA size, in parallel. Logs in outputs/logs/.
 set -u
 task=${1:-stand_push}
 seed=${2:-0}

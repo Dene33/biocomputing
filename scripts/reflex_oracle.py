@@ -1,14 +1,3 @@
-"""Idea 1 (docs/organoid-control-ideas.md), oracle test: can a stance controller plus a library of recovery-step
-primitives survive stand_push if something picks the right primitive after each push? And how accurate and how fast
-must that something (the organoid) be?
-
-Library: from the stance (zero action = PD to the default pose), push in each of 8 directions at 2 forces, let the
-teacher recover for ``--length`` steps and record its commands. Replay: stance until a push; after ``delay`` steps the
-selector picks a primitive and its commands are replayed open loop; then stance again.
-
-    uv run scripts/reflex_oracle.py
-"""
-
 import argparse
 import json
 import multiprocessing as mp
@@ -37,7 +26,6 @@ def _init():
 
 
 def record(job):
-    """Push from stance at step 50, teacher for ``length`` steps, then stance for 100 steps. Returns the commands."""
     theta, force, length = job
     env, teacher = _E["env"], _E["teacher"]
     env.reset()
@@ -59,7 +47,6 @@ def record(job):
 
 
 def episode(job):
-    """One stand_push episode (20 s). mode: stance | teacher | gated_teacher | replay."""
     from biocompute.train.tasks import make_task
 
     mode, seed, delay, err, lib = job
@@ -68,7 +55,7 @@ def episode(job):
     task = make_task("stand_push", 20.0, seed=seed)
     env.reset()
     q = deque([np.zeros(23, np.float32)])
-    pending, active = None, None  # (start step, primitive index or 'teacher'), (primitive, index)
+    pending, active = None, None
     for s in range(1000):
         f = task.push_fn(s * env.dt)
         if f is not None:
@@ -80,9 +67,9 @@ def episode(job):
                     th = np.arctan2(f[1], f[0])
                     mag = np.linalg.norm(f)
                     d = np.abs(np.angle(np.exp(1j * (lib["theta"] - th))))
-                    score = d + 0.002 * np.abs(lib["force"] - mag)  # nearest direction, then nearest force
+                    score = d + 0.002 * np.abs(lib["force"] - mag)
                     choice = int(np.argmin(score))
-                    if rng.random() < err:  # a wrong pick: any primitive of another direction
+                    if rng.random() < err:
                         wrong = np.flatnonzero(np.abs(lib["theta"] - lib["theta"][choice]) > 1e-6)
                         choice = int(rng.choice(wrong))
                 pending = (s + delay, choice)

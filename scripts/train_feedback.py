@@ -1,21 +1,3 @@
-"""DishBrain-style sessions: does feedback-shaped plasticity in the culture improve the robot?
-
-Protocol ``scratch``: a fixed motor map decoder (opposing channel groups per joint), learning from nothing.
-Protocol ``adapt``: start from a trained reservoir readout (``--readout``), perturb the robot or the culture, and see
-whether the session recovers performance. The readout is frozen; only the culture can change.
-
-Conditions (``--condition``):
-    dishbrain   predictable stimulation after good outcomes, unpredictable after falls; STDP on
-    random      the same amount of feedback at random; STDP on
-    silent      no feedback; STDP on
-    frozen      DishBrain feedback; plasticity off
-    rstdp       reward-modulated STDP with a global reward (in-silico upper bound, not deliverable on hardware)
-
-    uv run scripts/train_feedback.py --protocol scratch --condition dishbrain --minutes 10
-    uv run scripts/train_feedback.py --protocol adapt --readout outputs/reservoir/stand_push_mea_mcs60_s0 \
-        --perturb weak_knees --condition dishbrain
-"""
-
 import argparse
 import json
 import pickle
@@ -79,7 +61,6 @@ else:
     record = np.setdiff1d(ctrl.device.mea.alive_channels, np.r_[ctrl.encoder.channels, ctrl.feedback_channels])
     decoder = MotorMapDecoder(record, seed=args.seed, gain=0.5)
     ctrl.readout = None
-    # The fixed decoder reads spikes, not features: wrap sense() so act() returns its output.
     sense = ctrl.sense
 
     def act(obs_, _sense=sense):
@@ -93,9 +74,9 @@ else:
 culture = ctrl.device.culture
 dagger.warm_up(ctrl)
 if args.perturb == "cell_loss":
-    age(culture, days=10.0, seed=args.seed)  # about 18% of neurons lost, excitability drifted
+    age(culture, days=10.0, seed=args.seed)
 
-baseline = dagger.evaluate(env, ctrl, [task], seeds=[0, 1])  # before the session: no plasticity, no feedback
+baseline = dagger.evaluate(env, ctrl, [task], seeds=[0, 1])
 
 if args.condition == "rstdp":
     culture.plasticity = RewardSTDP()

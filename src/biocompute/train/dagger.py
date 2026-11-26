@@ -1,10 +1,3 @@
-"""Reservoir approach: imitate the walking policy with a linear readout of the culture's electrode activity.
-
-DAgger (Ross et al. 2011): the first round lets the teacher drive (beta = 1) and records the culture's features with
-the teacher's actions as labels; each later round lets the student drive more (beta decays), labels the states the
-student actually visits with the teacher, aggregates everything and refits the ridge readout.
-"""
-
 from __future__ import annotations
 
 import time
@@ -20,9 +13,6 @@ from biocompute.train.tasks import Task
 
 def teacher_observations(env: AsimovEnv, teacher, tasks: list[Task], seconds: float = 10.0, episodes: int = 1,
                          noise: float = 0.0, seed: int = 0) -> np.ndarray:
-    """Observations the teacher sees on the tasks, to fit the encoder's normalization and projection. With
-    ``noise`` > 0, every episode after the first adds that fraction of each joint's spread to the executed actions
-    (DART), so the samples also cover states off the teacher's own path, where a student will be."""
     obs, acts = [], []
     rng = np.random.default_rng(seed)
     for ep in range(episodes):

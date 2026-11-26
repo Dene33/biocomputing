@@ -1,9 +1,3 @@
-"""Reservoir readout by parallel DAgger, with labels clipped to the joint range and standardized per joint.
-
-    uv run scripts/train_dagger.py --culture gpu_20k --mea hd1024 --workers 6
-    uv run scripts/train_dagger.py --source none        # control: no culture (linear policy of the encoded obs)
-"""
-
 import argparse
 import json
 import pickle
@@ -69,7 +63,6 @@ def main():
     lo = (run.action_clip[:, 0] - run.default_joint_pos) / run.action_scale
     hi = (run.action_clip[:, 1] - run.default_joint_pos) / run.action_scale
     acts = np.clip(np.array([teacher(o) for o in obs]), lo, hi)
-    # Feature dimension without building a culture here: the MEA's alive channels × (bins + filters).
     if a.source == "none":
         dim = a.n_stim
     elif a.source == "oracle":
@@ -94,7 +87,6 @@ def main():
                          recovery_weight=a.recovery_weight, readout_kind=a.readout, skip_dim=23 if a.efference else 0,
                          ckpt_dir=out,
                          log=lambda r: (rows.append(r), print(json.dumps(r), flush=True)))
-    # Candidates: the best single round, and the ensemble of the last 4 rounds; keep whichever evaluates better.
     from biocompute.interface.decoders import EnsembleReadout
 
     candidates = {"best_round": res["best_readout"], "ensemble_last4": EnsembleReadout(res["readouts"][-4:])}

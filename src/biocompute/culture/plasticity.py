@@ -1,42 +1,3 @@
-"""Long-term plasticity of the culture's excitatory synapses.
-
-- ``STDP``: pair-based spike-timing-dependent plasticity with exponential traces, applied as it happens. This is
-  what a real culture has, and what DishBrain-style feedback shapes: predictable stimulation produces consistent
-  timing and so consistent change; unpredictable stimulation scrambles it.
-- ``RewardSTDP``: the same timing rule fills an eligibility trace, and weights change only when a reward arrives
-  (a dopamine-like global signal, Izhikevich 2007). A real dish has no such signal we can deliver through
-  electrodes: it is the in-silico upper bound, not a protocol for hardware.
-
-Both decay towards the culture's baseline weights with ``tau_forget_s``, the slow loss of what was learned during
-rest.
-
-``multiplicative=False`` (default) is additive STDP with hard bounds: every pairing moves a weight by the same
-amount. In this culture it is unstable under repeated stimulation: the input with the stronger response is
-potentiated until it fires the whole network (scripts/cartpole_replication.py --drift). ``multiplicative=True``
-scales depression with the weight, relative to the culture's mean initial excitatory weight (van Rossum, Bi &
-Turrigiano 2000): strong synapses depress harder, so weights settle around that mean instead of running to the bound.
-Neither stops the runaway: weights shift onto inputs that fire together.
-
-``istdp_eta`` > 0 adds inhibitory plasticity (Vogels, Sprekeler, Zenke, Clopath & Gerstner, Science 2011) on every
-inhibitory synapse: a coincidence of pre- and postsynaptic spikes strengthens it, each presynaptic spike weakens it
-by ``alpha`` = 2 x target rate x tau. A neuron firing above its target rate gains inhibition until it is back at the
-target, so firing rates are held while excitatory STDP keeps its timing rule. Targets default to ``target_hz`` for
-every neuron; ``set_targets`` gives each neuron its own (e.g. its resting rate). Inhibitory weights are bounded by
-``w_max_inh`` (default: the culture's ``w_max``, as before).
-
-- ``SynapticScaling``: per-neuron homeostatic synaptic scaling (Turrigiano 2008), bl1's rule
-  (github.com/m9h/bl1, plasticity/homeostatic.py) with two fixes: each neuron's target is its own resting rate
-  (``set_targets``), not one 5 Hz for all; and each step multiplies by exp(eta x interval x (target - rate)), the
-  exact solution of bl1's equation, not by its Euler step 1 + eta x interval x (target - rate), which goes negative far
-  above target and silences the neuron's E->E input for good. A rate estimate per neuron (moving average, 10 s) is
-  updated every substep; every ``every_ms`` (rounded to whole substeps) the E->E weights onto each neuron scale by
-  that factor, eta per ms. A slow, activity-driven alternative to scripts/coach_probe.py's ``scale``, which resets every neuron's
-  total excitatory input to its start every 5 s. Alone it holds rates at rest; with additive STDP it can't (track
-  B1, cartpole_replication.py --drift --drift-homeo). With weight-dependent STDP at eta 1e-4 it holds rates, but
-  one input still takes over both outputs.
-- ``Chain``: several rules on one culture (e.g. STDP and SynapticScaling), in order.
-"""
-
 from __future__ import annotations
 
 import math
@@ -90,13 +51,11 @@ class STDP:
         self._ready = True
 
     def set_targets(self, culture, hz) -> None:
-        """Per-neuron target rates (Hz) for inhibitory plasticity."""
         self._targets = torch.as_tensor(hz, dtype=torch.float32, device=culture.device).clone()
         if self._ready:
             self.alpha = 2.0 * self._targets * 1e-3 * self.tau_minus_ms
 
     def timing_update(self, culture, spikes: torch.Tensor) -> torch.Tensor:
-        """The STDP change for every synapse this substep (zeros where not plastic)."""
         if not self._ready:
             self._setup(culture)
         self.x_pre *= self.dec_plus
@@ -104,15 +63,12 @@ class STDP:
         dw = torch.zeros_like(culture.w)
         if bool(spikes.any()):
             s = spikes.float()
-            # Potentiation: post fires after pre (pre trace still up). Depression: pre fires after post.
             dep = self.a_minus * self.y_post[culture.post] * s[culture.pre]
             if self.multiplicative:
                 dep = dep * (culture.w / self.w_ref)
             dw = self.a_plus * self.x_pre[culture.pre] * s[culture.post] - dep
             dw = dw * self.plastic
             if self.istdp_eta:
-                # Inhibitory synapses (Vogels et al. 2011): pre spike -> eta (post trace - alpha); post spike ->
-                # eta (pre trace). Traces before this substep's spikes, as for the excitatory rule.
                 pre, post = self.inh_pre, self.inh_post
                 dw_i = s[pre] * (self.y_post[post] - self.alpha[post]) + s[post] * self.x_pre[pre]
                 dw[self.inh_idx] += self.istdp_eta * dw_i
@@ -130,7 +86,6 @@ class STDP:
             torch.minimum(w, self.w_cap, out=w)
 
     def state(self) -> dict:
-        """Everything needed to resume (traces, targets); the parameters live in the constructor call."""
         st = {"ready": self._ready, "targets": None if self._targets is None else self._targets.cpu().clone()}
         if self._ready:
             st |= {"x_pre": self.x_pre.cpu().clone(), "y_post": self.y_post.cpu().clone()}
@@ -150,15 +105,12 @@ class STDP:
             return
         if not self.sparse:
             dw = self.timing_update(culture, spikes)
-            culture.w += dw * culture.cfg.w_max  # a_plus/a_minus are fractions of the maximum weight
+            culture.w += dw * culture.cfg.w_max
             self._finish(culture)
             return
         self._sparse_update(culture, spikes)
 
     def _sparse_update(self, culture, spikes: torch.Tensor) -> None:
-        """The dense rule restricted to the synapses of neurons that spiked (every other synapse's change is exactly
-        zero), with the same arithmetic, so the weights match the dense rule bit for bit when nothing is forgotten.
-        Forgetting, a 45-minute decay, is applied every ``forget_every`` substeps with the matching factor."""
         if not self._ready:
             self._setup(culture)
         self.x_pre *= self.dec_plus
@@ -184,7 +136,6 @@ class STDP:
             self.y_post += s
         k = self.forget_every
         if self.forget and int(round(culture.t_ms / culture.cfg.dt_ms)) % k == k - 1:
-            # Towards baseline, which lies within the bounds, so no clamp is needed.
             culture.w += (culture.w0 - culture.w) * (1.0 - (1.0 - self.forget) ** k)
 
 
@@ -206,7 +157,6 @@ class RewardSTDP(STDP):
         self._finish(culture)
 
     def reward(self, culture, value: float) -> None:
-        """Deliver a reward (positive or negative): weights move along the eligibility trace."""
         if self.eligibility is None or not self.enabled:
             return
         culture.w += self.learning_rate * value * self.eligibility * culture.cfg.w_max
@@ -214,13 +164,6 @@ class RewardSTDP(STDP):
 
 
 class SynapticScaling:
-    """Per-neuron multiplicative scaling of E->E weights towards each neuron's target rate (bl1's rule, targets
-    fixed). ``dW_ij/dt = eta (target_i - rate_i) W_ij`` for every E->E synapse onto neuron i, applied every
-    ``every_ms`` (bl1 applies it after every 200 ms read). The rate estimate is bl1's: an exponential moving average
-    with ``tau_rate_ms``, starting at the target, so nothing moves until the rate leaves it. Dead neurons are left
-    alone (their rate is 0, and scaling would only inflate synapses that deliver nothing). Weights stay within
-    [0, the culture's w_max]."""
-
     def __init__(self, eta: float = 1e-5, tau_rate_ms: float = 10000.0, every_ms: float = 200.0,
                  target_hz: float = 5.0):
         self.eta, self.tau_rate_ms, self.every_ms, self.target_hz = eta, tau_rate_ms, every_ms, target_hz
@@ -238,21 +181,16 @@ class SynapticScaling:
         self.decay = math.exp(-dt / self.tau_rate_ms)
         self.hz_per_spike = 1000.0 / dt
         self.every = max(int(round(self.every_ms / dt)), 1)
-        self.step_ms = self.every * dt  # the interval actually applied (every_ms rounded to whole substeps)
+        self.step_ms = self.every * dt
         self.count = 0
         self._ready = True
 
     def set_targets(self, culture, hz) -> None:
-        """Per-neuron target rates (Hz); the rate estimate restarts at the targets."""
         self._targets = torch.as_tensor(hz, dtype=torch.float32, device=culture.device).clone()
         if self._ready:
             self.rate = self._targets.clone()
 
     def factor(self, culture) -> torch.Tensor:
-        """The multiplier each neuron's incoming E->E weights get at the next scaling step: the exact solution of
-        dW/dt = eta (target - rate) W over the interval. bl1's Euler step, 1 + eta x interval x (target - rate),
-        turns negative once the rate is more than 1/(eta x interval) above target (50 Hz at eta 1e-4) and zeroes every
-        weight onto the neuron for good; this one stays positive and equals it to first order."""
         f = torch.exp(self.eta * self.step_ms * (self._targets - self.rate))
         return torch.where(culture.alive, f, torch.ones_like(f))
 
@@ -282,8 +220,6 @@ class SynapticScaling:
 
 
 class Chain:
-    """Several plasticity rules on one culture, applied in order every substep."""
-
     def __init__(self, *rules):
         self.rules = list(rules)
 
@@ -300,8 +236,6 @@ class Chain:
 
 
 def rest(culture, seconds: float, plasticity: STDP | None = None) -> None:
-    """A rest period without stimulation, fast-forwarded: only forgetting acts (spontaneous activity during rest is
-    not simulated, so this is the decay-only limit)."""
     tau = (plasticity.tau_forget_s if plasticity else 2700.0)
     keep = math.exp(-seconds / tau)
     culture.w.copy_(culture.w0 + (culture.w - culture.w0) * keep)

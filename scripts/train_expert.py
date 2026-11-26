@@ -1,15 +1,3 @@
-"""Train a balance expert with Augmented Random Search (Mania et al. 2018): a policy linear in the culture's own
-stimulation signals, optimised directly for surviving pushes.
-
-The walking teacher cannot be imitated through a reservoir: students with R² ≈ 0.9 still fall within seconds,
-because their errors are systematic and feed back through the robot. So the culture imitates this expert instead.
-It reads exactly what the culture is told (the encoder's per-channel drive, 32 values in (0, 1)) and maps it
-linearly to all 23 joint actions, so a reservoir readout can represent it in principle. It is trained with the
-culture's handicaps: one step of latency, noise on its inputs, and noise on its actions.
-
-    uv run scripts/train_expert.py --iters 300
-"""
-
 import argparse
 import json
 import multiprocessing as mp
@@ -47,7 +35,6 @@ def _init(encoder, a):
 
 
 def rollout(job):
-    """job = (M, seed, train). Returns (score, survived_s)."""
     from biocompute.train.tasks import _pushes
 
     M, seed, train = job
@@ -70,7 +57,6 @@ def rollout(job):
             act = act + a.action_noise * rng.standard_normal(23)
         q.append(np.clip(act, -6, 6).astype(np.float32))
         res = env.step(q.popleft())
-        # Alive bonus, minus tilt and drift (stand in place, upright).
         tilt = np.linalg.norm(env.data.qpos[3:7][1:3])
         drift = np.linalg.norm(env.data.qvel[0:2])
         score += 1.0 - 0.5 * tilt - 0.05 * drift

@@ -1,5 +1,3 @@
-"""Is the missing nonlinear information inside the culture (oracle: every neuron) or lost at the electrodes?
-One well, identity encoding; records MEA features and the filtered spike counts of 8000 random neurons."""
 import pickle
 import sys
 import time

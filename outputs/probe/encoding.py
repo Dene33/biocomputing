@@ -1,9 +1,3 @@
-"""Open-loop comparison of encodings: replay teacher episodes through the culture, fit the ridge readout, report
-cross-validated R² of the standardized (clipped) teacher actions.
-
-    uv run python outputs/probe/encoding.py collect
-    uv run python outputs/probe/encoding.py run <name> [key=value ...]
-"""
 import json
 import pickle
 import sys
@@ -38,7 +32,6 @@ def collect():
                 env.push(f)
             o = env.observe()
             y = np.clip(teacher(o), lo, hi)
-            # Executed action gets noise (DART), so the data covers states off the teacher's own path.
             noise = 0.0 if sd is None else 0.3 * sd * rng.standard_normal(23)
             O.append(o)
             Y.append(y)

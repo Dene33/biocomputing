@@ -1,68 +1,3 @@
-"""The drift test on real tissue: do real organoids hold rates and pathways under the cart-pole input pulses?
-
-Data: the cart-pole organoid record (Robbins et al. 2026, Cell Reports 45:116984; Zenodo 10.5281/zenodo.17684862,
-CC-BY 4.0), already fetched by scripts/public_data_targets.py into outputs/public_data/raw/robbins_zenodo/ and loaded
-with its restricted unpickler. 38 experiments on 16 mouse cortical organoids (MaxOne HD-MEA), 426 game runs, most
-15 min: 130 with no training ("none": the input pulses go on, no training stimulation), 67 random, 229 adaptive.
-Per game step (every ~0.2 s): spike counts on the two output (motor) electrodes; per pulse: time and electrode(s).
-A "none" run is our drift test (scripts/cartpole_replication.py --drift) done on real tissue: two encoders pulsed at
-the encoding rates, two decoders read, no training signal.
-
-Measures, the same as our drift test's, computed per run (runs with >= 8 full minutes):
-- Gains: per minute, each decoder's count per step regressed on both encoders' sensory pulse counts in the step's
-  read window (the 0.2 s before the step): a 2x2 matrix [decoder][encoder], spikes per pulse.
-- Rate ratio: the decoders' mean rate over the last 3 full minutes against the first 30 s (the model runs away within
-  ~40 s, so the first 30 s is the nearest a run gets to its start), and against the first 3 minutes.
-- Pathways moved: each of the 4 gains, last 3 minutes against the first 3, beyond 2 SE, SE from the run's per-minute
-  spread over minutes 2 to the end (sqrt(2 sd^2 / 3)); the 2 SE is also reported as the smallest change the run can
-  see, in spikes per pulse and against the run's own gains.
-- Takeover: each decoder's preferred encoder differs in the first 3 minutes and is the same one in the last 3.
-Encoders per run are the run's two most-pulsed sensory electrodes in its stim log (the metadata is stale in 7
-experiments, found by the guard on the first launch); runs with > 5% of sensory pulses elsewhere are left out, and
-the across-hours and across-rest comparisons pair only runs of one experiment with the same two encoders (a changed
-decoder pair can't be seen in the logs, so those two stay a caveat).
-The same measures are computed from our model's drift rows (outputs/drift_scaling: gain_60s, dec_hz_10s; 10 minutes,
-first 3 vs last 3 minutes), so the comparison is like for like. Reported, not part of the reading: the same per
-condition for random and adaptive runs; across hours, each null run's whole-run gains and rate against the session's
-first; across rests of >= 30 min between runs, the change from the last 3 minutes of one run to the first 3 of the
-next.
-
-Timing control, added after the first run: the same whole-run gains with the pulses of the 0.2 s *after* each read.
-It can't settle what it was added for. The loop is closed in every run, null runs included: decoder counts set the
-action, the action moves the pole, the pole sets the next pulse rates. So the pulses after a read follow from the
-read's spikes, and gains as large as the real ones are expected whether or not those are evoked spikes. Reported, not
-interpreted.
-
-Reading, fixed before the first run on the data (24 Nov 2026), on the "none" runs (one run with training pulses
-among them is excluded):
-- Real tissue holds steady (our gate is realistic, the model's takeover is not) if the share of pathways moved is
-  <= 10%, the median rate ratio (last 3 min / first 30 s) is within 2/3-1.5, and the test has the power to see a
-  change: the median 2 SE is no larger than the median preferred-encoder gain.
-- Real tissue drifts too (our gate is too strict; the model should match the real spread instead) if the share moved
-  is >= 25% or the median rate ratio is above 1.5.
-- Otherwise: in between, reported as is. Without the power, inconclusive.
-
-Result (24 Nov 2026): the reading is "inconclusive (no power)", and the timing control shows the pathway measure
-doesn't work on these logs at all. 129 null runs (1 excluded), 98 with >= 8 full minutes, from 12 organoids.
-- Pathways: preferred-encoder gains median 0.08 spikes per pulse against a smallest visible change (2 SE) of 0.43,
-  so a change as large as the gains themselves would go unseen; 14.5% of pathways "moved". The pathway half of the
-  drift test can't be answered from this record. The pulses of the 0.2 s after each read give gains as large (median
-  largest |gain| 0.34 against 0.34), which the closed loop explains either way (see the timing control above), so
-  whether the 200 ms gains are evoked spikes stays open; the logs keep no spike times to check.
-- Rates (no regression involved): over a 15-min run of input pulses alone, the decoders' rate in the last 3 minutes
-  is 0.77x the first 30 s (IQR 0.61-0.96, p95 1.18) and 0.94x the first 3 minutes (0.87-1.04): real tissue settles
-  slightly and never runs away. Our model on the same measure (drift rerun of 25 Nov): no plasticity 0.98,
-  additive STDP 1.17-2.9, weight-dependent STDP with scaling at 1e-4 1.03. Over hours (``hours_summary``: 15
-  sessions of 4-21 h, each later null run against the session's first; one session whose first null run is silent
-  is left out): median 1.2x (IQR 0.93-1.48, p5-p95 0.52-1.8); 7 of 15 sessions stay within 1.5x either way in every
-  run, one reaches 6.3x. Across rests of >= 30 min: 1.07x (0.91-1.24).
-- So the rate half of our drift gate (<= 1.5x over 10 minutes) is realistic, and over hours real rates wander by up
-  to ~1.5-2x.
-
-    uv run scripts/launch.py --unit bio-realdrift --log outputs/real_drift/run.log -- python -I scripts/real_drift.py
-Output: outputs/real_drift/real_drift.json (summary, reading, model comparison, per-run rows).
-"""
-
 import argparse
 import importlib.util
 import json
@@ -94,7 +29,6 @@ def load_pickle(path):
 
 
 def clean(x):
-    """JSON-safe: NaN/inf -> None, numpy -> python, rounded."""
     if isinstance(x, dict):
         return {k: clean(v) for k, v in x.items()}
     if isinstance(x, (list, tuple)):
@@ -111,18 +45,14 @@ def clean(x):
 
 
 def ratio(a, b):
-    """a / b, NaN unless b > 0: a silent or negative baseline has no ratio (it gave inf, or values near 1e9)."""
     return float(a) / float(b) if b > 0 else float("nan")
 
 
 def hours_apart(a, b):
-    """Hours from ISO time a to b as wall-clock times. The logs carry no timezone; reading them in this machine's zone
-    (datetime.timestamp) shifted gaps by an hour wherever its DST changed in between."""
     return (datetime.fromisoformat(b) - datetime.fromisoformat(a)).total_seconds() / 3600
 
 
 def fit_gains(P, Y):
-    """[decoder, encoder] spikes per pulse, or NaNs if an encoder has too few pulses or no variance."""
     if (P.sum(0) < MIN_PULSES).any() or (P.std(0) == 0).any():
         return np.full((2, 2), np.nan)
     A = np.column_stack([np.ones(len(P)), P])
@@ -130,7 +60,6 @@ def fit_gains(P, Y):
 
 
 def window_stats(g_min, rate_first30, rate_min):
-    """The within-run measures from per-minute gains [m, dec, enc] and rates [m]; same for model and real runs."""
     first, last = g_min[:3], g_min[-3:]
     if np.isnan(first).any() or np.isnan(last).any() or len(g_min) < MIN_MINUTES:
         return None
@@ -159,15 +88,11 @@ def analyze_run(run, md, guard):
     dt = float(np.median(np.diff(t)))
     guard.check(0.1 < dt < 0.5, f"step interval {dt:.3f} s")
     tags = list(s.get("tag", []))
-    # Electrode lists are strings like "[18422, 20846]"; a few logs repeat their header line as a row ("tag",
-    # "stim_electrodes"), which gives no electrodes and isn't a sensory pulse.
     elecs = [[int(x) for x in re.findall(r"\d+", e)] if isinstance(e, str) else [int(x) for x in np.atleast_1d(e)]
              for e in s.get("stim_electrodes", [])]
     guard.check(len(elecs) == len(tags), "stim log columns differ in length")
     st = np.array([float(x) if re.fullmatch(r"[-+0-9.eE]+", str(x)) else np.nan for x in s.get("time", [])])
     sens = np.array([tg == "sensory" for tg in tags], bool) & np.isfinite(st)
-    # The encoders are the run's own two most-pulsed sensory electrodes: the metadata is stale where an experiment
-    # was reconfigured (7 of 38 experiments, two with no electrodes listed).
     per_e = Counter(x for k in np.flatnonzero(sens) for x in elecs[k])
     enc = sorted(e for e, _ in per_e.most_common(2))
     other = sum(per_e.values()) - sum(per_e[e] for e in enc)
@@ -196,13 +121,12 @@ def analyze_run(run, md, guard):
 
 
 def model_rows():
-    """Our model's drift arms, through the same within-run measures."""
     out = []
     for p in MODEL_ROWS:
         if not p.exists():
             continue
         for r in json.loads(p.read_text())["rows"]:
-            dec = np.asarray(r["dec_hz_10s"], float).mean(1)  # [10 s window], mean of both decoders
+            dec = np.asarray(r["dec_hz_10s"], float).mean(1)
             rate_min = dec[: len(dec) // 6 * 6].reshape(-1, 6).mean(1)
             w = window_stats(np.asarray(r["gain_60s"], float), float(dec[:3].mean()), rate_min)
             if r["scale"] == 0:
@@ -210,7 +134,7 @@ def model_rows():
             else:
                 kind = f"{r['rule']} STDP + " + (f"scaling {r['homeo']:g}" if r.get("homeo") else "old 5 s step")
             out.append({"arm": r["arm"], "seed": r.get("seed", 0), "kind": kind, "within": w})
-    uniq = {(o["kind"], o["seed"]): o for o in out}  # the reused no-plasticity arms appear in both files
+    uniq = {(o["kind"], o["seed"]): o for o in out}
     return list(uniq.values())
 
 
@@ -258,10 +182,8 @@ def reading(s):
 
 
 def sessions(rows_by_exp):
-    """Across hours (null runs) and across rests (any consecutive runs >= 30 min apart). Sessions whose first null run
-    is silent have no baseline for the hours comparison: left out, and listed."""
     hours, rests, silent = [], [], []
-    by_cfg = defaultdict(list)  # one configuration = one experiment with one encoder pair
+    by_cfg = defaultdict(list)
     for exp, rows in rows_by_exp.items():
         for r in rows:
             if not r["mixed_encoders"]:
@@ -295,8 +217,6 @@ def sessions(rows_by_exp):
 
 
 def hours_summary(hours, silent):
-    """Across hours, pooled: every later null run of a session against its first (the hand-computed figures of the
-    first write-up, now produced here)."""
     later = [x for h in hours for x in h["rate_vs_first"][1:]]
     span = [h["span_h"] for h in hours]
     return {"sessions": len(hours), "left_out_silent_first_run": silent,

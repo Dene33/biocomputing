@@ -16,7 +16,7 @@ def test_encoder_shapes_and_ranges():
     drive = np.array([enc.drive(o) for o in obs])
     assert drive.shape == (500, 16) and drive.std(0).min() > 0.05
     rate = Encoder(np.arange(8), mode="rate", slots_ms=(0, 5, 10, 15))
-    ch, t, a = rate.pulses(np.zeros(78), 20.0)  # drive 0.5 → about two pulses per channel per step
+    ch, t, a = rate.pulses(np.zeros(78), 20.0)
     assert 12 <= len(ch) <= 20 and set(np.unique(t)) <= {0, 5, 10, 15}
 
 
@@ -41,14 +41,14 @@ def test_motor_map_and_feedback():
     fb = Feedback(np.arange(8))
     fb.good()
     ch, t, _ = fb.pulses(20.0)
-    assert len(ch) == 16 and set(t) == {0.0, 10.0}  # 100 Hz on all 8 together
+    assert len(ch) == 16 and set(t) == {0.0, 10.0}
     fb.bad()
     assert fb.busy
 
 
 def test_cross_validated_ridge_resists_overfitting():
     rng = np.random.default_rng(2)
-    X = rng.standard_normal((600, 400))  # many more features than are useful
+    X = rng.standard_normal((600, 400))
     Y = X[:, :3] @ rng.standard_normal((3, 23)) + 0.5 * rng.standard_normal((600, 23))
     ro = LinearReadout(400)
     cv = ro.fit_cv(X, Y)
@@ -56,7 +56,6 @@ def test_cross_validated_ridge_resists_overfitting():
 
 
 def test_standardized_targets_weight_every_joint_equally():
-    """A joint with a huge spread (an arm pinned past its limit) must not swamp a small balance joint."""
     rng = np.random.default_rng(3)
     X = rng.standard_normal((3000, 20))
     Y = np.c_[100.0 * (X[:, :1] + rng.standard_normal((3000, 1))), 0.05 * X[:, 1:2]]

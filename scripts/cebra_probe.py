@@ -1,57 +1,3 @@
-"""Route finding: does a stronger readout (CEBRA) change the "dish doesn't compute" result?
-
-CEBRA (Schneider, Lee & Mathis, Nature 2023; cebra.ai; Apache-2.0 since v0.4.0, method patented by EPFL) learns a
-low-dimensional embedding of neural data by contrastive learning: self-supervised (CEBRA-Time: samples close in time
-are positives) or guided by a label (CEBRA-Behavior: samples with similar labels are positives); the embedding is
-then decoded, e.g. with kNN. Unified CEBRA (Benquet, Mirzaei, Schneider & Mathis, bioRxiv 2026.11.18.767506) pools
-recordings with different neurons into one model; its transform needs every session's labels, also at inference
-(read in the v0.6.0 code), so it is an analysis tool, not a live decoder. Its abstract: in mouse visual cortex the
-neurons that matter most are strongly tuned, reliable and less coupled to their neighbours (bioRxiv blocked the full
-text: abstract via api.biorxiv.org only). MOPED (Roos et al., bioRxiv 2025.03.02.641081) uses CEBRA to characterise
-organoid MEA recordings. Patent: US12499131B2 (EPFL, granted Dec 2025); commercial use: ask EPFL's TTO.
-
-Inputs (gitignored, ~100 MB, on disk only; regenerate with the scripts named, GPU reruns are not bit-identical):
-outputs/trigger_probe/data.pkl (trigger_probe.py: 24 teacher episodes, IMU, push onsets) and
-outputs/dish_regimes/feats_{amp50,amp200}_{live,dead}_s32_w1.npz (dish_regimes.py).
-
-dish_regimes.py found, with ridge readouts, that the live dish holds less of the recent IMU than its own stimulation
-pattern and no more than a dead culture (recurrent synapses removed). Here CEBRA reads the same saved features:
-current-step spike counts (2 x 10 ms bins x 256 electrodes; regimes amp50 and amp200, live and dead) and the
-stimulation drive itself (32 electrodes, recomputed from the IMU exactly as the encoder did). Current sample only
-(``offset1-model``): CEBRA's longer models are centred windows that also see the future, and a window would give the
-readout a memory of its own, so a dish's memory would no longer be the dish's.
-
-- targets: IMU (gyro xyz, gravity xy) 0, 3, 6 steps ago (0, 60, 120 ms; R², mean of 5); push windows (onset + 10
-  steps; AUC)
-- readouts: ridge on the raw features (reference), CEBRA-Behavior (label = the target), CEBRA-Time (no label); CEBRA
-  8-D, cosine, 10,000 iterations (the docs: "at least 10,000"), batch 512; embedding decoded by kNN (k = 25, cosine)
-- 3 folds of 8 episodes (24 teacher episodes, 133 pushes): train on 16, test on 8
-- controls: positive, CEBRA-Behavior on the stimulation drive must decode the current IMU (R^2 >= 0.5), run
-  first, the run stops otherwise; negative, CEBRA-Behavior with shuffled labels (live amp50, every target)
-
-Results append to outputs/cebra_probe/results.jsonl (one line per fit; a rerun skips what is done).
-
-Result (summary.json, mean of 3 folds; R² of the IMU 0 / 60 / 120 ms ago, push AUC):
-
-                  ridge                    CEBRA-Behavior             CEBRA-Time
-    input         0.90 0.42 0.35 0.81      0.67  0.35  0.33 0.81      0.41  0.30  0.26 0.74
-    amp50 live    0.36 0.11 0.09 0.62      0.16 -0.05 -0.05 0.52     -0.04 -0.05 -0.05 0.51
-    amp50 dead    0.41 0.12 0.10 0.65      0.21 -0.03 -0.07 0.53     -0.03 -0.04 -0.04 0.51
-    amp200 live   0.37 0.14 0.11 0.58      0.13 -0.06 -0.09 0.52     -0.03 -0.03 -0.04 0.50
-    amp200 dead   0.43 0.16 0.13 0.58      0.17 -0.04 -0.10 0.52     -0.03 -0.03 -0.04 0.50
-    shuffled labels (amp50 live): -0.03 -0.04 -0.04 0.50
-
-CEBRA changes nothing: with every readout the live dish holds no more than the dead one and much less than its own
-stimulation pattern. On the dish it finds less than ridge, and CEBRA-Time (no label) finds nothing about the IMU at
-all (at the shuffled-label level): the dish's dominant structure is unrelated to its input. A readout can't add what
-the activity doesn't carry.
-
-Run through the launcher (smoke test, detached, guarded); 6 workers: one CEBRA fit keeps one CPU core busy and
-the GPU ~25% busy.
-
-    uv run scripts/launch.py --unit bio-cebra --log outputs/cebra_probe/run.log --with cebra -- scripts/cebra_probe.py
-"""
-
 import argparse
 import json
 import pickle
@@ -72,18 +18,16 @@ def load():
     push = np.zeros(len(O), int)
     for o in d["onsets"]:
         push[o:o + 10] = 1
-    # The encoder of dish_regimes.py (amplitude coding, axis projection, gain 0.5, spread 1.0, seed 0).
     enc = Encoder(np.arange(32), mode="amplitude", normalizer=ObsNormalizer.fit(O), gain=0.5, seed=0)
     enc.fit_axis(O, (0, 1, 2, 3, 4, 5), spread=1.0)
     src = {"input": np.array([enc.drive(o) for o in O], np.float32)}
     for name in SOURCES[1:]:
         F = np.load(f"outputs/dish_regimes/feats_{name}_s32_w1.npz")["F"]
-        src[name] = F[:, : F.shape[1] // 2].astype(np.float32)  # current-step bins (2 x 256)
+        src[name] = F[:, : F.shape[1] // 2].astype(np.float32)
     return O[:, :5].astype(np.float32), starts, push, src
 
 
 def target(T, starts, push, n, name):
-    """(values, valid mask): IMU ``k`` steps ago within the same episode, or the push label."""
     if name == "push":
         return push, np.ones(n, bool)
     k = int(name[3:])
@@ -139,7 +83,6 @@ def _init():
 
 
 def task(job):
-    """One fit (or the ridge reference) -> result rows. Runs in a worker."""
     from biocompute.runguard import Guard
 
     fold, s, kind, iters, out = job
@@ -199,7 +142,7 @@ def main():
     ap.add_argument("--smoke", action="store_true", help="whole pipeline at tiny scale into <out>/smoke")
     a = ap.parse_args()
     out = Path(a.out)
-    floor = 0.5  # positive control: CEBRA-Behavior on the stimulation drive must decode the current IMU (R^2)
+    floor = 0.5
     if a.smoke:
         out = out / "smoke"
         a.iters, a.folds, a.sources, a.workers, floor = 300, [0], ["input", "amp50_live"], 2, -1e9
@@ -224,7 +167,7 @@ def main():
     jobs = [(f, s, k, a.iters, out) for f in a.folds for s in a.sources
             for k in TASKS + (SHUFFLED if s == "amp50_live" else ())]
     control = (a.folds[0], "input", "behavior:lag0", a.iters, out)
-    jobs.sort(key=lambda j: j[:3] != control[:3])  # the positive control first
+    jobs.sort(key=lambda j: j[:3] != control[:3])
     todo = [j for j in jobs if not is_done(*j[:3])]
     g = Guard("cebra_probe", out, every_s=0.0)
     g.beat(len(jobs) - len(todo), len(jobs), force=True)

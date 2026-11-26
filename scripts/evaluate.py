@@ -1,8 +1,3 @@
-"""Collect every reservoir and feedback run into one table: outputs/report.md and outputs/report.json.
-
-    uv run scripts/evaluate.py
-"""
-
 import json
 from pathlib import Path
 

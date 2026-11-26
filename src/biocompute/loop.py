@@ -1,10 +1,3 @@
-"""The closed loop: robot observation → stimulation → culture → spikes → features → joint actions.
-
-The culture needs a whole control step (20 ms of its own time) to answer, so by default the action computed from
-the observation at step t is applied at step t + 1 (``latency_steps = 1``); the robot holds its previous action
-meanwhile.
-"""
-
 from __future__ import annotations
 
 from collections import deque
@@ -21,10 +14,6 @@ from biocompute.robot.asimov import N_JOINTS, AsimovEnv
 
 
 class CultureController:
-    """Encoder → biocomputer → features → readout. ``source``: ``mea`` (electrodes, as on hardware), ``oracle``
-    (every neuron's spikes; simulator only) or ``none`` (no culture: features are the encoder's drive itself, so the
-    readout is a plain linear policy of the encoded observation)."""
-
     def __init__(
         self,
         device: SimulatedBiocomputer | None,
@@ -40,14 +29,12 @@ class CultureController:
         self.readout, self.feedback, self.source, self.step_ms = readout, feedback, source, step_ms
         self.efference = efference
         self.stimulate_inputs = True
-        """False: the culture gets no sensory stimulation (control: spikes then carry no information)."""
         self.last_block: SpikeBlock | None = None
         if source == "oracle":
             n = device.culture.n
             self.oracle = SpikeFeatures(np.arange(n), bins=1, taus_ms=(40.0, 160.0), step_ms=step_ms)
 
     EFFERENCE = slice(55, 78)
-    """The robot's last action in the observation: the decoder's own previous command (efference copy)."""
 
     @property
     def feature_dim(self) -> int:
@@ -59,7 +46,6 @@ class CultureController:
         return self.features.dim + extra
 
     def reset_readout_state(self) -> None:
-        """Clear the decoder's filters (the culture itself carries on: a real one can't be reset)."""
         self.encoder.reset()
         if self.features is not None:
             self.features.reset()
@@ -67,7 +53,6 @@ class CultureController:
             self.oracle.reset()
 
     def sense(self, obs: np.ndarray, stimulate: bool = True) -> np.ndarray:
-        """Run one control step of the culture with ``obs`` encoded, and return the features."""
         if self.source == "none":
             return self.encoder.drive(obs).astype(np.float32)
         if stimulate:
@@ -118,8 +103,6 @@ def run_episode(
     rng: np.random.Generator | None = None,
     on_step: Callable[[int, AsimovEnv, CultureController], None] | None = None,
 ) -> Episode:
-    """One episode from standing. With ``teacher`` and ``beta`` > 0, each step's executed action is the teacher's
-    with probability ``beta`` (DAgger mixing); the teacher's action is recorded as the label either way."""
     rng = rng or np.random.default_rng()
     env.reset(command_fn(0.0))
     controller.reset_readout_state()

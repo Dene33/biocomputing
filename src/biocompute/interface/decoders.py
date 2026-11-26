@@ -1,14 +1,3 @@
-"""Spikes → joint actions.
-
-``SpikeFeatures`` turns each step's detections into features: the counts in a few time bins of the step, plus
-exponentially filtered rates at several time scales (the readout's short memory), square-root transformed to steady
-the Poisson-like variance.
-
-``LinearReadout`` maps features to the 23 actions by ridge regression (the trained decoder of the reservoir
-approach). ``MotorMapDecoder`` is the fixed decoder of the DishBrain approach: each joint has two opposing groups of
-recording channels and its action is their rate difference, so any learning must happen inside the culture.
-"""
-
 from __future__ import annotations
 
 import numpy as np
@@ -35,14 +24,12 @@ class SpikeFeatures:
         return self.from_counts(counts)
 
     def from_counts(self, counts: np.ndarray) -> np.ndarray:
-        """``counts``: (bins, channels) for one step."""
         total = counts.sum(0)
         self.traces = self.traces * self.decay[:, None] + total[None]
         return np.sqrt(np.concatenate([counts.reshape(-1), self.traces.reshape(-1)])).astype(np.float32)
 
 
 def _backend(d: int):
-    """torch on the GPU for big readouts (thousands of features); numpy float64 otherwise."""
     try:
         import torch
 
@@ -61,8 +48,6 @@ class LinearReadout:
 
     y_mean: np.ndarray | None = None
     y_std: np.ndarray | None = None
-    """Per-output target standardization (set when fitted with ``standardize_y``): each joint is fitted in units
-    of its own spread, so joints that move a lot (or are pinned far past a limit) don't swamp the balance joints."""
 
     def _y_in(self, Y: np.ndarray) -> np.ndarray:
         return Y if self.y_mean is None else (Y - self.y_mean) / self.y_std
@@ -108,8 +93,6 @@ class LinearReadout:
 
     def fit_cv(self, X: np.ndarray, Y: np.ndarray, alphas=None, folds: int = 5, standardize_y: bool = False,
                weights: np.ndarray | None = None) -> dict:
-        """Choose the ridge penalty by cross-validation over contiguous blocks (neighbouring steps are correlated,
-        so shuffled folds would leak), refit on everything, and return the validation R² per alpha."""
         alphas = np.logspace(-2, 5, 15) if alphas is None else np.asarray(alphas)
         Y_raw = Y
         if standardize_y:
@@ -117,7 +100,6 @@ class LinearReadout:
         n = len(X)
         edges = np.linspace(0, n, folds + 1).astype(int)
         scores = np.zeros((len(alphas), folds))
-        # Sufficient statistics per fold, in one pass; each fold's training statistics are the totals minus its own.
         torch, dev = _backend(X.shape[1])
         if torch is not None:
             return self._fit_cv_torch(X, Y, Y_raw, alphas, edges, standardize_y, weights, torch, dev)
@@ -133,7 +115,6 @@ class LinearReadout:
             mean, ym = sx / nt, sy / nt
             std = np.sqrt(np.maximum(np.diag(G) / nt - mean**2, 0.0))
             std = np.maximum(std, 1e-3)
-            # Ridge for every alpha from one eigendecomposition (features centred, so the bias is the mean).
             ZtZ = (G - nt * np.outer(mean, mean)) / np.outer(std, std)
             ZtY = (C - nt * np.outer(mean, ym)) / std[:, None]
             evals, evecs = np.linalg.eigh(ZtZ)
@@ -154,7 +135,7 @@ class LinearReadout:
         folds = len(edges) - 1
         g = lambda a: torch.as_tensor(np.ascontiguousarray(a, np.float32), device=dev)
         blocks = []
-        for f in range(folds):  # streamed: one block of X on the GPU at a time; statistics kept on the host
+        for f in range(folds):
             Xb, Yb = g(X[edges[f] : edges[f + 1]]), g(Y[edges[f] : edges[f + 1]])
             h = lambda t: t.cpu().numpy().astype(np.float64)
             blocks.append((len(Xb), h(Xb.sum(0)), h(Xb.T @ Xb), h(Xb.T @ Yb), h(Yb.sum(0))))
@@ -198,8 +179,6 @@ class LinearReadout:
 
 
 def r2_pooled(Y: np.ndarray, P: np.ndarray) -> float:
-    """Variance-weighted R² over all outputs: 1 - total squared error / total variance. Joints that barely move
-    (their R² alone is meaningless) count in proportion to how much they move."""
     return float(1.0 - ((Y - P) ** 2).sum() / max(((Y - Y.mean(0)) ** 2).sum(), 1e-12))
 
 
@@ -210,8 +189,6 @@ def r2_per_output(Y: np.ndarray, P: np.ndarray) -> np.ndarray:
 
 
 class MotorMapDecoder:
-    """Fixed: action_j = gain * (rate(group_j+) - rate(group_j-)) / rate_scale, filtered over ``tau_ms``."""
-
     def __init__(self, channels: np.ndarray, n_out: int = 23, gain: float = 1.0, rate_scale: float = 2.0,
                  tau_ms: float = 40.0, step_ms: float = 20.0, seed: int = 0):
         channels = np.asarray(channels, int)
@@ -235,11 +212,6 @@ class MotorMapDecoder:
 
 
 class MLPReadout:
-    """A small trained nonlinear decoder: features → 23 actions, as BCI decoders are. Two ELU layers, plus a direct
-    linear path from the last ``skip_dim`` inputs (the efference copy) so the decoder can use its own last command
-    precisely. Targets are standardized per joint; samples can be weighted. Trained with torch (GPU if available);
-    inference is numpy, so control loops don't need torch."""
-
     def __init__(self, in_dim: int, out_dim: int = 23, hidden: int = 256, skip_dim: int = 0, dropout: float = 0.2):
         self.in_dim, self.out_dim, self.hidden, self.skip_dim, self.dropout = in_dim, out_dim, hidden, skip_dim, dropout
         self.params = None
@@ -275,7 +247,7 @@ class MLPReadout:
         self.mean, self.std = X.mean(0), np.maximum(X.std(0), 1e-3)
         self.y_mean, self.y_std = Y.mean(0), np.maximum(Y.std(0), 1e-2)
         n = len(X)
-        cut = int(n * (1 - val_frac))  # the most recent samples validate (contiguous: neighbours are correlated)
+        cut = int(n * (1 - val_frac))
         Xt = torch.as_tensor(((X - self.mean) / self.std).astype(np.float32))
         Yt = torch.as_tensor(((Y - self.y_mean) / self.y_std).astype(np.float32))
         Wt = torch.as_tensor((np.ones(n) if weights is None else weights).astype(np.float32))
@@ -319,8 +291,6 @@ class MLPReadout:
 
 
 class EnsembleReadout:
-    """Average of several decoders (e.g. the last DAgger rounds'): smooths the round-to-round variance."""
-
     def __init__(self, members: list):
         self.members = list(members)
 

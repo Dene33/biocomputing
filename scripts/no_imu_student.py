@@ -1,22 +1,3 @@
-"""Gate G1 caveat check: can a controller *retrained* without the IMU survive stand_push?
-
-The blind-teacher sweep (scripts/blind_teacher.py) showed the fixed teacher falls without its IMU. With both feet flat,
-leg kinematics also give the pelvis tilt, so a controller trained without the IMU might not need it, and then a
-vestibular dish would not be necessary. This trains DAgger MLP students on the robot's state directly (no culture),
-with the decoder recipe of the 17/20 result (MLP 2 x 256 with a linear path from the efference copy, labels clipped
-to the joint range, push recoveries weighted, ensemble of the last rounds), on these inputs:
-
-- ``full``          IMU + joint pos + joint vel + last action      (control: the recipe reaches the teacher)
-- ``noimu``         joint pos + joint vel + last action
-- ``noimu_novel``   joint pos + last action
-- ``noimu_hist``    ``noimu`` plus the joint pos and vel of the previous 4 steps (memory)
-- ``imu_novel``     IMU + joint pos + last action                  (the vestibular design without joint velocities)
-
-Each is evaluated on 40 fresh seeds (the sweep's), and ``full`` also with its IMU removed at test time.
-
-    uv run scripts/no_imu_student.py
-"""
-
 import argparse
 import json
 import multiprocessing as mp
@@ -47,7 +28,6 @@ SECONDS, STEPS, HIST = 20.0, 1000, 4
 
 
 def features(variant):
-    """Returns (index list of the current obs, whether to append past joint states). Last action always last."""
     cur = {"full": [IMU, JPOS, JVEL], "noimu": [JPOS, JVEL], "noimu_novel": [JPOS], "noimu_hist": [JPOS, JVEL],
            "imu_novel": [IMU, JPOS]}[variant]
     return np.concatenate(cur + [LAST]), variant == "noimu_hist"
@@ -63,9 +43,9 @@ class Featurizer:
         if not self.hist:
             return x
         js = o[9:55]
-        past = list(self.past) + [js] * (HIST - len(self.past))  # pad with the current state at the start
+        past = list(self.past) + [js] * (HIST - len(self.past))
         self.past.appendleft(js.copy())
-        return np.concatenate([x[:-23]] + [js - q for q in past] + [x[-23:]])  # differences to past states
+        return np.concatenate([x[:-23]] + [js - q for q in past] + [x[-23:]])
 
     @property
     def dim(self):
@@ -93,7 +73,6 @@ def _init():
 
 
 def episode(job):
-    """beta: per-step probability that the teacher's action is executed. label: record features, labels, obs."""
     from biocompute.train.tasks import make_task
 
     env, teacher = _E["env"], _E["teacher"]
@@ -147,7 +126,7 @@ def train_variant(pool, variant, log):
         Y += [x["Y"] for x in res]
         O += [x["O"] for x in res]
         Xa, Ya, Oa = np.concatenate(X), np.concatenate(Y), np.concatenate(O)
-        gyro = np.abs(Oa[:, 0:2]).sum(1)  # weighting uses the true IMU; the student never sees it
+        gyro = np.abs(Oa[:, 0:2]).sum(1)
         w = 1.0 + args.recovery_weight * (gyro > np.percentile(gyro, 80))
         ro = MLPReadout(dim, skip_dim=23)
         fit = ro.fit(Xa, Ya, weights=w, seed=args.seed + r)
@@ -177,7 +156,7 @@ def test(pool, student, variant, **kw):
 def main():
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
-    pool = mp.get_context("fork").Pool(args.workers, _init)  # before torch is imported in this process
+    pool = mp.get_context("fork").Pool(args.workers, _init)
     res_path = out / "results.json"
     doc = json.loads(res_path.read_text()) if res_path.exists() else {"args": vars(args), "variants": {}}
     with open(out / "log.jsonl", "a") as logf:
@@ -197,7 +176,7 @@ def main():
             log({"variant": v, "test": {k: x for k, x in entry["test"].items() if k != "per_seed"},
                  "test_imu_removed": {k: x for k, x in entry.get("test_imu_removed", {}).items() if k != "per_seed"}})
             doc["variants"][v] = entry
-            res_path.write_text(json.dumps(doc, indent=1))  # checkpoint per variant
+            res_path.write_text(json.dumps(doc, indent=1))
             with open(out / f"student_{v}.pkl", "wb") as f:
                 pickle.dump(student, f)
     pool.terminate()

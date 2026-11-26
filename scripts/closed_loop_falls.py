@@ -1,37 +1,3 @@
-"""Why does the 1 x 12 relay still fall in A1b (scripts/closed_loop_vestibular.py, --edit affine)? A diagnostic of
-the finished run; it changes nothing in it.
-
-1. Push table (CPU, from the episode files): stand_push pushes every 3 s from a random direction. For each arm, how
-   many pushes of each direction the robot met, and how many were followed by a fall within 3 s. Directions: front
-   (the force points backward, |angle| > 135 deg from +x), back (|angle| < 45 deg), side (the rest).
-2. Traces (GPU, ``--traces``): replays chosen seeds step by step from the A1b setups (same warm state and noise
-   seeds, so the outcomes match the run's), recording the true IMU, the decoded IMU and what the edited teacher sees,
-   (decoded - a) / g. Modes: ``closed`` (the A1b culture_edit arm), ``shadow`` (the teacher acts on the true IMU
-   while the dish decodes alongside, so decoding errors can't feed back), ``dead`` (the dead_edit arm). For each
-   trace: the peak forward lean after the push, when grav_x first passes the encoder's input limit (the normalizer
-   clips every input at 4 standard deviations of the replay), and the teacher's view there.
-
-Run (A1b must be finished; about 3 minutes on the GPU):
-
-    uv run scripts/closed_loop_falls.py --traces
-
-Output: <a1>/falls.json (and falls_traces.npz, not committed).
-
-Results (24 Nov 2026, A1b, seeds 9100-9139). Pushes followed by a fall within 3 s, 1 x 12:
-
-| Arm          | front  | side   | back |
-|--------------|--------|--------|------|
-| culture_edit | 12/41  | 5/96   | 0/39 |
-| dead_edit    | 2/52   | 6/119  | 0/53 |
-
-Ideal IMU and 1 x 32 culture_edit: no falls. Traces reproduce the run's outcomes (falls at 8.02, 11.60, 8.00 s).
-In the three falls the relay reads the pitch rate 2.4-2.5 spreads too high 0.5-1.0 s after the push (survivors
-0.1-1.4, dead culture 1.1-1.9, shadow decoding -0.3 to +0.6). The forward lean passes the input limit (7.9 spreads)
-1.0-1.1 s after the push and reaches 33-42 spreads while the teacher sees at most 9.3-9.7. With the true IMU the same
-pushes peak at 2.5-4.5 spreads. The dead culture passed the limit once (seed 9112, 12.4 spreads) and recovered, so
-the limit makes recovery harder rather than impossible.
-"""
-
 from __future__ import annotations
 
 import argparse
@@ -123,7 +89,7 @@ def traces(a1: Path, data: str) -> dict:
         g, a = np.array(blob["row"]["affine_gain"]), np.array(blob["row"]["affine_icpt"])
         stand = np.array(blob["row"]["stand_imu"])
         nm = dish.encoder.normalizer
-        lo = float(nm.mean[3] - 4 * nm.std[3])  # grav_x input limit on the forward side
+        lo = float(nm.mean[3] - 4 * nm.std[3])
         W = clv.teacher_weights(None) if mode == "shadow" else clv.teacher_weights(g, a)
         for seed in seeds:
             dish.device.load_state(blob["warm"])
@@ -155,7 +121,7 @@ def traces(a1: Path, data: str) -> dict:
 
 
 def main():
-    ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    ap = argparse.ArgumentParser()
     ap.add_argument("--a1", default="outputs/closed_loop_vestibular_affine")
     ap.add_argument("--data", default="outputs/probe/teacher_data_20k.pkl")
     ap.add_argument("--traces", action="store_true")

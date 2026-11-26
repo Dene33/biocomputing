@@ -1,21 +1,3 @@
-"""Guards for long runs: catch errors while a run is going, not after it.
-
-Past runs lost hours to errors found only at the end (an iSTDP sweep ran 90 minutes with inhibitory weights clamped
-to w_max by an unrelated scaling step; a short run crashed while writing results). Three layers:
-
-- ``Guard`` (here), inside each job: ``beat`` writes a heartbeat file and a progress line; ``check`` and ``culture``
-  test invariants and, on failure, print ``GUARD FAIL`` and raise ``GuardFail``, which ends the job.
-- ``scripts/launch.py``: smoke test (the whole pipeline at tiny scale, result writing included), detached launch,
-  start-up check.
-- ``scripts/watch.py``: stops the unit at the first Traceback / GUARD FAIL / stall.
-
-``job_key`` names a job's cached result or checkpoint by every setting it runs with, so a rerun into the same output
-folder with any setting changed runs anew instead of reusing a result made with other settings.
-
-Standard culture checks (``Guard.culture``): finite state; weights within [0, cap]; changed plastic weights not piled
-up at a value that is not their configured cap (something else is bounding them); electrode rate plausible.
-"""
-
 from __future__ import annotations
 
 import hashlib
@@ -27,8 +9,6 @@ from pathlib import Path
 
 
 def job_key(name: str, settings: dict) -> str:
-    """File stem of a job's result and checkpoint: its readable name plus a digest of every setting it runs with.
-    Code changes are not in the key: after a model change, rerun into a fresh output folder."""
     return f"{name}_{hashlib.sha1(json.dumps(settings, sort_keys=True).encode()).hexdigest()[:8]}"
 
 
@@ -53,11 +33,9 @@ class Guard:
             self.fail(what)
 
     def due(self) -> bool:
-        """True once every ``every_s``: time for a heartbeat and the (costlier) invariant checks."""
         return time.time() - self.t_last >= self.every_s
 
     def beat(self, done: float, total: float, force: bool = False, **metrics) -> None:
-        """Heartbeat file + progress line, at most every ``every_s`` unless ``force``. Non-finite metrics fail."""
         now = time.time()
         if not force and now - self.t_last < self.every_s:
             return
@@ -78,7 +56,6 @@ class Guard:
               f"{'?' if eta is None else f'{eta / 60:.1f} min'}) {m}", flush=True)
 
     def culture(self, c, stdp=None, rate_hz: float | None = None, max_rate_hz: float = 300.0) -> None:
-        """Standard invariants of a culture (and its plasticity) mid-run."""
         import torch
 
         for k in ("v", "u", "w"):

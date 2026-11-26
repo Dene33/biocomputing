@@ -7,7 +7,6 @@ from biocompute.mea.electrodes import make_mea_config
 
 
 def izhikevich_single(a, b, c, d, current, ms=500.0, dt=0.5):
-    """Reference single-neuron integration, as in the culture (two half-steps for v)."""
     v, u, spikes = -65.0, b * -65.0, []
     for s in range(int(ms / dt)):
         for _ in range(2):
@@ -20,12 +19,12 @@ def izhikevich_single(a, b, c, d, current, ms=500.0, dt=0.5):
 
 
 def test_neuron_types_fire_as_izhikevich_describes():
-    rs = izhikevich_single(0.02, 0.2, -65, 8, 10)  # regular spiking: adapts
-    fs = izhikevich_single(0.1, 0.2, -65, 2, 10)  # fast spiking: high rate, no adaptation
-    ch = izhikevich_single(0.02, 0.2, -50, 2, 10)  # chattering: bursts with short intra-burst intervals
+    rs = izhikevich_single(0.02, 0.2, -65, 8, 10)
+    fs = izhikevich_single(0.1, 0.2, -65, 2, 10)
+    ch = izhikevich_single(0.02, 0.2, -50, 2, 10)
     assert len(fs) > 2 * len(rs)
     isi_rs = np.diff(rs)
-    assert isi_rs[-1] > isi_rs[0]  # adaptation
+    assert isi_rs[-1] > isi_rs[0]
     assert np.diff(ch).min() < 10 and np.diff(ch).max() > 2 * np.diff(ch).min()
 
 
@@ -60,7 +59,7 @@ def test_stimulation_reaches_only_nearby_neurons():
         make_mea_config("mcs60"),
         keep_raster=True,
     )
-    dev.culture.w.zero_()  # no network: only the direct response
+    dev.culture.w.zero_()
     ch = 27
     dev.stimulate([ch], [0.0], [1.0])
     dev.step(10.0)
@@ -72,7 +71,7 @@ def test_stimulation_reaches_only_nearby_neurons():
 
 def test_recording_is_blanked_after_a_pulse():
     dev = SimulatedBiocomputer(make_config("cpu_2k", n_neurons=600, radius_um=800), make_mea_config("mcs60"))
-    dev.mea.cfg.false_positive_hz = 5000.0  # plenty of detections everywhere
+    dev.mea.cfg.false_positive_hz = 5000.0
     dev.stimulate(np.arange(10), np.zeros(10), np.full(10, 0.5))
     block = dev.step(10.0)
     assert len(block.times_ms) > 0
@@ -81,7 +80,7 @@ def test_recording_is_blanked_after_a_pulse():
 
 def test_rate_limit_drops_excess_pulses():
     dev = SimulatedBiocomputer(make_config("cpu_2k", n_neurons=300, radius_um=800), make_mea_config("mcs60"))
-    dev.stimulate([5] * 4, [0.0, 1.0, 2.0, 5.0], [0.5] * 4)  # 200 Hz limit: one every 5 ms
+    dev.stimulate([5] * 4, [0.0, 1.0, 2.0, 5.0], [0.5] * 4)
     dev.step(10.0)
     assert dev.pulses_delivered == 2 and dev.pulses_dropped == 2
 
@@ -101,10 +100,9 @@ def test_gpu_sparse_delivery_matches_per_synapse_reference():
     slots = [(c.head - d + 1) % k for d in range(1, k)]
     out = (c._delivery_matrix() @ c.history[slots].reshape(-1, 1)).squeeze(1)
     assert torch.allclose(out[: c.n], ref_e, atol=1e-3) and torch.allclose(out[c.n :], ref_i, atol=1e-3)
-    c.w.mul_(0.5)  # weights changed: the matrix must follow
+    c.w.mul_(0.5)
     out2 = (c._delivery_matrix() @ c.history[slots].reshape(-1, 1)).squeeze(1)
     assert torch.allclose(out2[: c.n], ref_e * 0.5, atol=1e-3)
-    # wells are independent: no synapse crosses between them
     assert not ((c.pre < c.n_per_well) ^ (c.post < c.n_per_well)).any()
 
 
@@ -143,7 +141,7 @@ def test_inhibitory_plasticity_adds_inhibition_to_neurons_above_target():
     dw = (c.w - c.w0)[inh]
     target_rate = rate[c.post[inh]]
     busy = target_rate > 5 * 0.1
-    assert busy.any() and dw[busy].mean() > 0  # neurons above target gain inhibition
+    assert busy.any() and dw[busy].mean() > 0
     assert torch.equal(c.w[c.syn_exc], c.w0[c.syn_exc]) or (c.w - c.w0)[c.syn_exc].abs().max() < 1e-3
 
 
@@ -157,20 +155,19 @@ def _plastic_device(device="cpu", **stdp):
 
 
 def test_sparse_stdp_matches_dense_bit_for_bit():
-    """The sparse rule touches only synapses of neurons that spiked; without forgetting it equals the dense rule."""
     for kw in ({"istdp_eta": 0.01, "w_max_inh": 30.0}, {"multiplicative": True}, {}):
         runs = []
         for sparse in (False, True):
             dev = _plastic_device(sparse=sparse, tau_forget_s=float("inf"), **kw)
             ch, n = [], 0.0
-            for _ in range(20):  # a pulse train on 10 electrodes, every 20 ms
+            for _ in range(20):
                 dev.stimulate(list(range(10, 60, 5)), [0.0] * 10, [1.0] * 10)
                 b = dev.step(20.0)
                 ch.append(b.channels)
                 n += dev.oracle_counts
             runs.append((np.concatenate(ch), None, n, dev.culture.w.clone()))
         (c0, _, n0, w0), (c1, _, n1, w1) = runs
-        assert n0.sum() > 100 and (w0 != dev.culture.w0).sum() > 100, kw  # the rule did something
+        assert n0.sum() > 100 and (w0 != dev.culture.w0).sum() > 100, kw
         assert np.array_equal(c0, c1) and np.array_equal(n0, n1), kw
         assert torch.equal(w0, w1), kw
 
@@ -180,8 +177,8 @@ def test_batched_forgetting_matches_decay_every_substep():
     for sparse in (False, True):
         dev = _plastic_device(sparse=sparse, a_plus=0.0, a_minus=0.0, tau_forget_s=1.0)
         c = dev.culture
-        c.w.copy_((c.w0 * 0.5).clamp(max=c.cfg.w_max))  # away from baseline, within bounds
-        dev.step(500.0)  # 1000 substeps, a multiple of forget_every
+        c.w.copy_((c.w0 * 0.5).clamp(max=c.cfg.w_max))
+        dev.step(500.0)
         ws.append(c.w.clone())
     assert torch.allclose(ws[0], ws[1], rtol=1e-5, atol=1e-6)
 
@@ -196,12 +193,11 @@ def test_gpu_delivery_matrix_patched_in_place_equals_rebuild():
     dev.step(200.0)
     c = dev.culture
     patched = c._delivery_matrix().values().clone()
-    c._A_cache = (None, None, c._A_cache[2])  # force a rebuild from the current weights
+    c._A_cache = (None, None, c._A_cache[2])
     assert torch.equal(patched, c._delivery_matrix().values())
 
 
 def test_guard_catches_weights_bounded_below_their_cap(tmp_path):
-    """The iSTDP sweep's bug: inhibitory weights clamped to w_max (10) by another step while their cap was 30."""
     import pytest
 
     from biocompute.culture.plasticity import STDP
@@ -211,9 +207,9 @@ def test_guard_catches_weights_bounded_below_their_cap(tmp_path):
     stdp = STDP(istdp_eta=0.01, w_max_inh=30.0)
     g = Guard("t", tmp_path)
     inh = (~c.syn_exc).nonzero(as_tuple=True)[0]
-    c.w[inh] = torch.minimum(c.w0[inh] * 3.0, torch.full_like(c.w0[inh], 30.0))  # healthy: spread up to the cap
+    c.w[inh] = torch.minimum(c.w0[inh] * 3.0, torch.full_like(c.w0[inh], 30.0))
     g.culture(c, stdp, rate_hz=5.0)
-    c.w[inh] = torch.minimum(c.w0[inh] * 3.0, torch.full_like(c.w0[inh], c.cfg.w_max))  # piled up at 10
+    c.w[inh] = torch.minimum(c.w0[inh] * 3.0, torch.full_like(c.w0[inh], c.cfg.w_max))
     with pytest.raises(GuardFail):
         g.culture(c, stdp)
     c.w[inh] = c.w0[inh]
@@ -223,16 +219,12 @@ def test_guard_catches_weights_bounded_below_their_cap(tmp_path):
 
 
 def test_synaptic_scaling_scales_only_ee_weights_onto_neurons_off_target():
-    """Every E->E weight onto a neuron off its target is multiplied by exp(eta x interval x (target - rate)), the
-    interval being the one applied (every_ms rounded to whole substeps); neurons at their target, and every synapse
-    that isn't E->E, are left alone. Far above target the weights shrink but survive: bl1's Euler step would be
-    1 - 1e-3 x 1.0 x 5000 = -4 there, and the clamp would zero them for good."""
     from biocompute.culture.plasticity import SynapticScaling
 
     c = small_culture(seed=7)
-    s = SynapticScaling(eta=1e-3, every_ms=1.2, tau_rate_ms=1e9)  # applied every 2 substeps = 1.0 ms; rate frozen
+    s = SynapticScaling(eta=1e-3, every_ms=1.2, tau_rate_ms=1e9)
     s.set_targets(c, torch.full((c.n,), 5.0))
-    s.on_substep(c, torch.zeros(c.n, dtype=torch.bool))  # sets up; no scaling yet
+    s.on_substep(c, torch.zeros(c.n, dtype=torch.bool))
     q = c.n // 4
     s.rate[:q], s.rate[q:2 * q] = 15.0, 5005.0
     s.on_substep(c, torch.zeros(c.n, dtype=torch.bool))
@@ -253,29 +245,26 @@ def test_synaptic_scaling_rate_estimate_tracks_firing():
     s = SynapticScaling(eta=0.0, tau_rate_ms=500.0)
     s.set_targets(c, torch.zeros(c.n))
     fire = torch.zeros(c.n, dtype=torch.bool)
-    for k in range(10000):  # 5 s; the first 50 neurons fire at 20 Hz (every 100 substeps of 0.5 ms)
+    for k in range(10000):
         fire[:50] = k % 100 == 0
         s.on_substep(c, fire)
     assert torch.allclose(s.rate[:50], torch.tensor(20.0), rtol=0.1)
     assert float(s.rate[50:].abs().max()) == 0.0
-    assert torch.equal(c.w, c.w0)  # eta 0: nothing moves
+    assert torch.equal(c.w, c.w0)
 
 
 def test_chain_of_stdp_and_scaling_resumes_exactly():
-    """The checkpoint falls between two scaling steps, so a scaling clock that didn't survive it would shift every
-    later step; the scaling must have acted (the weights differ from STDP alone); and a state saved from other rules
-    is refused, not loaded in part."""
     import pytest
 
     from biocompute.culture.plasticity import STDP, Chain, SynapticScaling
 
     def rules():
-        return Chain(STDP(), SynapticScaling(eta=1e-4, every_ms=20.0))  # scaling every 40 substeps
+        return Chain(STDP(), SynapticScaling(eta=1e-4, every_ms=20.0))
 
     a = small_culture(seed=8)
     a.plasticity = rules()
     a.plasticity.rules[1].set_targets(a, torch.full((a.n,), 0.5))
-    a.run(190.0)  # 380 substeps
+    a.run(190.0)
     cst, pst = a.state(), a.plasticity.state()
     a.run(200.0)
     b = small_culture(seed=8)
@@ -293,8 +282,6 @@ def test_chain_of_stdp_and_scaling_resumes_exactly():
 
 
 def test_excitatory_input_is_a_fixed_order_sum():
-    """The 5 s total-input step summed with index_add_, which on the GPU gave a different float sum on every call (20
-    of 20 calls on this culture), so plastic runs drifted apart. The sum must repeat bit for bit and stay exact."""
     for device in ["cpu"] + (["cuda"] if torch.cuda.is_available() else []):
         c = OrganoidCulture(make_config("cpu_2k", n_neurons=1500, device=device, wells=2, seed=5))
         e = c.syn_exc
@@ -305,7 +292,6 @@ def test_excitatory_input_is_a_fixed_order_sum():
 
 
 def test_gpu_plastic_run_repeats_bit_for_bit():
-    """Same seed, same run: STDP, per-neuron scaling and the total-input step together on the GPU, twice."""
     import pytest
 
     from biocompute.culture.plasticity import STDP, Chain, SynapticScaling
@@ -321,7 +307,7 @@ def test_gpu_plastic_run_repeats_bit_for_bit():
         for i in range(8):
             dev.stimulate([10, 20], [5.0, 30.0], [1.0, 1.0])
             dev.step(50.0)
-            w_in = c.excitatory_input()  # as coach_probe.scale
+            w_in = c.excitatory_input()
             f = torch.where(w_in > 0, w_in0 / w_in.clamp(min=1e-6), torch.ones_like(w_in))
             c.w[c.syn_exc] *= f[c.post[c.syn_exc]]
         return c.w.clone(), c.v.clone()

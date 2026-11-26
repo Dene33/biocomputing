@@ -1,9 +1,3 @@
-"""Cross-seed summary of outputs/bl1_drift/rep (bl1_drift.py --seed 42 43 44 45 46 --pulse-ms 20 0.5 --controls): rates
-against the off arm, pathway gains in the last 3 minutes against the off arm with SE from minutes 2-10, and the seed-42
-rerun against the first run. Plain python3 (numpy only):
-
-    python3 scripts/bl1_rep_analysis.py
-"""
 import glob
 import json
 import re
@@ -32,7 +26,7 @@ for k in sorted(pc):
         print(" ", k[0], pc[k][:2], "|", pc[k][2:])
 
 def changes(r):
-    g = np.array(r["gain_lag_60s"])  # [window, decoder, encoder]
+    g = np.array(r["gain_lag_60s"])
     own = [g[-1, k, k] - g[0, k, k] for k in (0, 1)]
     cross = [g[-1, k, 1 - k] - g[0, k, 1 - k] for k in (0, 1)]
     return own, cross, g
@@ -64,7 +58,6 @@ for pulse in (20.0, 0.5):
         print(f"{variant + '/' + arm:24s} {st('vs_off'):>18s} {st('rate_ratio_noenc'):>18s} {st('last_vs_first_min'):>18s} "
               f"{spec}/{len(rs):<3d} {ps}/{len(rs):<3d} {np.median(xs):6.2f} [{min(xs):5.2f},{max(xs):5.2f}] "
               f"{np.median(os_):6.2f} [{min(os_):5.2f},{max(os_):5.2f}]")
-# off arm specificity with plasticity off, per seed (lag gains, first and last minute)
 print("\noff arm lag gains [dec][enc], first -> last minute:")
 for pulse in (20.0, 0.5):
     for s in seeds:
@@ -73,10 +66,9 @@ for pulse in (20.0, 0.5):
             g = np.array(r["gain_lag_60s"])
             print(f"  pulse {pulse} seed {s}: {np.round(g[0], 2).tolist()} -> {np.round(g[-1], 2).tolist()}")
 
-# --- Pathways against the noise floor: last 3 minutes vs the same culture's off arm, SE from minutes 2-10 ---
 print("\n=== pathway change vs off arm (last 3 min, lag gains), per cross / own pathway; sig = |diff| > 2 SE ===")
 def last3(r):
-    g = np.array(r["gain_lag_60s"])  # [w, dec, enc]
+    g = np.array(r["gain_lag_60s"])
     return g[-3:].mean(0), g[1:].std(0, ddof=1)
 for pulse in (20.0, 0.5):
     print(f"-- pulse {pulse} ms")
@@ -98,7 +90,6 @@ for pulse in (20.0, 0.5):
         if n:
             print(f"  {variant + '/' + arm:22s} cross: median {np.median(cdiffs):+5.2f}, up {cu}/{n}, down {cd}/{n} | "
                   f"own: median {np.median(odiffs):+5.2f}, up {ou}/{n}, down {od}/{n}")
-# --- Repeatability: seed 42 rerun vs the original run (same code path, GPU atomics only) ---
 print("\n=== seed 42 rerun vs original run ===")
 for v in ("shipped", "fixed"):
     orig = {r["arm"]: r for r in json.load(open(Path(root).parent / v / f"drift_{v}.json"))}

@@ -1,5 +1,3 @@
-"""The stepwise AsimovEnv driven by the teacher reproduces cyclotron's play_velocity exactly."""
-
 import numpy as np
 
 from biocompute import paths
@@ -23,4 +21,4 @@ def test_teacher_parity_with_play_velocity():
         positions.append(result.root_pos)
     assert float(reference["fell_at"]) == -1.0 and env.fell_at == -1.0
     np.testing.assert_allclose(np.array(positions), reference["root_pos"], atol=1e-9)
-    assert reference["root_pos"][-1, 0] > 0.3  # it walked forward
+    assert reference["root_pos"][-1, 0] > 0.3

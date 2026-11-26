@@ -1,13 +1,3 @@
-"""Evaluate a trained decoder (train_dagger.py output) on many push seeds, optionally under a control.
-
-    uv run scripts/eval_readout.py outputs/dagger/<run> --seeds 20
-    uv run scripts/eval_readout.py outputs/dagger/<run> --control silent   # no sensory stimulation reaches the culture
-    uv run scripts/eval_readout.py outputs/dagger/<run> --control dead     # culture without recurrent synapses
-    uv run scripts/eval_readout.py outputs/dagger/<run> --control zero     # decoder output replaced by zero action
-
-The culture is the same seed as in training (the "same dish"); push seeds are new (2000+).
-"""
-
 import argparse
 import json
 import pickle
@@ -19,8 +9,6 @@ from biocompute.train import parallel
 
 
 class ZeroReadout:
-    """Control: hold the default pose whatever the culture does."""
-
     def __call__(self, x):
         return np.zeros(23, np.float32)
 

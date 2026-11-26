@@ -1,14 +1,3 @@
-"""Robot observation → stimulation pulses.
-
-Pulses are delivered only in fixed time slots of each control step (default: one slot at 0 ms). Every pulse blanks
-recording on all channels for a couple of milliseconds, so stimulating all channels in the same slot leaves the
-rest of the step free to record, as closed-loop MEA experiments do.
-
-- ``amplitude`` coding: every sensory channel pulses in every slot; the amplitude carries the value.
-- ``rate`` coding: fixed amplitude; a channel pulses in a slot when its phase accumulator crosses 1, so the pulse rate
-  carries the value (at most one pulse per slot).
-"""
-
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -58,28 +47,21 @@ class Encoder:
         self.b = np.zeros(k)
         self.phase = np.zeros(k)
         self.rate_scale = 1.0
-        """``rate`` coding: pulses per slot at full drive (1: one per slot; 0.4 with one 20 ms slot: up to 20 Hz)."""
 
     def fit_pca(self, obs: np.ndarray) -> None:
-        """Project onto the observation's principal components (each channel one signed component), instead of a
-        random projection: the most variance per electrode."""
         z = self.normalizer(obs)
         centred = z - z.mean(0)
         _, s, vt = np.linalg.svd(centred, full_matrices=False)
         k = min(len(self.channels), vt.shape[0])
-        sd = s[:k] / np.sqrt(len(z))  # each component's standard deviation
-        comps = vt[:k] / np.maximum(sd, 1e-6)[:, None]  # whitened: each projection has unit variance
+        sd = s[:k] / np.sqrt(len(z))
+        comps = vt[:k] / np.maximum(sd, 1e-6)[:, None]
         W = np.zeros((len(self.channels), z.shape[1]))
-        W[:k] = comps  # one component per channel; the sigmoid centres it on 0.5, so both signs are coded
+        W[:k] = comps
         self.W = W
         self.b = -self.W @ z.mean(0)
         self.projection = "pca"
 
     def fit_identity(self, obs: np.ndarray, skip=(6, 7, 8)) -> None:
-        """One channel per observation dimension, z-scored (the normalizer's job), centred on the data mean. No
-        whitening: PCA whitening blows near-constant directions up to unit variance, and any random mixing of the
-        channels (by neurons, or by the next wells' rotations) is then dominated by them. ``skip``: dimensions not to
-        encode (default: the velocity command, constant when standing)."""
         dims = [i for i in range(obs.shape[1]) if i not in set(skip)]
         if len(dims) != len(self.channels):
             raise ValueError(f"identity encoding needs {len(dims)} channels, got {len(self.channels)}")
@@ -88,16 +70,13 @@ class Encoder:
         self.projection = "identity"
 
     def fit_supervised(self, obs: np.ndarray, actions: np.ndarray, ridge: float = 1.0) -> None:
-        """Project onto the observation directions that predict the actions (reduced-rank regression), one per
-        channel, whitened. PCA spends electrodes on whatever varies most; this spends them on what the task needs."""
         z = self.normalizer(obs)
         zc = z - z.mean(0)
         y = (actions - actions.mean(0)) / np.maximum(actions.std(0), 1e-2)
-        B = np.linalg.solve(zc.T @ zc + ridge * len(z) * np.eye(z.shape[1]) / 1000.0, zc.T @ y)  # (obs, act)
+        B = np.linalg.solve(zc.T @ zc + ridge * len(z) * np.eye(z.shape[1]) / 1000.0, zc.T @ y)
         _, _, vt = np.linalg.svd(zc @ B, full_matrices=False)
         k = min(len(self.channels), vt.shape[0])
-        dirs = B @ vt[:k].T  # (obs, k): obs directions whose projections give the top fitted-action components
-        # Fill any remaining channels with leading principal components of what is left.
+        dirs = B @ vt[:k].T
         if k < len(self.channels):
             resid = zc - zc @ dirs @ np.linalg.pinv(dirs)
             _, _, vr = np.linalg.svd(resid, full_matrices=False)
@@ -109,10 +88,6 @@ class Encoder:
         self.projection = "supervised"
 
     def fit_select(self, obs: np.ndarray, dims, spread: float = 1.0) -> None:
-        """Population code of a few observation dimensions: each channel is tuned to a random direction in the
-        (normalized) subspace of ``dims``, with a random threshold, so the channels together tile that subspace
-        (like sensory neurons with different preferred stimuli and thresholds). Every dimension gets redundant,
-        nonlinear coverage instead of one electrode each."""
         dims = np.asarray(dims, int)
         rng = np.random.default_rng(self.seed + 7)
         z = self.normalizer(obs)[:, dims]
@@ -128,9 +103,6 @@ class Encoder:
         self.dims = dims
 
     def fit_axis(self, obs: np.ndarray, dims, spread: float = 1.5) -> None:
-        """Population code with each channel tuned to one of ``dims``: channel i codes dimension ``dims[i % n]``,
-        alternating sign, with thresholds staggered evenly over +-``spread`` (normalized units) among the channels of
-        that dimension. Unlike ``fit_select``, a dimension can be read from its own electrodes without unmixing."""
         dims = np.asarray(dims, int)
         z = self.normalizer(obs)[:, dims]
         mean = z.mean(0)
@@ -151,12 +123,10 @@ class Encoder:
         self.phase[:] = 0.0
 
     def drive(self, obs: np.ndarray) -> np.ndarray:
-        """Per channel, a value in (0, 1)."""
         z = self.normalizer(obs)
         return 1.0 / (1.0 + np.exp(-self.gain * (self.W @ z + self.b)))
 
     def pulses(self, obs: np.ndarray, step_ms: float) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-        """(channels, times_ms, amplitudes) for one control step."""
         x = self.drive(obs)
         chans, times, amps = [], [], []
         if self.mode == "amplitude":
@@ -166,7 +136,7 @@ class Encoder:
                 times.append(np.full(len(self.channels), t))
                 amps.append(a)
         elif self.mode == "rate":
-            per_slot = x * self.rate_scale  # at x = 1, ``rate_scale`` pulses per slot
+            per_slot = x * self.rate_scale
             for t in self.slots_ms:
                 self.phase += per_slot
                 fire = self.phase >= 1.0

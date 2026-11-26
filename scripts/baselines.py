@@ -1,9 +1,3 @@
-"""Reference points for every task: the teacher policy (the ceiling) and zero action, joints held at the default
-pose by PD (the floor a culture must beat). Writes outputs/baselines.json.
-
-    uv run scripts/baselines.py
-"""
-
 import json
 from collections import deque
 from pathlib import Path
@@ -23,7 +17,7 @@ for task_name in ("stand", "stand_push", "walk", "walk_schedule"):
         for seed in range(5):
             task = make_task(task_name, 20.0, seed=100 + seed)
             env.reset()
-            q = deque([np.zeros(23, np.float32)])  # the same one-step latency as the culture loop
+            q = deque([np.zeros(23, np.float32)])
             start = env.root_pos[0]
             for s in range(1000):
                 t = s * env.dt

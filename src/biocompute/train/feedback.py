@@ -1,12 +1,3 @@
-"""DishBrain approach: a training session in which the culture's plasticity, shaped by feedback stimulation, is the
-only thing that learns. The decoder stays fixed for the whole session.
-
-A session is a run of episodes. During an episode, every ``good_every_s`` the robot stays upright (and, on walking
-tasks, moves forward by ``min_progress_m``) earns ``Feedback.good``. A fall earns ``Feedback.bad``: the unpredictable
-stimulation plays out while the robot is reset, and the next episode starts after it. With ``RewardSTDP``, the same
-events also deliver a reward of +1 / -1.
-"""
-
 from __future__ import annotations
 
 import time
@@ -62,7 +53,6 @@ def session(
             feedback.bad()
             if isinstance(plasticity, RewardSTDP):
                 plasticity.reward(ctrl.device.culture, -1.0)
-            # The unpredictable stimulation plays out before the next episode; the culture gets no sensory input.
             while feedback.busy:
                 ctrl.device.stimulate(*feedback.pulses(ctrl.step_ms))
                 ctrl.device.step(ctrl.step_ms)
@@ -77,7 +67,6 @@ def session(
 
 
 def blocks(rows: list[dict], n_blocks: int = 4) -> list[dict]:
-    """Mean survival and distance in equal blocks of session time: does performance improve over the session?"""
     t = np.array([r["sim_minutes"] for r in rows])
     edges = np.linspace(0, t.max() + 1e-9, n_blocks + 1)
     out = []

@@ -1,11 +1,3 @@
-"""Train the reservoir readout (DAgger + ridge) on a task and evaluate it over seeds.
-
-    uv run scripts/train_reservoir.py --task stand --source mea
-    uv run scripts/train_reservoir.py --task walk --source none      # control: no culture, a linear policy
-    uv run scripts/train_reservoir.py --task walk --source dead      # control: culture without recurrent synapses
-    uv run scripts/train_reservoir.py --task walk --source oracle    # control: read every neuron
-"""
-
 import argparse
 import json
 import pickle

@@ -1,21 +1,3 @@
-"""Score a robot-side controller on stand_push with its vestibular input coming through the dish model.
-
-A controller is a Python file defining
-
-    write_weights() -> dict          # all parameters, written in code (no gradient training)
-    act(W, jpos, jvel, last_action, vest) -> np.ndarray (23,)
-    reset(W)                         # optional: clear filter state at the start of each episode
-
-with inputs in the teacher's observation units: jpos = obs[9:32], jvel = obs[32:55], last_action = obs[55:78] (the
-robot's last executed command), vest = the dish's estimate of obs[0:6] (gyro x0.25, projected gravity).
-
-    uv run python wsp/controller/eval_controller.py wsp/controller/track_a.py --note "what changed"
-
-Prints ``score: <mean survival s over the validation seeds>`` and appends a row to results.csv. Also reports
-survival with the dish silenced (the controller must fall: the dish has to be necessary). ``--test`` scores the
-hidden test seeds; use it only once per track, at the end.
-"""
-
 import argparse
 import csv
 import importlib.util

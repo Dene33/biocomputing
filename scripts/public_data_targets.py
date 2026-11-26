@@ -1,61 +1,3 @@
-"""Track B, step B0 (docs/route-to-computation.md, "Order of work without a dish"): targets for the culture model,
-from public recordings of real cultures made by other labs.
-
-    uv run python -I scripts/public_data_targets.py fetch      # downloads into outputs/public_data/raw/ (gitignored)
-    uv run python -I scripts/public_data_targets.py analyze    # outputs/public_data/targets.json
-    uv run python -I scripts/public_data_targets.py --smoke fetch analyze   # 2 recordings, into <out>/smoke
-
-Standalone (numpy only), so it runs under ``python -I``: downloaded files are untrusted data.
-
-Sources, terms and provenance
------------------------------
-1. Wagenaar, Pine & Potter 2006, "An extremely rich repertoire of bursting patterns during the development of
-   cortical cultures", BMC Neuroscience 7:11. Dissociated rat cortical cultures on 59-electrode MCS arrays, 25 kHz,
-   half-hour recordings of spontaneous activity, daily over five weeks. Terms (the dataset's help page): downloads
-   are on condition that publications using the data cite the article; no guarantees of quality. The lab's pages
-   (potterlab.bme.gatech.edu/development-data, formerly neurodatasharing.bme.gatech.edu) return 404 as of 24 Nov 2026,
-   so the files come from the Internet Archive's copy (captured 8 Feb 2026): the "simple-text" daily spontaneous
-   recordings of the *dense* cultures, ``<batch>-<culture>-<DIV>.spk.txt.bz2``, two columns (time in s, channel
-   0-59). Only these 527 files are archived; the stimulation sets and the sparse/small cultures are not. We take up to
-   three recordings per culture between DIV 21 and 35 (the days nearest 24, 28 and 32), when bursting is mature.
-2. Robbins et al. 2026, "Goal-directed learning in cortical organoids", Cell Reports 45:116984: Zenodo record
-   10.5281/zenodo.17684862, CC-BY 4.0. ``aggregated_experiment_data.pkl`` (md5 af99f1f859136ca4a6dad47a1aa7c86d):
-   processed HD-MEA data from mouse cortical organoids (spike-sorted units' rates, ISIs, burstiness; evoked
-   connectivity and the share of stimulations that set off a network burst; cart-pole runs). Unpickling untrusted data
-   can run code, so it is loaded with a restricted unpickler that allows only the three numpy constructors the file
-   references (checked with pickletools before the first load) and plain containers.
-3. FinalSpark's free dataset needs a request form (finalspark.com/neuroplatform); not fetched.
-
-Measures (one function, ``spike_stats``, so the model can be scored the same way in B3a)
----------------------------------------------------------------------------------------
-- Active electrode: >= 0.1 Hz. Per-electrode rate over active electrodes (median, mean).
-- Burstlets, per electrode (Wagenaar et al. 2005/2006): >= 4 spikes whose inter-spike intervals are all
-  <= min(100 ms, 1 / (4 x the electrode's mean rate)).
-- Network bursts: burstlets overlapping in time are merged; a merged event counts if it spans >= 3 electrodes.
-  Burst rate (per min), duration (first to last burstlet spike), inter-burst interval (start to start) and its CV,
-  recruitment (share of active electrodes in the burst), share of spikes inside network bursts.
-Per culture: the median over its recordings. Targets: the spread across cultures (median, 25-75% and 5-95%).
-B3(a) passes when the model's values fall inside the 5-95% range.
-
-Results (24 Nov 2026; outputs/public_data/targets.json, manifest.json)
----------------------------------------------------------------------
-Wagenaar dense cultures: 81 recordings (173 MB) from 29 cultures, DIV 21-32; one archived file (5-3-24) is
-truncated in the Archive and was skipped. Across cultures, median [5-95%]:
-- active electrodes 56 [51-59] of 59; per-electrode rate, median electrode 2.8 Hz [0.7-10.3], mean 4.5 Hz [1.8-11.1]
-- network bursts 4.2 per min [1.2-15.4], lasting 556 ms [79-1788]
-- inter-burst interval 12.0 s [0.85-41.5], CV 0.87 [0.56-1.99]: irregular
-- recruitment 0.59 [0.08-1.00] of the active electrodes; share of spikes inside bursts 0.63 [0.10-0.93]
-Robbins organoids: 38 experiments, 16 organoids (spike-sorted units, so rates are per unit, not per electrode):
-- unit rate 4.8 Hz [2.5-13.8] (median per experiment), median ISI 69 ms [5-245]; the burstiness index is saturated
-  at 1.0 and says nothing
-- evoked: a stimulation sets off a network burst in 6.5% of trials [0-16%] (``burst_percent`` is a fraction);
-  each stimulated unit's best first-order target fires within the window in 22% of trials [8-98%]
-- cart-pole, top-decile balance time per run: adaptive 51.8 s (n 229), random 36.4 s (67), none 31.0 s (130)
-Not yet measured on our model (B3a uses ``spike_stats`` on its electrodes). Two quoted figures already suggest
-where it may fall outside: the README's cpu_2k bursts come every 2-3 s with CV ~0.3 (below the 0.56-1.99 range),
-and coach_probe found that every probe sets off a network burst (real organoids: 6.5%).
-"""
-
 from __future__ import annotations
 
 import argparse
@@ -88,7 +30,7 @@ def get(url: str, tries: int = 3, timeout: float = 120.0) -> bytes:
         try:
             with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=timeout) as r:
                 return r.read()
-        except Exception as e:  # the Archive is flaky: back off and retry
+        except Exception as e:
             if k == tries - 1:
                 raise
             print(json.dumps({"retry": url, "error": str(e)[:120]}), flush=True)
@@ -96,7 +38,6 @@ def get(url: str, tries: int = 3, timeout: float = 120.0) -> bytes:
 
 
 def choose(rows):
-    """Up to three recordings per culture in DIV 21-35, the days nearest 24, 28 and 32."""
     by = {}
     for url, ts in rows:
         m = re.search(r"/(\d+)-(\d+)-(\d+)\.spk\.txt\.bz2$", url)
@@ -116,7 +57,7 @@ def choose(rows):
 def fetch(raw: Path, manifest: Path, smoke: bool) -> None:
     w = raw / "wagenaar_dense"
     w.mkdir(parents=True, exist_ok=True)
-    cdx = raw / "wagenaar_cdx.txt"  # the Archive's index answers 503 at times: fetch it once, keep it
+    cdx = raw / "wagenaar_cdx.txt"
     if not cdx.exists():
         cdx.write_bytes(get(CDX))
     rows = [ln.split()[:2] for ln in cdx.read_text().splitlines() if ln.startswith("http")]
@@ -130,18 +71,18 @@ def fetch(raw: Path, manifest: Path, smoke: bool) -> None:
         if not p.exists():
             try:
                 data = get(f"http://web.archive.org/web/{ts}id_/{url}")
-                bz2.decompress(data)  # a truncated or HTML error page fails here, before anything is written
+                bz2.decompress(data)
             except Exception as e:  # e.g. 5-3-24: the archived copy always ends at the same byte
                 man["failed"][name] = {"source": url, "archive_timestamp": ts, "error": str(e)[:200]}
                 print(json.dumps({"skipped": name, "error": str(e)[:120]}), flush=True)
                 manifest.write_text(json.dumps(man, indent=1))
                 continue
             p.write_bytes(data)
-            time.sleep(1.0)  # be polite to the Archive
+            time.sleep(1.0)
         man["wagenaar"][name] = {"batch": b, "culture": c, "div": d, "source": url, "archive_timestamp": ts,
                                  "bytes": p.stat().st_size, "sha256": hashlib.sha256(p.read_bytes()).hexdigest()}
         manifest.parent.mkdir(parents=True, exist_ok=True)
-        manifest.write_text(json.dumps(man, indent=1))  # as we go: a crash keeps what was fetched
+        manifest.write_text(json.dumps(man, indent=1))
     r = raw / "robbins_zenodo" / "aggregated_experiment_data.pkl"
     r.parent.mkdir(parents=True, exist_ok=True)
     if not r.exists() and not smoke:
@@ -157,10 +98,8 @@ def fetch(raw: Path, manifest: Path, smoke: bool) -> None:
     print(json.dumps({"wagenaar_files": len(man["wagenaar"]), "robbins": bool(man["robbins"])}), flush=True)
 
 
-# --- Measures -----------------------------------------------------------------------------------------------------------
 def spike_stats(t: np.ndarray, ch: np.ndarray, duration_s: float, n_ch: int, min_rate: float = 0.1,
                 min_channels: int = 3) -> dict:
-    """Electrode-level spontaneous statistics; see the module docstring. ``t`` in seconds, ``ch`` in 0..n_ch-1."""
     t, ch = np.asarray(t, float), np.asarray(ch, int)
     rates, active, bursts, _ = network_bursts(t, ch, duration_s, n_ch, min_rate, min_channels)
     out = {"duration_s": round(duration_s, 1), "n_active": int(len(active))}
@@ -189,17 +128,14 @@ def spike_stats(t: np.ndarray, ch: np.ndarray, duration_s: float, n_ch: int, min
 
 def network_bursts(t: np.ndarray, ch: np.ndarray, duration_s: float, n_ch: int, min_rate: float = 0.1,
                    min_channels: int = 3):
-    """``spike_stats``'s detector: per-electrode rates, active electrodes, network bursts [(start, end, channels)]
-    and every electrode's burstlets [(start, end, channel)], times in seconds."""
     t, ch = np.asarray(t, float), np.asarray(ch, int)
     rates = np.bincount(ch, minlength=n_ch)[:n_ch] / duration_s
     active = np.flatnonzero(rates >= min_rate)
-    bl = []  # (start, end, channel)
+    bl = []
     for c in active:
         ts = np.sort(t[ch == c])
         thr = min(0.1, 1.0 / (4.0 * rates[c]))
         short = np.diff(ts) <= thr
-        # runs of >= 3 consecutive short intervals = >= 4 spikes
         edges = np.diff(np.r_[0, short.astype(int), 0])
         for s, e in zip(np.flatnonzero(edges == 1), np.flatnonzero(edges == -1)):
             if e - s >= 3:
@@ -228,9 +164,6 @@ def load_spk(path: Path):
 
 
 class SafeUnpickler(pickle.Unpickler):
-    """Only the numpy constructors the Robbins file uses (pickletools: _frombuffer, dtype, scalar) and their
-    numpy-1.x names; anything else is refused before it can run."""
-
     ALLOWED = {("numpy._core.numeric", "_frombuffer"), ("numpy.core.numeric", "_frombuffer"), ("numpy", "dtype"),
                ("numpy._core.multiarray", "scalar"), ("numpy.core.multiarray", "scalar")}
 
@@ -253,7 +186,7 @@ def analyze_wagenaar(raw: Path, manifest: dict) -> dict:
     per_rec, per_culture = [], {}
     for name, info in sorted(manifest["wagenaar"].items()):
         t, ch = load_spk(raw / "wagenaar_dense" / name)
-        dur = float(np.ceil(t.max() / 60.0) * 60.0) if len(t) else 0.0  # half-hour recordings; whole minutes
+        dur = float(np.ceil(t.max() / 60.0) * 60.0) if len(t) else 0.0
         s = spike_stats(t, ch, dur, N_CH) | {"file": name, "batch": info["batch"], "culture": info["culture"],
                                              "div": info["div"]}
         per_rec.append(s)

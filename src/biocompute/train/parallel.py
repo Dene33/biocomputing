@@ -1,10 +1,3 @@
-"""Parallel DAgger: several worker processes, each with its own copy of the same culture (same seed) and robot.
-
-On hardware this is one dish run for longer; here it only saves wall-clock time. Each worker keeps its culture
-running between episodes (a real culture can't be reset). The readout is fitted in the parent on everything the
-workers collected and sent back out each round.
-"""
-
 from __future__ import annotations
 
 import multiprocessing as mp
@@ -74,12 +67,6 @@ def train(pool: Pool, feature_dim: int, task: str, rounds: int = 10, episodes_pe
           beta0: float = 0.5, beta_decay: float = 0.6, seconds: float = 20.0, latency: int = 1,
           eval_seeds: int = 4, log=print, seed: int = 0, recovery_weight: float = 4.0, readout_kind: str = "ridge",
           skip_dim: int = 0, ckpt_dir=None) -> dict:
-    """``recovery_weight``: extra weight on samples in the top 20 % of pelvis angular speed (push recoveries).
-    They are a small share of the data but decide whether the robot falls.
-
-    ``ckpt_dir``: after every round, the aggregated data, the decoders and the trainer's state are saved there, and
-    a run started on a folder holding a checkpoint resumes after its last round (the dish itself restarts: a new
-    worker culture is the same seed, freshly warmed up)."""
     import pickle
     from pathlib import Path
 
@@ -137,6 +124,6 @@ def train(pool: Pool, feature_dim: int, task: str, rounds: int = 10, episodes_pe
                 pickle.dump({"round": r, "history": history, "readouts": readouts, "best": best, "rng": rng}, f)
             (ckpt / "ckpt_data.tmp.npz").replace(ckpt / "ckpt_data.npz")
             (ckpt / "ckpt_state.tmp.pkl").replace(ckpt / "ckpt_state.pkl")
-            X, Y, O = [Xa], [Ya], [Oa]  # keep one concatenated copy, not the list and the copy
+            X, Y, O = [Xa], [Ya], [Oa]
     return {"readout": readout, "best_readout": best[1], "history": history, "readouts": readouts,
             "data": (np.concatenate(X), np.concatenate(Y), np.concatenate(O))}

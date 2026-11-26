@@ -1,30 +1,3 @@
-"""Route finding: is there a stimulation regime in which the culture's own dynamics compute something?
-
-The trigger probe (scripts/trigger_probe.py) found the dish worse than its own input at detecting pushes, and a dead
-culture as good as a live one. Hypothesis: dense stimulation (every electrode pulsing 4 times per 20 ms step, 200 Hz)
-keeps the synapses' resources depleted (Tsodyks-Markram depression, 2 s recovery), so the network is purely
-input-driven and its recurrent dynamics (adaptation, memory) can't contribute. Real culture experiments stimulate far
-more sparsely (DishBrain: rate coding at a few to tens of Hz).
-
-Same data as the trigger probe (24 teacher episodes, 133 pushes, IMU only stimulated), 1 well x 32 electrodes
-(MaxTwo-sized), live and dead (recurrent synapses removed) culture, for several regimes:
-
-- ``amp200``  amplitude coding, 4 slots per step (today's regime)
-- ``amp50``   amplitude coding, 1 slot per step
-- ``rate50``  rate coding, up to 1 pulse per step (50 Hz) at full drive
-- ``rate20``  rate coding, up to 20 Hz
-
-Measured per run:
-- push detection (trigger_probe's AUC and share caught within 200 ms), from all features and from current-step
-  counts only;
-- memory beyond the input: R² of the IMU k steps ago (k = 0..12) from current-step counts only, against the same
-  from the current stimulation pattern (whose R² at k > 0 comes only from the signal's own autocorrelation);
-- IMU channel quality at lag 0 (decoder with the 40 ms trace), in teacher-spread units on in-range steps;
-- spike rate, mean synaptic resources of excitatory neurons, pulses per electrode per second.
-
-    uv run scripts/dish_regimes.py
-"""
-
 import argparse
 import importlib.util
 import json
@@ -50,7 +23,6 @@ STAND = np.array([0, 0, 0, 0, 0, -1.0])
 
 
 def lag_r2(X, T, starts, lags=13):
-    """Out-of-fold R² (mean over gyro and grav x, y) of T[t - k] from X[t], k = 0..lags-1."""
     out = []
     n = len(X)
     ep = np.cumsum(np.isin(np.arange(n), starts)) - 1

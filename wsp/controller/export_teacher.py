@@ -1,7 +1,3 @@
-"""One-off: the teacher's ONNX weights → teacher_weights.npz, so controllers can start from them in numpy.
-
-    uv run --with onnx python wsp/controller/export_teacher.py
-"""
 from pathlib import Path
 
 import numpy as np

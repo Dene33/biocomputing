@@ -1,33 +1,3 @@
-"""Route finding, adaptation route: can a culture be *coached* to pick the right body correction for the robot?
-
-scripts/adaptation_slot.py found the job: weak knees need a knee bias of -0.6 (19/20; payload fix 0/20), a 20 kg
-payload needs IMU gain 1.5 (19/20; knee fix 0/20). Here a culture makes that choice, the way cortical organoids were
-coached to balance a cart-pole (Robbins et al., Cell Reports 2026: training bursts between episodes, chosen by an
-algorithm; 46% proficient vs 2-4% without or with random feedback).
-
-Hardware-shaped: the GPU culture (20,000 neurons; the 2,000-neuron CPU culture evokes only 1-2 spikes per output
-group) on a 60-electrode MEA (CL1-sized), 16 electrodes used.
-- Context: the robot's condition is signalled by a probe on one of two electrode groups (P_knee, P_payload).
-- Choice: spikes 5-60 ms after the probe (summed over 3 probes) on output group A (knee fix) vs B (payload fix), minus each context's
-  pre-training bias (a fixed decoder, calibrated once before any training).
-- Outcome: the measured success rates of each fix in each condition (adaptation_slot results).
-- Coach, after a fall: ``adaptive`` pairs the context probe with the correct output group (probe, then the group
-  8 ms later, 20 times at 10 Hz), so spike-timing plasticity strengthens that pathway; ``random`` pairs with a random
-  group (same amount of stimulation); ``none`` gives no training.
-- ``--context none``: the condition is not signalled (weak knees look like a healthy robot in quiet standing; only
-  falls reveal them). One probe (both groups) every trial; the condition flips unannounced every ``--block``
-  trials; the culture must hold the current fix and switch after falls. The coach knows only that the last choice
-  failed: with two fixes, "pair with the other output" needs no knowledge of the condition.
-- Plasticity: STDP on excitatory synapses, forgetting towards baseline (45 min), and, optionally, synaptic scaling
-  after each trial (each neuron's total excitatory input restored), the homeostasis real cultures have.
-Electrodes are interleaved so both probes are equally close to both output groups.
-- ``--dose``: can pairing steer the response at all? Cumulative 100/400/1000 pairings of one context with one output
-  group, against the same pulses in reverse order and no stimulation (see ``dose``).
-
-    uv run scripts/coach_probe.py
-    uv run scripts/coach_probe.py --dose --seeds 0 1
-"""
-
 import argparse
 import json
 import multiprocessing as mp
@@ -36,7 +6,6 @@ from pathlib import Path
 
 import numpy as np
 
-# Success probabilities, outcome[context][choice] (adaptation_slot.py, 20 seeds each).
 OUTCOME = {0: {0: 19 / 20, 1: 0 / 20}, 1: {0: 0 / 20, 1: 19 / 20}}
 GRID = [(r, c) for r in range(8) for c in range(8) if (r, c) not in {(0, 0), (0, 7), (7, 0), (7, 7)}]
 CH = {rc: i for i, rc in enumerate(GRID)}
@@ -57,7 +26,7 @@ def build(seed, homeostasis):
 
     torch.set_num_threads(1)
     dev = SimulatedBiocomputer(make_config(CULTURE["name"], seed=seed), make_mea_config("mcs60", seed=seed, stim_length_um=120.0))
-    dev.step(2000.0)  # settle
+    dev.step(2000.0)
     c = dev.culture
     w_in0 = c.excitatory_input()
     return dev, STDP(), w_in0
@@ -70,12 +39,10 @@ def scale(culture, w_in0):
     w_in = culture.excitatory_input()
     f = torch.where(w_in > 0, w_in0 / w_in.clamp(min=1e-6), torch.ones_like(w_in))
     culture.w[exc] *= f[culture.post[exc]]
-    culture.w[exc] = culture.w[exc].clamp(0.0, culture.cfg.w_max)  # excitatory only: inhibitory plasticity has its own cap
+    culture.w[exc] = culture.w[exc].clamp(0.0, culture.cfg.w_max)
 
 
 def probe(dev, k, repeats=3, both=False):
-    """Spikes on output groups A and B, 5-60 ms after a probe on context group k, summed over ``repeats`` probes
-    150 ms apart (one decision takes ~0.6 s; the slot changes over seconds)."""
     a = b_ = 0.0
     for _ in range(repeats):
         ch_p = P[0] + P[1] if both else P[k]
@@ -105,7 +72,6 @@ def run(job):
     rng = np.random.default_rng(seed + 100)
     dev, stdp, w_in0 = build(seed, homeostasis)
     c = dev.culture
-    # Calibration (no plasticity): each context's A-B bias.
     bias = []
     for k in (0, 1):
         s = [np.subtract(*probe(dev, k, both=both)) for _ in range(15)]
@@ -124,11 +90,11 @@ def run(job):
         ok = bool(rng.random() < OUTCOME[k][choice])
         if not ok:
             if mode == "adaptive":
-                pair(dev, k, 1 - choice, both=both)  # the other output: needs no knowledge of the condition
+                pair(dev, k, 1 - choice, both=both)
             elif mode == "random":
                 pair(dev, k, int(rng.integers(2)), both=both)
             else:
-                dev.step(2000.0)  # the same time, no stimulation
+                dev.step(2000.0)
         dev.step(200.0)
         rest(c, 5.0, stdp)
         if homeostasis:
@@ -145,10 +111,6 @@ def run(job):
 
 
 def dose(job):
-    """Dose-response: can pairing steer the probe response at all? Cumulative pairings of context 0 with output B
-    (``causal``: probe, then B 8 ms later), the same pulses in reverse order (``reverse``: B, then the probe 8 ms
-    later; STDP predicts the opposite or nothing), or no stimulation (``none``, time-matched). Plasticity is off while
-    measuring: 45 single probes per context."""
     import torch
 
     mode, seed, doses = job

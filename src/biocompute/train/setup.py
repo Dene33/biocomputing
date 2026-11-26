@@ -1,5 +1,3 @@
-"""Build a biocomputer + controller from a few settings, the same way for training and evaluation."""
-
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
@@ -23,27 +21,17 @@ class Setup:
     n_feedback: int = 8
     encoding: str = "amplitude"
     encoder_gain: float = 1.5
-    """Sigmoid gain on the (whitened) projections. High gain saturates on the large values pushes cause."""
     projection: str = "pca"
     slots_ms: tuple = (0.0,)
     bins: int = 2
     taus_ms: tuple = (40.0, 160.0)
     wells: int = 1
-    """Independent organoids on a multi-well plate; each gets the same stimulation pattern on its own electrodes."""
     diverse_wells: bool = False
-    """Each well gets its own random rotation of the encoder's channels: the same information, mixed differently,
-    so each organoid computes different nonlinear features (its noise still averages out across wells)."""
     efference: bool = False
-    """The decoder also gets its own last command (the robot's last action, obs[55:78]) directly, as an efference
-    copy, instead of the culture having to carry it; with ``identity`` encoding the culture then gets only the
-    52 sensory dimensions."""
     select_dims: tuple = ()
-    """Observation dimensions coded by the ``select`` and ``axis`` projections (e.g. 0-5, the IMU)."""
     select_spread: float = 1.0
     silent_inputs: bool = False
-    """Control: no sensory stimulation reaches the culture."""
     source: str = "mea"
-    """``mea``, ``oracle``, ``none`` (no culture) or ``dead`` (MEA readout, recurrent synapses removed)."""
     seed: int = 0
 
     def to_dict(self) -> dict:
@@ -51,7 +39,6 @@ class Setup:
 
 
 def build(setup: Setup, obs_samples: np.ndarray, action_samples: np.ndarray | None = None) -> CultureController:
-    """``action_samples`` (the teacher's actions on ``obs_samples``) are needed for ``projection="supervised"``."""
     from biocompute.mea.electrodes import make_mea_config
 
     rng = np.random.default_rng(setup.seed)
@@ -68,7 +55,6 @@ def build(setup: Setup, obs_samples: np.ndarray, action_samples: np.ndarray | No
             device.culture.w0.zero_()
         per = device.mea.channels_per_well
         alive = device.mea.alive_channels
-        # Each well: its own random electrodes, in the same order of roles (stimulation first, then feedback).
         wells = [rng.permutation(alive[(alive >= k * per) & (alive < (k + 1) * per)]) for k in range(setup.wells)]
         channels = wells[0]
     stim = channels[: setup.n_stim]
@@ -88,7 +74,6 @@ def build(setup: Setup, obs_samples: np.ndarray, action_samples: np.ndarray | No
             raise ValueError("projection='supervised' needs action_samples.")
         encoder.fit_supervised(obs_samples, action_samples)
     if device is not None and setup.wells > 1:
-        # The same encoding into every well.
         encoder.channels = np.concatenate([w[: setup.n_stim] for w in wells])
         W, b = [encoder.W], [encoder.b]
         for k in range(1, setup.wells):
@@ -110,5 +95,5 @@ def build(setup: Setup, obs_samples: np.ndarray, action_samples: np.ndarray | No
     source = {"dead": "mea"}.get(setup.source, setup.source)
     ctrl = CultureController(device, encoder, features, source=source, efference=setup.efference)
     ctrl.stimulate_inputs = not setup.silent_inputs
-    ctrl.feedback_channels = channels[setup.n_stim : setup.n_stim + setup.n_feedback]  # well 0's
+    ctrl.feedback_channels = channels[setup.n_stim : setup.n_stim + setup.n_feedback]
     return ctrl

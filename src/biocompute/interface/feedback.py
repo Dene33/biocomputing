@@ -1,14 +1,3 @@
-"""DishBrain-style feedback (Kagan et al., Neuron 2022), adapted to a walking robot.
-
-In DishBrain, a hit was followed by *predictable* stimulation (all sensory electrodes together, 100 Hz for 100 ms)
-and a miss by *unpredictable* stimulation (random electrodes at random times, 5 Hz for 4 s). The culture changes so
-as to make its input more predictable, and that behaves like learning.
-
-Here the events are robot outcomes: each ``good_every_s`` of staying upright (and, when walking, moving forward)
-earns a predictable burst; a fall earns 4 s of unpredictable stimulation while the robot is reset. A ``random``
-control delivers the same number of bursts at random times regardless of outcome.
-"""
-
 from __future__ import annotations
 
 import numpy as np
@@ -80,7 +69,6 @@ class Feedback:
                 t += period
             self.predictable_left_ms -= step_ms
         if self.unpredictable_left_ms > 0:
-            # Each channel pulses with probability rate * step, at a random slot.
             p = self.unpredictable_hz * step_ms / 1000.0
             fire = self.rng.random(len(self.channels)) < p
             slots = int(step_ms // self.slot_ms)

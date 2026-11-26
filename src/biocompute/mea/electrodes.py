@@ -1,14 +1,3 @@
-"""A multi-electrode array under the culture: the only way in and out.
-
-Recording: each electrode detects a spike from a neuron with a probability that falls with distance (extracellular
-amplitude ~ 1 / (1 + (d/d0)^2) against a detection threshold in noise), plus false positives. Detection is
-multi-unit: an electrode reports spike times, not which neuron fired.
-
-Stimulation: a biphasic pulse at an electrode depolarizes neurons near it, falling off with distance, for one
-substep. Pulses are limited in amplitude and rate per electrode. Every pulse blanks recording on all electrodes for
-``blank_ms`` (the stimulation artifact), as on real systems.
-"""
-
 from __future__ import annotations
 
 import math
@@ -24,20 +13,14 @@ class MEAConfig:
     cols: int = 8
     pitch_um: float = 200.0
     skip_corners: bool = True
-    """A 60-channel layout like Multi Channel Systems' 60MEA: an 8 × 8 grid without its corners."""
 
-    # Recording
     amp_d0_um: float = 30.0
-    """Distance at which a spike's amplitude has halved."""
     detect_at_um: float = 50.0
-    """Distance at which detection probability is 50%."""
     detect_softness: float = 0.15
     false_positive_hz: float = 0.5
     blank_ms: float = 2.0
 
-    # Stimulation
     stim_current: float = 100.0
-    """Current (model units) injected for one substep into a neuron at the electrode, at amplitude 1."""
     stim_length_um: float = 60.0
     max_amplitude: float = 1.0
     max_rate_hz: float = 200.0
@@ -46,8 +29,6 @@ class MEAConfig:
     seed: int = 0
 
     wells: int = 1
-    """One grid per well of a multi-well plate, ``well_spacing_um`` apart along x (matching the culture's wells).
-    Channels are numbered well by well."""
     well_spacing_um: float = 10000.0
 
 
@@ -82,12 +63,11 @@ class MEA:
         n_dead = int(round(cfg.dead_fraction * self.n_channels))
         self.dead[rng.choice(self.n_channels, n_dead, replace=False)] = True
 
-        # Electrode–neuron distances (electrodes at z = 0), one block per well: electrodes only see their own well.
         K = cfg.wells
         C, N = self.channels_per_well, neuron_pos.shape[0] // K
         self.wells, self.neurons_per_well = K, N
         e = torch.tensor(np.c_[self.xy, np.zeros(self.n_channels)], dtype=torch.float32).reshape(K, C, 3)
-        dist = torch.cdist(e, neuron_pos.float().reshape(K, N, 3))  # (wells, channels, neurons)
+        dist = torch.cdist(e, neuron_pos.float().reshape(K, N, 3))
         dead = torch.from_numpy(self.dead).reshape(K, C)
         p = torch.sigmoid((cfg.detect_at_um - dist) / (cfg.detect_softness * cfg.detect_at_um))
         p[p < 1e-3] = 0.0
@@ -101,7 +81,6 @@ class MEA:
 
     @property
     def detect(self) -> torch.Tensor:
-        """Detection probability, (channels, neurons) — dense, for inspection (zero across wells)."""
         return torch.block_diag(*self.detect3)
 
     @property
@@ -113,16 +92,14 @@ class MEA:
         return np.flatnonzero(~self.dead)
 
     def stim_current(self, amplitudes: torch.Tensor) -> torch.Tensor:
-        """Current per neuron for pulses of ``amplitudes`` (channels,) delivered this substep."""
         amps = amplitudes.clamp(0.0, self.cfg.max_amplitude).reshape(self.wells, 1, -1)
         return torch.bmm(amps, self.drive3).reshape(-1)
 
     def record(self, spikes: torch.Tensor, dt_ms: float) -> torch.Tensor:
-        """Multi-unit detections per channel (int counts) for one substep's spikes (bool, neurons)."""
         hits = torch.zeros(self.n_channels, dtype=torch.long, device=self.device)
         n_idx = spikes.nonzero(as_tuple=True)[0]
         if len(n_idx):
-            p = self.detect3[n_idx // self.neurons_per_well, :, n_idx % self.neurons_per_well]  # (spiking, C)
+            p = self.detect3[n_idx // self.neurons_per_well, :, n_idx % self.neurons_per_well]
             s, c = (torch.rand(p.shape, generator=self.gen, device=self.device) < p).nonzero(as_tuple=True)
             hits.index_add_(0, (n_idx[s] // self.neurons_per_well) * self.channels_per_well + c,
                             torch.ones_like(c))
@@ -132,16 +109,13 @@ class MEA:
         return hits
 
     def record_step(self, raster: torch.Tensor, blank: torch.Tensor, dt_ms: float) -> tuple[np.ndarray, np.ndarray]:
-        """Detections for a whole control step at once: ``raster`` (substeps, neurons) bool, ``blank`` (substeps,)
-        bool. Same statistics as calling ``record`` per unblanked substep, with one host sync instead of one per
-        substep. Returns (channel, substep) per detection."""
         live = raster & ~blank[:, None]
         s_idx, n_idx = live.nonzero(as_tuple=True)
         ch_out, st_out = [], []
-        for i in range(0, len(n_idx), 32768):  # chunks: a network burst can put 10⁵ spikes in one step
+        for i in range(0, len(n_idx), 32768):
             ni, si = n_idx[i : i + 32768], s_idx[i : i + 32768]
             well = ni // self.neurons_per_well
-            p = self.detect3[well, :, ni % self.neurons_per_well]  # (spikes, channels of that well)
+            p = self.detect3[well, :, ni % self.neurons_per_well]
             hit_k, hit_c = (torch.rand(p.shape, generator=self.gen, device=self.device) < p).nonzero(as_tuple=True)
             ch_out.append(well[hit_k] * self.channels_per_well + hit_c)
             st_out.append(si[hit_k])
@@ -157,7 +131,6 @@ class MEA:
         return ch[keep], st[keep]
 
     def neurons_near(self, channel: int, radius_um: float) -> torch.Tensor:
-        """Indices of neurons that a channel's stimulation reaches above ``exp(-radius/length)``."""
         threshold = self.cfg.stim_current * math.exp(-radius_um / self.cfg.stim_length_um)
         w, c = divmod(int(channel), self.channels_per_well)
         return (self.drive3[w, c] >= threshold).nonzero(as_tuple=True)[0] + w * self.neurons_per_well

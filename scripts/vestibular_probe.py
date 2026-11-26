@@ -1,24 +1,3 @@
-"""Phase 3.1 (docs/next-steps.md), open-loop vestibular probe: can the dish carry the 6 IMU values to the Phase 1 spec
-with hardware-sized stimulation (<= 32 channels per well, MaxTwo; 12, CL1-sized)?
-
-Teacher stand_push observations (outputs/probe/teacher_data_20k.pkl, with DART action noise) are replayed open loop:
-each step only obs[0:6] (gyro x0.25, projected gravity) is encoded as stimulation; a ridge decoder reads the IMU back
-from the spike features (5-fold contiguous cross-validation; out-of-fold predictions are scored).
-
-Encodings: ``axis`` (each electrode tuned to one IMU dimension, alternating sign, staggered thresholds) and ``select``
-(each electrode tuned to a random direction in the 6-d IMU space, random threshold).
-
-Decoder feature sets, from least to most memory (the spec penalizes latency more than noise):
-- ``bins``  spike counts in the two 10 ms halves of the current step only
-- ``+40``   plus the 40 ms exponential trace
-- ``all``   plus the 160 ms trace
-
-Scored against the spec from scripts/blind_teacher.py: error <= 0.5 x the teacher's spread on stand_push (that run's
-results.json), and the lag at which the decoded signal best matches the truth.
-
-    uv run scripts/vestibular_probe.py
-"""
-
 import argparse
 import json
 import pickle
@@ -44,7 +23,6 @@ NAMES = ["gyro_x", "gyro_y", "gyro_z", "grav_x", "grav_y", "grav_z"]
 
 
 def cv_ridge(F, Y, folds=5, alphas=np.logspace(-1, 5, 13)):
-    """Out-of-fold ridge predictions over contiguous blocks; alpha chosen by pooled R² of the standardized targets."""
     import torch
 
     dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -73,12 +51,11 @@ def cv_ridge(F, Y, folds=5, alphas=np.logspace(-1, 5, 13)):
 
 
 def score(Ptrue, Pred, spread, ep_start):
-    """Per-dimension R², error in units of the teacher's spread, and the lag (steps) maximizing the match."""
     out = {}
     r2 = 1 - ((Ptrue - Pred) ** 2).mean(0) / Ptrue.var(0)
     rmse_spread = np.sqrt(((Ptrue - Pred) ** 2).mean(0)) / spread
     lags = {}
-    for k in range(0, 4):  # does the decoded value at t match the truth at t - k better?
+    for k in range(0, 4):
         ok = np.ones(len(Ptrue), bool)
         ok[:k] = False
         for s in ep_start:
@@ -89,11 +66,9 @@ def score(Ptrue, Pred, spread, ep_start):
     out["r2"] = dict(zip(NAMES, r2.round(3).tolist()))
     out["r2_mean"] = round(float(r2.mean()), 3)
     out["rmse_over_spread"] = dict(zip(NAMES, rmse_spread.round(3).tolist()))
-    out["rmse_over_spread_xy"] = round(float(rmse_spread[[0, 1, 2, 3, 4]].max()), 3)  # grav_z barely moves
+    out["rmse_over_spread_xy"] = round(float(rmse_spread[[0, 1, 2, 3, 4]].max()), 3)
     out["r2_by_lag"] = lags
     out["best_lag"] = [int(np.argmax([lags[k][j] for k in range(4)])) for j in range(6)]
-    # The replay data has DART action noise, so it spans ~2x the teacher's own range; the spec is about the states
-    # the controller actually visits. In range: every IMU value within 3 teacher spreads of standing.
     stand = np.array([0, 0, 0, 0, 0, -1.0])
     m = (np.abs(Ptrue[:, :5] - stand[:5]) <= 3 * spread[:5]).all(1)
     e_in = np.sqrt(((Ptrue[m] - Pred[m]) ** 2).mean(0)) / spread
@@ -135,8 +110,8 @@ def main():
                 t0 = time.time()
                 F = np.array([ctrl.sense(o) for o in O], np.float32)
                 ms = (time.time() - t0) / len(O) * 1000
-                D = np.array([ctrl.encoder.drive(o) for o in O], np.float32)  # what was stimulated (one well)
-                C = F.shape[1] // 4  # layout: 2 bins x channels, then the 40 and 160 ms traces
+                D = np.array([ctrl.encoder.drive(o) for o in O], np.float32)
+                C = F.shape[1] // 4
                 row = {"name": name, "encoding": enc, "n_stim": n_stim, "wells": wells, "stim_total": n_stim * wells,
                        "ms_per_step": round(ms, 1), "steps": len(O), "channels_recorded": C,
                        "mean_rate_hz": round(float((F[:, :2 * C] ** 2).sum(1).mean() / C / 0.02), 2)}

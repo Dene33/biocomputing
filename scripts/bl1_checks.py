@@ -1,26 +1,3 @@
-"""Checks behind bl1_drift.py: is the harness bl1, and does it do what it says? Run in bl1's venv:
-
-    uv run --project /mnt/datadisk/repos/bl1 --no-sync python scripts/bl1_checks.py [--only NAME ...]
-
-Each check prints PASS or FAIL with its numbers; the exit code is 1 if any check fails.
-
-- spont_port: plasticity off, no stimulation: Culture's step vs bl1's scripts/tune_bursting.py step_fn, written out
-  verbatim, with the same noise (20 s). Spikes per step must be identical.
-- plastic_port: STDP on, pulses on: Culture (closedloop=True) vs bl1's own loop.controller._make_scan_step (ClosedLoop's
-  step, STDP included) fed the same noise + pulse current (10 s), at bl1's DishBrain weights (g_exc 0.05, g_inh 0.20).
-  Spikes per read and final weights identical. (At the calibrated 0.12 / 0.36 ClosedLoop's step seizes, 183 Hz per
-  neuron without stimulation, and the two runs part within the first read on GPU and CPU alike: float summation order
-  amplified by chaos, not a logic difference.)
-- homeo_port: homeostasis as bl1_drift wires it vs an independent reference: bl1's update_rate_estimate scanned over
-  the spike history of each read, then homeostatic_scaling(dt_ms=200) (10 s, fixed variant targets).
-- reads_vs_fine: plasticity off, the two jitted paths (reads, fine) give the same spikes.
-- determinism: the same 30 s plastic stimulated run twice gives the same spikes and weights.
-- stimulus: schedule() gives f = (7 (0.15 -/+ sin th))^2 pulses per second within 1 per 10 s; every pulse is 40
-  steps (20 ms) on, across reads and 5 s chunks; stimulated neurons get +150; spikes per stimulated neuron per pulse.
-- homeo_tracks: after 30 s of fixed-variant homeostasis, the rate estimate matches measured rates (EMA, tau 10 s), and
-  scaling moves E->E weights onto neurons above their target down and below it up.
-"""
-
 import os
 
 os.environ.setdefault("XLA_PYTHON_CLIENT_PREALLOCATE", "false")
@@ -48,7 +25,6 @@ def report(name, ok, **info):
 
 
 def pulses(cu, n_reads, rng, enc):
-    """Flags of the drift protocol for n_reads (the same code path as bl1_drift.drift)."""
     flags = np.zeros((n_reads, D.STEPS, cu.n_el), bool)
     spill = np.zeros((D.PULSE_STEPS, cu.n_el), bool)
     last, X, th = {e: -1e9 for e in enc}, [], 0.0
@@ -88,7 +64,7 @@ def spont_port():
     W_ampa, W_nmda = W_exc * (1.0 - 0.37), W_exc * 0.37
     DT = 0.5
 
-    def step_fn(carry, I_t):  # tune_bursting.step_fn, verbatim
+    def step_fn(carry, I_t):
         ns, ss, stp_st = carry
         I_syn = compute_synaptic_current(ss, ns.v)
         I_total = I_syn + I_t
@@ -110,9 +86,6 @@ def spont_port():
 
 
 def dishbrain_weights(cu):
-    """bl1's DishBrain culture weights (dishbrain_pong.yaml: g_exc 0.05, g_inh 0.20), which ClosedLoop's step is
-    configured for; with the calibrated 0.12 / 0.36 its step (no AMPA/NMDA split) seizes, which hides any comparison
-    under chaos."""
     cu.w0 = cu.w0 * (0.05 / 0.12)
     cu.W_inh = cu.W_inh * (0.20 / 0.36)
     cu.carry = cu.carry[:5] + (cu.w0,)
@@ -161,7 +134,7 @@ def homeo_port():
 
     n_reads = 50
     cu = D.Culture("fixed")
-    rates = np.random.default_rng(0).uniform(0.5, 3.0, D.N)  # arbitrary targets: the check is the wiring
+    rates = np.random.default_rng(0).uniform(0.5, 3.0, D.N)
     cu.set_targets(rates)
     flags, _ = pulses(cu, n_reads, np.random.default_rng(1), [3, 34])
     ref = D.Culture("fixed")
@@ -233,7 +206,6 @@ def stimulus():
         X = np.array(X).sum(0)
         want = [(7 * (0.15 - math.sin(th))) ** 2 * 10, (7 * (0.15 + math.sin(th))) ** 2 * 10]
         on = flags.reshape(-1, cu.n_el)[:, enc].sum(0)
-        # every pulse 40 steps on (pulses never overlap: >= 112 ms apart); the last may spill past the 10 s
         full = all(abs(on[k] - D.PULSE_STEPS * X[k]) <= D.PULSE_STEPS for k in (0, 1))
         good = all(abs(X[k] - want[k]) <= 1.0 for k in (0, 1)) and full
         ok &= good
@@ -241,7 +213,6 @@ def stimulus():
     sm = np.asarray(cu.stim_map)
     stim_vals = sorted(set(np.round(sm[enc].ravel(), 3).tolist()))
     ok &= stim_vals == [0.0, 150.0]
-    # spikes of the stimulated neurons in one 20 ms pulse, from rest
     cu.reads(cu.quiet(10))
     flags = np.zeros((D.STEPS, cu.n_el), bool)
     flags[:D.PULSE_STEPS, enc[0]] = True
@@ -277,7 +248,7 @@ def homeo_tracks():
     rows = np.asarray(cu.idx[:, 0]); cols = np.asarray(cu.idx[:, 1])
     is_exc = np.asarray(cu.is_exc)
     ee = is_exc[rows] & is_exc[cols]
-    err = (tgt - est)[rows]  # the scaling after a read uses the rate estimate at the end of that read
+    err = (tgt - est)[rows]
     dw = w_after - w_before
     lo, hi = cu.homeo_params.w_min, cu.homeo_params.w_max
     sel = ee & (np.abs(err) > 0.05) & (w_before > lo) & (w_before < hi)
@@ -301,7 +272,7 @@ def main():
             continue
         try:
             c()
-        except Exception as e:  # a crashing check is a failed check; keep going
+        except Exception as e:
             import traceback
 
             traceback.print_exc()

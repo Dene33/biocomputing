@@ -1,178 +1,3 @@
-"""Route finding: does our model culture reproduce a published learning effect?
-
-Robbins et al. 2026, "Goal-directed learning in cortical organoids" (Cell Reports 45:116984; code on Zenodo,
-10.5281/zenodo.17684862): mouse cortical organoids on a MaxOne HD-MEA balance a cartpole. Proficient cycles:
-null 2.3%, random training 4.5%, adaptive training 23.1% (continuous adaptive 46.4%). Our coaching probe
-(coach_probe.py) used neither their electrode selection nor their training rule, so here is their protocol, step by
-step, on the simulated culture (20,000 neurons, 256-electrode grid at 100 um, focal stimulation):
-
-1. Record: 20 s of spontaneous activity; candidates = the 32 most active electrodes (MaxOne stimulates <= 32).
-2. Stimulate: each candidate 25x at 4 Hz (paper: 50x at 2 Hz). First-order causal connectivity C1(i, j) =
-   P(spike on j within 10 ms); a stimulation evokes a network burst when the total count over all candidates
-   (0-200 ms) exceeds median + 3 MAD.
-3. Configuration: encoders a, c and decoders b, d maximising C1(a,b) + C1(c,d) - C1(a,d) - C1(c,b); encoders with
-   burst probability > 0.5 excluded; 8 training units from the remaining candidates (most active first).
-4. Train: gym cartpole (0.02 s per step, force +-10 N continuous, fail at |theta| > 16 deg); one game step per
-   200 ms read. Encoders pulsed at regular intervals at f = (7 (0.15 -/+ sin theta))^2 Hz (1.1 Hz upright,
-   0.8 / 8.9 Hz at 16 deg). Force = 10 N x clip(-(r_b - r_d), -1, 1), r = 0.2 r + 0.8 count (200 ms counts).
-   ``--decoder raw`` uses the counts as they are. That rule assumes near-silent decoders (organoid units fire a few
-   Hz); ours fire 40-90 Hz, so the difference sits far past the clip and an unbalanced pair pushes one way forever
-   (first run: two of three cultures fell in 13 steps every episode in every mode). ``--decoder rest`` (default)
-   puts each decoder on the paper's scale: (count - resting mean) / resting SD, from the spontaneous recording.
-   That still pinned two of three cultures: under stimulation one decoder fires 85-100 Hz and the other ~48 Hz
-   (both ~12 Hz at rest). ``--decoder task`` normalises with the mean and SD measured in a calibration block.
-   Calibration (every run, plasticity off): 120 s of encoder pulses at the encoding rates for tilts held 1 s each,
-   drawn uniformly within +-12 deg, game off. Per read, each decoder's count is regressed on both encoders' pulse
-   counts: the 2 x 2 gain matrix says how specific the 200 ms decoder windows are; ``reflex_r2`` is the share of
-   the variance of the decoder difference that the tilt explains.
-   Calibration found specific windows in all three cultures (own encoder 1.6-3.3 spikes per pulse, other 0.2-0.5;
-   reflex R^2 0.11-0.23, decoders ~15 Hz) but in play, with STDP on, decoders ran at 30-100 Hz within 10 episodes.
-   ``--drift``: is that the plasticity? The calibration stimulation (seed 0's configuration) with STDP off or scaled
-   by ``--drift-scales``, synaptic scaling every 5 s as in play; rates per 10 s and encoder->decoder gains per 60 s.
-   ``--stdp-scale`` scales STDP's amplitudes (a_plus, a_minus) in the replication itself.
-   Result: it is the plasticity, at every strength. STDP off: 6 Hz per electrode throughout, decoders specific. On:
-   the encoder with the slightly stronger response is potentiated until its pulses fire the whole network
-   (x1: 6 -> 12 Hz by 20 s, 41 Hz by 40 s, 43 Hz over the second minute; last-minute means x0.3: 38 Hz,
-   x0.1: 30 Hz; x0.03: 6.5 -> 13 Hz in 10 min) and then drives both decoders
-   (end gains on the other decoder 24.6 / 14.7 / 19.2 / 7.5 spikes per pulse vs 0.3-2.9 from its own encoder).
-   Scaling total input doesn't stop it; weaker STDP only slows it. The rule is additive with hard bounds, the
-   textbook unstable form (Song, Miller & Abbott 2000; van Rossum, Bi & Turrigiano 2000 for the stable,
-   weight-dependent form).
-
-   ``--stdp-rule multiplicative``: the weight-dependent form. It plateaus lower (~22 Hz) but the same encoder
-   takes over both decoders (drift_multiplicative.json).
-   ``--istdp-eta`` adds inhibitory plasticity (Vogels et al. 2011, see plasticity.py), each neuron's target its
-   resting rate (floor ``--target-floor``), inhibitory weights up to ``--w-max-inh``. Drift gate, fixed before the
-   sweep: rate per electrode in the last 60 s <= 1.5x the resting rate (20 s before any stimulation; a 60 s trial
-   showed the runaway can happen inside the first minute, so "last vs first minute" would miss it), and in the
-   last 60 s each decoder's own gain >= 2x its cross gain with the cross gain <= 1 spike per pulse.
-   First sweep (drift_istdp_clamped10.json, STDP x1, 10 min): no rate passes. The rate falls as eta rises but
-   levels off (last 60 s vs rest: eta 0.001 4.1x, 0.003 3.8x, 0.01 3.4x, 0.03 2.8x, 0.1 2.2x), and the mean
-   inhibitory weight ends at 9.7-9.9 in every arm: the synaptic scaling step (coach_probe.scale) clamped *all*
-   weights to w_max = 10, so inhibition was capped at 10, not ``--w-max-inh``, and saturated. Fixed (scaling now
-   bounds excitatory weights only; without inhibitory plasticity nothing changes, inhibitory weights start <= 10).
-   ``--drift-pairs ETA:CAP`` sweeps rate and cap together; the drift row now reports the share of inhibitory
-   synapses at the cap and at zero, and the share of neurons above 1.5x their target in the last 60 s.
-   Refinement round, the last of the time box (drift_istdp.json; eta:cap 0.01:30 0.03:30 0.1:30 0.03:100 0.1:100):
-   no arm passes. Rate vs rest, last 60 s: 1.64 / 1.67 / 1.65 / 1.56 / 1.51 (gate 1.5); 59-72% of neurons above
-   1.5x their own target. Inhibition is not at its cap (2-4% of synapses at 30, <1% at 100) and still climbing (mean
-   5.7 -> 23-25 at cap 30, 38-51 at cap 100), yet rates don't come down: more inhibition stops buying lower rates.
-   Untested guess: the rule also strengthens inhibitory -> inhibitory synapses (Vogels et al. used I -> E only), so
-   it partly silences the inhibition itself. Evoked responses fade: own gains 2-4 -> 0.5-1.5 spikes per pulse, and
-   in three arms decoder 1 follows the wrong encoder (own / cross 0.57 / 2.0 at 0.01:30). Only 0.1:100 is specific
-   in the last window (1.06 / 0.45, 0.92 / 0.29), not a minute earlier (0.57 / 0.59), with gains near zero (0.09 /
-   0.01 at 9 min). Inhibitory plasticity cuts the runaway (43 Hz -> 9-10 Hz per electrode) but doesn't make the model
-   hold rates and pathways; no replication run.
-
-   Track B, step B1 (docs/route-to-computation.md, "Order of work without a dish"): a rate controller.
-   ``--drift-homeo ETA`` replaces the 5 s total-input step with per-neuron synaptic scaling (plasticity.py,
-   SynapticScaling: bl1's rule, each neuron's target its own resting rate with floor ``--target-floor``, rate
-   estimate a 10 s moving average, E->E weights x exp(eta x 200 ms x (target - rate)) every 200 ms; the runs of
-   24 Nov 2026 used bl1's 1 + eta x 200 ms x (target - rate), which can go negative, see plasticity.py).
-   ``--drift-seeds`` runs the test on the replication's cultures 0, 1, 2 (their encoders and decoders from
-   run_task.log). Arms per culture: no plasticity; scaling alone; STDP x1 with the old 5 s step (the runaway, as
-   above); STDP x1 with scaling instead. bl1's eta 1e-5 is the gate's; 1e-4 runs after it, exploratory.
-   Gate B1, fixed before the run: at eta 1e-5, in each of the 3 cultures, the rate per electrode in the last 60 s stays
-   within a factor 1.5 of rest (2/3x to 1.5x) both with scaling alone and with STDP x1 plus scaling. The lower bound
-   is ours: bl1's arms "passed" the old gate by running down, and calm by muting doesn't count. Controls: no
-   plasticity stays in that band, and the old 5 s step runs away (> 1.5x), so the test can see what B1 must stop.
-   Reported, not gated: the rate per minute (``rate_ratio_60s``), encoder -> decoder gains per minute (B2's half of
-   the drift gate), the mean E->E weight against its start, the share of neurons above 1.5x their own resting rate
-   (floored) in the last 60 s, in every arm. The gate and the pathway test below count only arms of the full 10
-   minutes; shorter ones are reported as untested. Output: <out>/drift_scaling.json (rows and gate_B1).
-
-        uv run scripts/launch.py --unit bio-b1 --log outputs/drift_scaling/run.log -- \
-            scripts/cartpole_replication.py --drift --drift-seeds 0 1 2 --drift-scales 0 1 \
-            --drift-homeo 0 1e-5 1e-4 --drift-seconds 600 --workers 4 --out outputs/drift_scaling
-   Result (24 Nov 2026; numbers from the rerun of 25 Nov after the code review's fixes: exp factor, one yardstick per
-   neuron): gate B1 not passed; the controls behave. Last-minute rate per electrode against rest, cultures 0 / 1 / 2:
-   no plasticity 1.10 / 1.14 / 0.97; scaling alone 1.04 / 1.04 / 0.99 (0.99-1.07 in every minute; neurons above 1.5x
-   their own target 0.8-3.7% -> 0.5-1.0%); STDP x1 with the old 5 s step 6.97 / 7.83 / 5.54; STDP x1 with scaling at
-   eta 1e-5 7.46 / 10.2 / 6.29, no better than the old step: 4.9-7.5x rest by minute 2 and 5.1-10.2x from minute 5
-   on, mean E->E weight 1.42-1.76x its start (the old step holds it at 0.99x). Exploratory eta 1e-4: 1.91 / 2.10 /
-   1.96, 1.7-2.1x from minute 5 on, E->E weight 0.58-0.72x. Scaling alone doesn't mute the inputs (own gains
-   1.6-2.9 spikes per pulse in the last minute; no plasticity 1.1-3.2). With STDP and eta 1e-4 the pathways mix: in
-   cultures 0 and 1 a cross gain climbs from 2.0-2.8 to 4.7-6.6 spikes per pulse over the 10 minutes (no plasticity:
-   under 2), and one decoder ends up following the other encoder (6.6 against 0.8 from its own; 4.7 against 2.0).
-   Ten times the eta cut the excess over rest from 7.0x to 1.0x: the brake works, but against a push that doesn't
-   let up. Only the old 5 s step didn't repeat bit for bit: its total-input sum used the GPU's atomic adds, which
-   add in a varying order (6.97 / 9.10 / 4.54 on 24 Nov, 6.84 / 8.97 / 4.59 on 25 Nov; the numbers above are from the
-   ordered sum, ``excitatory_input``, and repeat). Every other arm repeats exactly; the scaling arms moved since 24
-   Nov because the exp factor changes the weights slightly and the network's chaos grows that into another path. So
-   one run of one arm is one path of a chaotic system: the old step's three runs span 7.8-9.1x in culture 1 and
-   4.5-5.5x in culture 2. Likely reason, not tested: our STDP is additive (a fixed
-   step per pairing) and the scaling multiplicative, so they balance only at a rate error that grows as eta falls
-   and as the weights shrink. A rate brake also does nothing for the pathways.
-   Check before closing track B (24 Nov 2026; B2's first candidate, run early and labelled as such): does
-   weight-dependent STDP close the gap? ``--stdp-rule multiplicative`` (depression scales with the weight, van Rossum
-   et al. 2000) with the same scaling, cultures and folder. Arms without STDP don't involve the rule, so they are
-   named without it and B1's no-plasticity and scaling-alone arms are reused (their rows say "additive"). New arms
-   per culture: weight-dependent STDP x1 with the old 5 s step (control; culture 0 ran to ~22 Hz before), with
-   scaling at eta 1e-5 (gated) and 1e-4 (exploratory). Reading, fixed before the run: it supports opening B2 only if,
-   at eta 1e-5, the rate gate above holds in all 3 cultures and at most 1 of the 12 pathways (own and cross, 4 per
-   culture) has moved against the no-plasticity arm: last 3 minutes, beyond 2 SE from both arms' per-minute spread
-   over minutes 2-10 (``pathways_vs_off``, bl1_rep_analysis.py's test). On B1's rows that test finds 2 of 4 moved in
-   6 of the 9 culture-and-setting arms with additive STDP and none in the other 3 (9 of 9 on 24 Nov's run: a slight
-   change, such as the exp factor, can flip one arm's verdict), and 1 of 24 with scaling alone (the noise floor).
-   Otherwise the track closes, as its rule says. Output: <out>/drift_multiplicative_scaling.json.
-
-        uv run scripts/launch.py --unit bio-b1m --log outputs/drift_scaling/run_multiplicative.log -- \
-            scripts/cartpole_replication.py --drift --stdp-rule multiplicative --drift-seeds 0 1 2 \
-            --drift-scales 0 1 --drift-homeo 0 1e-5 1e-4 --drift-seconds 600 --workers 4 --out outputs/drift_scaling
-   Result (24 Nov 2026; numbers from the rerun of 25 Nov): the reading fails, so track B closes. Last-minute rate
-   against rest, cultures 0 / 1 / 2: weight-dependent STDP with the old step 4.05 / 3.41 / 2.18 (control); with
-   scaling at eta 1e-5 4.21 / 4.95 / 2.16 (additive: 7.46 / 10.2 / 6.29), no better than the old step (above it in
-   2 of 3 cultures), E->E weight 1.16-1.31x; 6 of 12 pathways moved (2 of 4 in every culture: a cross gain up by
-   5.7-19 spikes per pulse). Exploratory eta 1e-4: 1.39 / 1.53 / 1.34, within the band in 28 of 30 minutes
-   (1.03-1.49; culture 1 at 1.52 and 1.53 in minutes 6 and 10), E->E weight 0.70-0.79x, inputs still answered (own
-   gains 2.7-6.0 spikes per pulse, per-minute mean of the two): the closest any setting came to holding rates, but
-   culture 1's last minute misses the band by 0.03 (24 Nov's run ended inside in all three, 1.32-1.45). And the
-   pathways still merge: 2 of 4 moved in every culture, and in each culture one encoder drives both decoders by the
-   end (the other decoder: 6.5 / 4.0 / 5.3 spikes per pulse from the wrong encoder against 1.3 / 3.4 / 1.0 from its
-   own); separate (own >= 2x |cross| and |cross| <= 1, both decoders) in 0 of 30 minutes. So the likely reason above
-   holds for the rates (weight dependence plus faster scaling brings them to the edge of the band), and the pathways
-   are a separate problem: under repeated stimulation our STDP hands the network to whichever input drives it,
-   whatever holds the rates.
-   After each episode, if the mean of the last 5 episodes is not above that of the last 20: a 400 ms training
-   signal, then 3 s wait (null: the same time without stimulation).
-   - ``random``: 5 training units in random order, 10 ms apart, repeated at 10 Hz
-   - ``adaptive``: an ordered pair of training units, 10 ms apart, repeated at 10 Hz, sampled in proportion to its
-     value; after every episode the last pattern's value moves towards the change (5-episode mean - 20-episode
-     mean) through eligibility traces (learning rate 0.3, trace decay 0.3, floor 0.1, start 1)
-   - ``frozen``: adaptive with plasticity off (our control: the agent alone, steering a culture that can't learn)
-   Cycles of ``--cycle-min`` minutes, 45 min rest between (fast-forwarded: weights decay towards baseline).
-   STDP on, with synaptic scaling after each episode (the model's weights run away without it).
-5. Score (theirs): 90th percentile of time balanced per cycle, time = steps x 0.3 s (their 300 ms base);
-   proficient above 20.85 s, mean + 3 SD of the best random controller with this physics (8.73 +- 4.04 s; paper
-   8.64 +- 4.00 s -> 20.64 s).
-
-Logs: run_raw_decoder.log (round 1), run_rest.log (round 1), run_task.log (calibration + round 1 null); the runs
-were stopped there because the decoders pinned. drift.json, drift_multiplicative.json, drift_istdp_clamped10.json,
-drift_istdp.json: the drift tests; outputs/drift_scaling/drift_scaling.json and run.log: B1;
-drift_multiplicative_scaling.json and run_multiplicative.log there: the weight-dependent check.
-
-Stop and resume: every job checkpoints (device, plasticity, script state) to <out>/ckpt every 5 minutes of wall
-time, and on SIGTERM at the next 200 ms read, then exits. Run the same command again to resume; finished jobs are
-kept in <out>/jobs and skipped. Result and checkpoint files are named by every setting the job runs with (a digest
-after the arm name, ``job_key``), so a rerun with any setting changed runs anew; code changes are not part of the key,
-so rerun into a fresh --out after changing the model. A stop during a job's setup (characterisation, calibration,
-~15 min) restarts that job's setup.
-
-    uv run scripts/cartpole_replication.py
-    uv run scripts/cartpole_replication.py --drift --drift-scales 1 --drift-pairs 0.01:30 0.1:100 --drift-seconds 600
-    systemctl --user stop <unit>   # graceful: saves, then exits; relaunch the same command to resume
-
-Long runs go through the launcher (smoke test, detached unit, start-up check) and the watchdog:
-
-    uv run scripts/launch.py --unit bio-cp --log outputs/cartpole_replication/run.log -- \
-        scripts/cartpole_replication.py --drift --drift-scales 1 --drift-pairs 0.01:30 --drift-seconds 600
-    uv run scripts/watch.py --unit bio-cp --log outputs/cartpole_replication/run.log
-
-Every job runs ``Guard`` checks every 30 s (finite state, weights within their caps and not piled up below them,
-plausible rate) and writes a heartbeat to <out>/heartbeat. After a GUARD FAIL caused by a bug, delete the job's
-checkpoint in <out>/ckpt before rerunning: it holds the state the bug produced.
-"""
-
 import argparse
 import importlib.util
 import itertools
@@ -194,14 +19,12 @@ spec = importlib.util.spec_from_file_location("coach_probe", HERE / "coach_probe
 C = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(C)
 
-STEP_S = 0.3  # their time base per game step
+STEP_S = 0.3
 PROFICIENT_S = 20.85
 LIMIT = math.radians(16.0)
 
 
 class CartPole:
-    """gym CartPole physics (Euler, tau 0.02 s), continuous force, no cart-position limit, fail at 16 degrees."""
-
     def __init__(self, rng):
         self.s = rng.uniform(-0.05, 0.05, 4)
 
@@ -224,8 +47,6 @@ class CartPole:
 
 
 def build(seed, culture=None):
-    """The replication's culture (gpu_20k on the 256-electrode grid), 2 s settled. ``culture``: overrides of the
-    culture's config (weak_synapses.py's variants); none gives the culture of every stored run."""
     import torch
 
     from biocompute.culture.network import make_config
@@ -243,8 +64,6 @@ def build(seed, culture=None):
 
 
 def characterise(dev, reps=25, isi_ms=250.0, beat=None):
-    """``beat(done, total)``: optional progress call after each electrode (a heartbeat for slow cultures; it
-    changes nothing measured)."""
     bins = np.zeros((200, dev.n_channels))
     neuron = np.zeros(dev.culture.n)
     for i in range(200):
@@ -252,7 +71,7 @@ def characterise(dev, reps=25, isi_ms=250.0, beat=None):
         bins[i] = np.bincount(b.channels, minlength=dev.n_channels)
         neuron += dev.oracle_counts
     counts = bins.sum(0)
-    c200 = bins.reshape(100, 2, -1).sum(1)  # counts per 200 ms read
+    c200 = bins.reshape(100, 2, -1).sum(1)
     rest_stats = np.stack([c200.mean(0), c200.std(0)], 1)
     alive = dev.mea.alive_channels
     cand = alive[np.argsort(counts[alive])[::-1][:32]]
@@ -293,7 +112,7 @@ def configure(cand, rate, first, burst):
         s = first[a, b] + first[c, d] - first[a, d] - first[c, b] - 0.5 * (first[a, c] + first[c, a])
         if s > bs:
             best, bs = (a, b, c, d), s
-    if best is None:  # fewer than two pairs with an encoder that bursts on at most half its pulses
+    if best is None:
         return None
     a, b, c, d = best
     rest = [i for i in np.argsort(rate)[::-1] if i not in best][:8]
@@ -306,8 +125,6 @@ def configure(cand, rate, first, burst):
 
 
 def schedule(dev, enc, th, last, log=None):
-    """Queue the encoder pulses of the next 200 ms read for pole angle ``th``; returns pulses per encoder. With
-    ``log`` (a list), also appends the pulses' absolute times (ms) and channels; that doesn't touch the run."""
     hz = [(7 * (0.15 - math.sin(th))) ** 2, (7 * (0.15 + math.sin(th))) ** 2]
     ch, tt, n = [], [], [0, 0]
     now = dev.culture.t_ms
@@ -342,7 +159,7 @@ def calibrate(dev, cfg, rng, seconds=120.0):
         S.append(math.sin(th))
     X, Y, S = np.array(X, float), np.array(Y, float), np.array(S)
     A = np.column_stack([np.ones(len(X)), X])
-    gain = np.linalg.lstsq(A, Y, rcond=None)[0][1:].T  # gain[k, i]: spikes on decoder k per pulse on encoder i
+    gain = np.linalg.lstsq(A, Y, rcond=None)[0][1:].T
     diff = Y[:, 0] - Y[:, 1]
     rho = float(np.corrcoef(diff, -S)[0, 1])
     return {"dec_task": [[round(float(m), 3), round(float(v), 3)] for m, v in zip(Y.mean(0), Y.std(0))],
@@ -350,7 +167,6 @@ def calibrate(dev, cfg, rng, seconds=120.0):
             "pulses_per_read": round(float(X.sum(1).mean()), 2)}
 
 
-# --- Stop and resume ------------------------------------------------------------------------------------------
 STOP = {"requested": False, "phase": "idle"}
 
 
@@ -359,9 +175,9 @@ class Stopped(Exception):
 
 
 def _on_term(signum, frame):
-    STOP["requested"] = True  # in a running job: saved and stopped at the next read
+    STOP["requested"] = True
     if STOP["phase"] == "setup":
-        raise Stopped("setup")  # nothing worth saving yet; a rerun starts this job's setup over
+        raise Stopped("setup")
 
 
 def _start_job():
@@ -375,9 +191,6 @@ def _worker_init():
 
 
 class Checkpoint:
-    """Atomic snapshots of one job: device, plasticity and the script's state; every ``every_s`` of wall time and
-    when a stop is requested (then raises ``Stopped``)."""
-
     def __init__(self, path, every_s=300.0):
         self.path, self.every_s, self.t = Path(path), every_s, time.time()
         self.path.parent.mkdir(parents=True, exist_ok=True)
@@ -418,10 +231,9 @@ def spec_tag(spec):
         f"_homeo{spec['homeo']:g}" if spec.get("homeo") else "")
 
 
-# Encoders and decoders per culture seed, from characterise/configure in the replication (run_task.log).
 DRIFT_CONFIGS = {0: ([136, 155], [137, 139]), 1: ([129, 34], [113, 35]), 2: ([217, 100], [233, 116])}
-B1_BAND = (2 / 3, 1.5)  # gate B1: last-minute rate per electrode within a factor 1.5 of rest, either way
-GATE_MINUTES = 10  # the drift gate's length: gate B1 and the pathway test count only arms this long
+B1_BAND = (2 / 3, 1.5)
+GATE_MINUTES = 10
 
 
 def long_enough(r):
@@ -429,8 +241,6 @@ def long_enough(r):
 
 
 def resting_rates(dev, seconds=20.0):
-    """Per-neuron rates (Hz) and the mean rate per electrode over ``seconds`` of spontaneous activity, plasticity
-    off."""
     c = dev.culture
     keep, c.plasticity = c.plasticity, None
     counts, det = np.zeros(c.n), 0
@@ -443,20 +253,15 @@ def resting_rates(dev, seconds=20.0):
 
 def gains(X, Y):
     A = np.column_stack([np.ones(len(X)), X])
-    return np.linalg.lstsq(A, Y, rcond=None)[0][1:].T  # [decoder, encoder]: spikes per pulse
+    return np.linalg.lstsq(A, Y, rcond=None)[0][1:].T
 
 
 def per10(x):
-    """Means over 10 s windows (50 reads); a run shorter than 10 s (smoke tests) gives one window."""
     k = max(len(x) // 50, 1) * 50 if len(x) >= 50 else len(x)
     return x[:k].reshape(-1, min(50, k), *x.shape[1:]).mean(1)
 
 
 def gate_b1(rows, eta=1e-5):
-    """Gate B1 (fixed before the run): in every culture, the last-minute rate per electrode stays within B1_BAND of
-    rest (i) with scaling alone and (ii) with STDP x1 plus scaling, at bl1's eta. Other rates are reported only.
-    Controls: the no-plasticity arm stays in the band (stimulation alone doesn't lift the rate), and STDP with the old
-    5 s step runs away (> 1.5x: the test can catch what B1 must stop)."""
     lo, hi = B1_BAND
     by = {(r.get("seed", 0), r["scale"], r.get("homeo", 0.0)): r for r in rows if not r["eta"]}
     seeds = sorted({k[0] for k in by})
@@ -476,11 +281,8 @@ def gate_b1(rows, eta=1e-5):
 
 
 def pathway_change(r, off):
-    """One plastic arm's four encoder -> decoder gains (own and cross) against its culture's no-plasticity arm: over
-    the last 3 minutes, a gain has moved when the difference exceeds 2 SE, SE from both arms' per-minute spread over
-    minutes 2-10. Arms shorter than the gate have no spread to test against (SE NaN) and are marked untested."""
     ok = long_enough(r) and long_enough(off)
-    g, g0 = np.array(r["gain_60s"]), np.array(off["gain_60s"])  # [minute, decoder, encoder]
+    g, g0 = np.array(r["gain_60s"]), np.array(off["gain_60s"])
     se = np.sqrt(g[1:].std(0, ddof=1) ** 2 / 3 + g0[1:].std(0, ddof=1) ** 2 / 3) if ok else np.nan
     diff = g[-3:].mean(0) - g0[-3:].mean(0)
     moved = np.abs(diff) > 2 * se
@@ -491,11 +293,6 @@ def pathway_change(r, off):
 
 
 def pathways_vs_off(rows, eta=1e-5, max_moved=1):
-    """Pathways against the noise floor (bl1_rep_analysis.py's test): for each plastic arm, each encoder -> decoder
-    gain (own and cross) over the last 3 minutes against the same culture's no-plasticity arm; it has moved when the
-    difference exceeds 2 SE, SE from both arms' per-minute spread over minutes 2-10. Reported per culture and arm;
-    ``reading`` (fixed before the weight-dependent check) holds when, at ``eta``, STDP plus scaling is in B1_BAND in
-    every culture and at most ``max_moved`` of all its pathways moved."""
     by = {(r.get("seed", 0), r["scale"], r.get("homeo", 0.0)): r for r in rows if not r["eta"]}
     out = {"per_culture": {}}
     for sd in sorted({k[0] for k in by}):
@@ -516,8 +313,6 @@ def pathways_vs_off(rows, eta=1e-5, max_moved=1):
 
 
 def drift_summary(rows, rule):
-    """What a scaling run reports: gate B1, defined for additive STDP and so given only for additive runs, and the
-    pathway test."""
     return {"stdp_rule": rule} | ({"gate_B1": gate_b1(rows)} if rule == "additive" else {}) | {
         "pathways": pathways_vs_off(rows)}
 
@@ -531,13 +326,9 @@ def drift(job):
 
     arm, key, spec, seconds, out, opts = job
     seed = spec.get("seed", 0)
-    # The takeover rerun (takeover_rerun.py): ``dump`` saves the weights at the start and end, the synapses' ends, the
-    # positions, every electrode's spikes and every pulse; ``ref`` is a stored row this arm must repeat bit for bit,
-    # checked every minute. Neither touches the run.
     dump, ref = opts.get("dump", False), opts.get("ref")
     _start_job()
     g = Guard(f"drift_{arm}", out)
-    # A culture variant (``culture``: config overrides) brings its own encoders and decoders, chosen on it.
     enc, dec = (spec["enc"], spec["dec"]) if "enc" in spec else DRIFT_CONFIGS[seed]
     ck = Checkpoint(out / "ckpt" / f"{key}.pt")
     rng = np.random.default_rng(1)
@@ -545,7 +336,6 @@ def drift(job):
     stdp = make_stdp(spec)
     c = dev.culture
     stdp_on = spec["scale"] > 0 or spec["eta"] > 0
-    # Per-neuron synaptic scaling (B1) replaces the 5 s total-input step (coach_probe.scale) when it is on.
     homeo = SynapticScaling(eta=spec["homeo"]) if spec.get("homeo") else None
     rule = stdp if homeo is None else Chain(stdp, homeo) if stdp_on else homeo
     plastic = stdp_on or homeo is not None
@@ -558,7 +348,7 @@ def drift(job):
         rng.bit_generator.state = S.pop("rng")
     else:
         rates, rest_hz = resting_rates(dev, seconds=opts["rest_s"])
-        target = np.maximum(rates, spec["floor"])  # each neuron's own: the brakes' target and every arm's yardstick
+        target = np.maximum(rates, spec["floor"])
         if spec["eta"]:
             stdp.set_targets(c, target)
         if homeo is not None:
@@ -595,7 +385,7 @@ def drift(job):
         if (i + 1) % 25 == 0 and stdp_on and homeo is None:
             C.scale(c, w_in0)
         S["i"] += 1
-        if ref and S["i"] % 300 == 0:  # each minute's gains as end-of-run computes them, against the stored row
+        if ref and S["i"] % 300 == 0:
             m = S["i"] // 300 - 1
             gm = np.round(gains(np.array(S["X"][-300:], float), np.array(S["Y"][-300:], float)), 2).tolist()
             g.check(m < len(ref["gain_60s"]) and gm == ref["gain_60s"][m],
@@ -608,7 +398,7 @@ def drift(job):
     guard = g
     X, Y, N = np.array(S["X"], float), np.array(S["Y"], float), np.array(S["N"], float)
     g = [np.round(gains(X[k:k + 300], Y[k:k + 300]), 2).tolist() for k in range(0, len(X) - 299, 300)] or [
-        np.round(gains(X, Y), 2).tolist()]  # runs under 60 s (smoke tests): the whole run
+        np.round(gains(X, Y), 2).tolist()]
     hz = N / 0.2 / dev.n_channels
     ratio = float(hz[-300:].mean() / max(S["rest_hz_per_electrode"], 1e-9))
     end = np.array(g[-1])
@@ -672,7 +462,6 @@ def new_cycle(mode, minutes):
 
 
 def cycle(dev, stdp, w_in0, cfg, cs, rng, agent, decoder, tick):
-    """Run, or resume, the cycle held in ``cs``; ``tick()`` checkpoints between reads."""
     c = dev.culture
     mode = cs["mode"]
     c.plasticity = None if mode == "frozen" else stdp
@@ -698,7 +487,6 @@ def cycle(dev, stdp, w_in0, cfg, cs, rng, agent, decoder, tick):
             cs["env"] = env.s
             if done or cs["t_ms"] >= cs["limit"]:
                 break
-        # Episode end: everything below runs between checkpoints.
         steps = cs["steps"]
         cs["steps_all"].append(steps)
         cs["ep_hz"].append(np.mean(cs["dec_counts"][-steps:], 0) / 0.2)
@@ -833,8 +621,7 @@ def _drift_safe(job):
 
 
 def pool_map(fn, jobs, workers):
-    """Run jobs in worker processes that save and stop on SIGTERM; this process ignores SIGTERM and waits."""
-    if not jobs:  # nothing to do (all saved): an idle pool's shutdown can hang on workers that catch SIGTERM
+    if not jobs:  # an idle pool's shutdown can hang on workers that catch SIGTERM
         return []
     signal.signal(signal.SIGTERM, signal.SIG_IGN)
     with mp.get_context("spawn").Pool(workers, initializer=_worker_init) as pool:
@@ -887,7 +674,6 @@ def main():
     out.mkdir(parents=True, exist_ok=True)
 
     def spec(scale, eta, cap=a.w_max_inh, homeo=0.0, seed=0):
-        # With STDP off (scale 0) the rule doesn't act: such arms say "additive" and are shared across rules.
         sp = {"scale": scale, "rule": a.stdp_rule if scale else "additive", "eta": eta, "w_max_inh": cap,
               "floor": a.target_floor}
         return sp | ({"homeo": homeo} if homeo else {}) | ({"seed": seed} if seed else {})
@@ -896,14 +682,13 @@ def main():
         arms = []
         pairs = [tuple(map(float, p.split(":"))) for p in a.drift_pairs] if a.drift_pairs else [
             (eta, a.w_max_inh) for eta in a.drift_etas]
-        # Rates in the order given (B1's 1e-5 before the exploratory ones), each over every culture.
         for h, seed, x, (eta, cap) in itertools.product(a.drift_homeo, a.drift_seeds, a.drift_scales, pairs):
             sp = spec(x, eta, cap, h, seed)
             secs = a.drift_seconds or (120.0 if x in (0.0, 1.0) else 300.0 if x >= 0.3 else 600.0)
             name = f"x{x:g}" + spec_tag({**sp, "scale": 1.0}) + (f"_s{seed}" if seed else "")
             key = job_key(f"drift_{name}", {**sp, "seconds": secs, "rest_s": sizes["rest_s"]})
             arms.append((name, key, sp, secs, out, sizes))
-        if a.smoke:  # the arm with the most machinery: STDP and scaling together if asked for
+        if a.smoke:
             arms = [max(arms, key=lambda j: (j[2]["scale"] > 0) + bool(j[2].get("homeo")))]
         todo = [j for j in arms if not (out / "jobs" / f"{j[1]}.json").exists()]
         pool_map(_drift_safe, todo, a.workers)

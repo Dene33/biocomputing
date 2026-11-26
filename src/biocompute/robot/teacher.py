@@ -1,5 +1,3 @@
-"""The trained walking policy (ONNX), used as the teacher the culture's readout imitates."""
-
 from __future__ import annotations
 
 from pathlib import Path

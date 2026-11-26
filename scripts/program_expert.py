@@ -1,13 +1,3 @@
-"""Weight-space programming of a balance expert: write its 23 × 78 weight matrix from physics, with a handful of
-interpretable gains, then tune those gains by a cross-entropy search on stand_push.
-
-The matrix maps the policy observation linearly to joint actions. Only the pelvis tilt (projected gravity) and
-rate (gyro) enter, into the ankle, hip and knee joints: an ankle/hip balance strategy. Pitch joints of the two legs
-have mirrored axes (their default angles are mirrored); whether roll joints are mirrored is a searched sign.
-
-    uv run scripts/program_expert.py --iters 15
-"""
-
 import argparse
 import json
 import multiprocessing as mp
@@ -23,13 +13,12 @@ JOINTS = ['left_hip_pitch_joint', 'left_hip_roll_joint', 'left_hip_yaw_joint', '
           'right_elbow_joint', 'right_wrist_yaw_joint', 'left_shoulder_pitch_joint', 'left_shoulder_roll_joint',
           'left_shoulder_yaw_joint', 'left_elbow_joint', 'left_wrist_yaw_joint']
 J = {n: i for i, n in enumerate(JOINTS)}
-WX, WY, GX, GY = 0, 1, 3, 4  # observation: gyro × 0.25 at 0:3, projected gravity at 3:6
+WX, WY, GX, GY = 0, 1, 3, 4
 GAINS = ["ankle_pitch_p", "ankle_pitch_d", "hip_pitch_p", "hip_pitch_d", "ankle_roll_p", "ankle_roll_d",
          "hip_roll_p", "hip_roll_d", "knee_p"]
 
 
 def program(gains: np.ndarray, roll_mirror: float) -> np.ndarray:
-    """The 23 × 78 weight matrix for these gains."""
     kpa, kda, kph, kdh, kra, krda, krh, krdh, kk = gains
     K = np.zeros((23, 78))
     for side, s in (("left", 1.0), ("right", -1.0)):
@@ -52,7 +41,6 @@ def _init():
 
 
 def rollout(job) -> float:
-    """job = (K, push seed). Seconds survived on stand_push (20 s), with one step of latency."""
     from biocompute.train.tasks import _pushes
 
     K, seed = job

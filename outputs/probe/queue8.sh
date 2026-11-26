@@ -1,5 +1,4 @@
 cd /mnt/datadisk/repos/biocomputing
-# wait for any running probe (one GPU job at a time)
 while pgrep -f "outputs/probe/encoding.py run" >/dev/null; do sleep 10; done
 export OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 PROBE_DATA=teacher_data_20k.pkl
 P="uv run python outputs/probe/encoding.py run"

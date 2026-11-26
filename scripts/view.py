@@ -1,10 +1,3 @@
-"""Watch the culture drive Asimov 1: live in MuJoCo's viewer, or as a video beside the culture's electrode activity.
-
-    uv run scripts/view.py outputs/reservoir/stand_mea_mcs60_s0                 # live viewer
-    uv run scripts/view.py outputs/reservoir/walk_mea_mcs60_s0 --video walk.mp4 # robot + MEA heatmap + raster
-    uv run scripts/view.py --teacher --task walk --video teacher.mp4            # the teacher, for comparison
-"""
-
 import argparse
 import json
 import pickle
@@ -53,7 +46,7 @@ else:
     task = make_task(args.task or summary["args"]["task"], args.seconds, seed=args.seed)
     setup = Setup(**{k: tuple(v) if isinstance(v, list) else v for k, v in summary["setup"].items()})
     sa = summary["args"]
-    if "workers" in sa:  # train_dagger.py: the encoder was fitted on teacher + DART episodes
+    if "workers" in sa:
         obs = dagger.teacher_observations(env, teacher, [make_task(sa["task"], sa["seconds"], seed=sa["seed"])],
                                           seconds=sa["seconds"], episodes=6, noise=0.3, seed=sa["seed"])
     else:
@@ -80,7 +73,6 @@ if args.video is None:
             viewer.sync()
             time.sleep(max(0.0, frames_every * env_.dt - 0.005))
 
-    # run_episode resets the env, which builds a new MuJoCo model; re-launch the viewer on it.
     _reset = env.reset
 
     def reset(*a, **k):
@@ -135,14 +127,13 @@ else:
     xy = device.mea.xy.copy() if device is not None else None
     raster_channels = device.n_channels if device is not None else 0
     if device is not None and device.mea.wells > 1:
-        # Wells sit 10 mm apart in the model; tile them 3 per row for the picture.
         per = device.mea.channels_per_well
         span = np.ptp(xy[:per, 0]) * 1.25
         for k in range(device.mea.wells):
             sl = slice(k * per, (k + 1) * per)
             xy[sl, 0] = xy[sl, 0] - k * device.mea.cfg.well_spacing_um + (k % 3) * span
             xy[sl, 1] = xy[sl, 1] - (k // 3) * span
-        raster_channels = per  # raster: the first well only
+        raster_channels = per
     fig = plt.figure(figsize=(12.8, 4.8), dpi=100)
     proc = subprocess.Popen(["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s",
                              "1280x480", "-r", str(args.fps), "-i", "-", "-pix_fmt", "yuv420p", args.video],

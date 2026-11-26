@@ -1,34 +1,3 @@
-"""Route finding: why can't the model culture be coached? The burst hypothesis.
-
-scripts/coach_probe.py found that pairing moves the culture's response a lot, but to both contexts alike: every
-probe sets off the same network burst. Spiking-network models of learning met the same wall. Sinapayen, Masumori &
-Ikegami (PLoS ONE 2017, learning by stimulation avoidance, Izhikevich neurons + STDP): in a bursting network "the
-firing rates of Output Zone A and Output Zone B increase in equivalent proportions"; burst suppression (sparser
-connectivity, more noise, or short-term depression) was "essential to obtain learning". In real cultures,
-distributed background stimulation suppresses bursts (Wagenaar, Madhavan, Pine & Potter 2005), and the Potter lab's
-goal-directed learning ran training on top of random background stimulation (Chao, Bakkum & Potter 2008).
-
-Per condition, 2 cultures, the 60-electrode MEA and electrode groups of coach_probe.py:
-1. Burstiness: 20 s of activity. Population count in 10 ms bins: share of spikes in the busiest 5% of bins
-   (~10% for independent firing, most for a bursting culture), and the bins' coefficient of variation.
-2. Site specificity: 40 probes on each context group (alternating). Response = spike counts per electrode
-   5-60 ms after the probe, on electrodes not stimulated. Which group was probed, decoded leave-one-out (nearest
-   centroid, z-scored); and d' of the readout score (A - B) between the two contexts.
-3. Pathway-specific plasticity: 400 pairings of context 0 with output B (``causal``: probe, then B 8 ms later; or
-   ``reverse`` order), synaptic scaling every 100 pairings. Shift of each context's A - B score, plasticity off while
-   measuring. Specific share = shift(context 0) - shift(context 1); the target is negative.
-
-Conditions:
-- ``base``     the culture as used so far
-- ``bg50``, ``bg200``  Poisson background pulses on the 44 unused electrodes, 50 / 200 Hz in total; paused during
-               each response window (the MEA blanks every channel for 2 ms after any pulse)
-- ``noise``    noise current 3 -> 8 (LSA's desynchronizing fix)
-- ``sparse``   100 -> 40 synapses per neuron (LSA: learning best at 20-30 per neuron)
-- ``inhib``    inhibitory weights -6 -> -12
-
-    uv run scripts/burst_probe.py
-"""
-
 import argparse
 import importlib.util
 import json
@@ -77,7 +46,6 @@ def build(seed, overrides):
 
 
 def advance(dev, ms, bg_hz, rng, ch=(), t=()):
-    """Run ``ms`` with the given pulses plus Poisson background pulses on the unused electrodes."""
     ch, t = list(ch), list(t)
     n = rng.poisson(bg_hz * ms / 1000.0) if bg_hz else 0
     if n:
@@ -101,9 +69,8 @@ def burstiness(dev, bg_hz, rng, seconds=20.0):
 
 
 def respond(dev, k, bg_hz, rng):
-    """One probe on context group k (two pulses 10 ms apart, as coach_probe); counts per electrode 5-60 ms."""
     n = len(P[k])
-    b = advance(dev, 60.0, 0.0, rng, P[k] * 2, [0.0] * n + [10.0] * n)  # background paused in the window
+    b = advance(dev, 60.0, 0.0, rng, P[k] * 2, [0.0] * n + [10.0] * n)
     m = (b.times_ms >= 5.0) & (b.times_ms < 60.0)
     v = np.bincount(b.channels[m], minlength=60).astype(float)
     advance(dev, 150.0, bg_hz, rng)
@@ -153,7 +120,7 @@ def run(job):
     dev, stdp, w_in0 = build(seed, overrides)
     c = dev.culture
     row = {"condition": cond, "seed": seed, "mode": mode, "pairings": pairings}
-    if mode == "causal":  # the culture before pairing is the same in both modes; measure it once
+    if mode == "causal":
         row["burst"] = burstiness(dev, bg_hz, rng)
     V, K, s0 = measure(dev, stdp, bg_hz, rng)
     row["site_decoding"] = site_decoding(V, K)

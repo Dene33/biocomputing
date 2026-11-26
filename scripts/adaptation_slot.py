@@ -1,22 +1,3 @@
-"""Route finding: is there an *adaptation slot*, a body change the frozen teacher can't handle that a few adjustable
-parameters can fix, with the right setting depending on the change?
-
-If so, a dish has a non-artificial job that fits real hardware: infer the body's condition from experience and set
-those parameters (DishBrain-style learning from feedback), on a timescale of seconds to minutes, where loop latency and
-electrode count hardly matter. If one fixed setting fixes every condition, there is nothing to adapt and the slot is
-moot.
-
-1. Conditions: weak knees / ankles (torque limit x s), payload on the pelvis, low foot friction, actuation delay,
-   slow motors. The teacher runs stand_push (exact IMU) on 20 seeds under each.
-   (The robot weighs 32 kg.)
-2. Corrections, applied to the teacher's output: leg action gain, knee bias (crouch), IMU input gain (as WSP
-   track a), searched on each condition the teacher fails.
-3. Cross-check: the best correction for each failing condition, applied to every other condition and to the
-   nominal robot.
-
-    uv run scripts/adaptation_slot.py
-"""
-
 import argparse
 import itertools
 import json
@@ -28,7 +9,7 @@ import numpy as np
 
 LEGS = np.arange(12)
 KNEES = np.array([3, 9])
-KNEE_SIGN = np.array([1.0, -1.0])  # the right leg's pitch axes are mirrored
+KNEE_SIGN = np.array([1.0, -1.0])
 SECONDS = 20.0
 _E = {}
 
@@ -69,7 +50,7 @@ def _init():
 def env_for(cond):
     from biocompute.robot.asimov import AsimovEnv, Perturbation
 
-    if cond not in _E["envs"]:  # one simulator per worker (one per condition ran out of memory)
+    if cond not in _E["envs"]:
         c = CONDITIONS[cond]
         _E["envs"] = {cond: AsimovEnv(perturbation=Perturbation(
             foot_friction=c.get("friction"), effort_scale=c.get("effort", {}), motor_speed_ratio=c.get("speed"),
@@ -94,7 +75,7 @@ def episode(job):
         o = env.observe()
         if imu != 1.0:
             o = o.copy()
-            o[0:5] *= imu  # gyro and gravity x, y
+            o[0:5] *= imu
         a = teacher(o)
         a[LEGS] *= gain
         a[KNEES] += bias * KNEE_SIGN

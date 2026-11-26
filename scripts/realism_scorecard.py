@@ -1,69 +1,3 @@
-"""Step 3 (docs/route-to-computation.md, "Order" item 4.3): realism scorecard. Does the model culture's spontaneous
-activity look like real cultures' on the same kind of array, and how often does a pulse set off a burst?
-
-Pre-registered 25 Nov 2026, before the first recording.
-
-Recording (GPU): the gpu_20k culture (the one in every drift and relay run), plasticity off, on the ``mcs60`` array
-(8 x 8 minus corners = 60 electrodes at 200 um, like Wagenaar's 59-electrode MCS arrays), in five cultures (seeds
-0-4): 10 s to settle, then 600 s of spontaneous activity. Kept: every electrode's spikes and every neuron's spikes
-(for burst spread, where the model's truth is known). Then the replication's evoked-burst measure on the same culture
-seed exactly as it ran there (cartpole_replication.build + characterise: grid256, the 32 most active electrodes, 25
-pulses each at 4 Hz; a pulse sets off a network burst when the 0-200 ms count over the candidates exceeds median +
-3 MAD). Negative control: culture 0 with its synapses removed (``dead``), recorded the same way.
-
-Scorecard: ``spike_stats`` (scripts/public_data_targets.py, unchanged: B0's yardstick) on each culture's 600 s,
-against outputs/public_data/targets.json (Wagenaar dense cultures, DIV 21-32, spread across 29 cultures). A measure
-is in range when the median over the five cultures lies inside the real cultures' 5-95% range; how many single
-cultures do is reported too. Measures, target median [5-95%]:
-
-| Measure                                   | Real cultures      |
-|-------------------------------------------|--------------------|
-| electrode rate, median electrode (Hz)     | 2.8 [0.7-10.3]     |
-| network bursts per minute                 | 4.2 [1.2-15.4]     |
-| burst duration (ms)                       | 556 [79-1788]      |
-| inter-burst interval CV                   | 0.87 [0.56-1.99]   |
-| share of spikes inside bursts             | 0.63 [0.10-0.93]   |
-| evoked: pulses that set off a burst       | 6.5% [0-16%] (Robbins organoids, median over stimulated units) |
-
-Also reported: active electrodes, mean rate, inter-burst interval, recruitment. Nothing is decided on the scorecard
-alone; step 4's gate (only if track B reopens) uses it.
-
-Controls (GUARD FAIL otherwise): no weight moves; rates finite and plausible while recording; the evoked measure
-on cultures 0-2 reproduces the replication's logged mean burst shares (0.20 / 0.21 / 0.21, run_task.log); the dead
-culture shows fewer than 1.2 network bursts per minute (the real cultures' 5th percentile): the detector must not call
-unconnected activity bursting.
-
-Expected (reasoning, not measured): bursts too regular (the README's cpu_2k figure: every 2-3 s, CV ~0.3) and
-evoked bursts too common (0.20-0.21 in the replication vs 0.065).
-
-Run (guarded; a recording checkpoints every 5 min and on stop):
-
-    uv run scripts/launch.py --unit bio-real --log outputs/realism_scorecard/run.log -- \\
-        scripts/realism_scorecard.py --workers 3
-    uv run scripts/watch.py --unit bio-real --log outputs/realism_scorecard/run.log
-
-``--score-only`` recomputes the scorecard from the recordings (CPU). Outputs (outputs/realism_scorecard):
-rec/<name>_<key>.npz (spikes; not committed), jobs/<name>_<key>.json (per-culture rows), scorecard.json.
-
-Results (run 25 Nov 2026, 18:56-19:36). Controls held: no weight moved; the evoked measure reproduced the
-replication's burst shares (0.199 / 0.213 / 0.209 against 0.20 / 0.21 / 0.21); the dead culture showed no network
-bursts (0 per minute). Model median over five cultures (range), against the real cultures:
-
-| Measure                                 | Model                | Real median [5-95%] | In range           |
-|-----------------------------------------|----------------------|---------------------|--------------------|
-| electrode rate, median electrode (Hz)   | 5.0 (3.9-7.2)        | 2.8 [0.7-10.3]      | yes, 5 of 5        |
-| network bursts per minute               | 44.7 (43.7-47.3)     | 4.2 [1.2-15.4]      | **no**, 0 of 5     |
-| burst duration (ms)                     | 103 (77-134)         | 556 [79-1788]       | yes, 4 of 5        |
-| inter-burst interval CV                 | 0.32 (0.31-0.35)     | 0.87 [0.56-1.99]    | **no**, 0 of 5     |
-| share of spikes inside bursts           | 0.85 (0.79-0.89)     | 0.63 [0.10-0.93]    | yes, 5 of 5        |
-| evoked: pulses that set off a burst     | 20% (20-21%)         | 6.5% [0-16%]        | **no**, 0 of 5     |
-
-Three of six in range. The model bursts ten times too often (every 1.4 s against every 12 s), like clockwork
-(CV 0.32), and a single pulse sets off a burst three times too often. Its bursts are short (103 ms, near the real
-5th percentile) and hold more of the spikes. Not gated: all 60 electrodes active (real 51-59 of 59). As expected:
-too regular (CV ~0.3 expected) and evoked bursts too common (0.20-0.21 expected). Burst spread: burst_spread.py.
-"""
-
 from __future__ import annotations
 
 import argparse
@@ -88,13 +22,11 @@ WARM_S, RECORD_S = 10.0, 600.0
 TARGETS = ROOT / "outputs/public_data/targets.json"
 GATED = ("rate_hz_median", "burst_rate_per_min", "burst_duration_ms_median", "ibi_cv", "spikes_in_bursts")
 REPORTED = ("n_active", "rate_hz_mean", "ibi_s_median", "recruitment_median")
-LOGGED_BURST_MEAN = {0: 0.20, 1: 0.21, 2: 0.21}  # run_task.log, configure()'s burst_mean
+LOGGED_BURST_MEAN = {0: 0.20, 1: 0.21, 2: 0.21}
 DEAD_MAX_PER_MIN = 1.2
 
 
 def job_name(kind: str, seed: int, sz: dict) -> str:
-    """Named by the settings; ``culture`` (config overrides, weak_synapses.py) only when set, so the stored jobs of the
-    unchanged culture keep their names."""
     return job_key(f"{kind}_s{seed}", {k: sz[k] for k in ("warm_s", "record_s", "evoked")} | (
         {"culture": sz["culture"]} if sz.get("culture") else {}))
 
@@ -107,24 +39,24 @@ def record_job(job):
     kind, seed, out, sz = job
     stem = job_name(kind, seed, sz)
     CP._start_job()
-    g = Guard(f"record_{kind}_s{seed}{sz.get('tag', '')}", out)  # tag: a culture variant's name, for the log
+    g = Guard(f"record_{kind}_s{seed}{sz.get('tag', '')}", out)
     torch.set_num_threads(1)
     rec = out / "rec" / f"{stem}.npz"
-    if not rec.exists():  # a finished recording isn't redone when only the evoked measure was stopped
+    if not rec.exists():
         record(kind, seed, out, sz, stem, rec, g)
     with np.load(rec) as z:
         row = {"kind": kind, "seed": seed, "record_s": sz["record_s"], "rec": str(rec),
                "n_channels": int(len(z["electrode_xy"])),
                "neuron_rate_hz": round(float(len(z["n_id"]) / len(z["pos"]) / sz["record_s"]), 3)}
     if kind == "live" and sz["evoked"]:
-        CP.STOP["phase"] = "setup"  # a stop here redoes the evoked measure (~5 min; ~30 min for s1000)
+        CP.STOP["phase"] = "setup"
         dev2, _, _ = CP.build(seed, sz.get("culture"))
         cand, rate, first, burst, _, _ = CP.characterise(dev2, reps=sz["evoked_reps"],
                                                          beat=lambda i, n: g.beat(i, n, phase="evoked"))
         row |= {"evoked_burst_median": round(float(np.median(burst)), 3),
                 "evoked_burst_mean": round(float(burst.mean()), 3), "evoked_burst_per_candidate": burst.tolist(),
                 "evoked_candidates": [int(x) for x in cand],
-                "config": CP.configure(cand, rate, first, burst)}  # the replication's encoders and decoders
+                "config": CP.configure(cand, rate, first, burst)}
         if seed in LOGGED_BURST_MEAN and not sz["smoke"] and not sz.get("culture"):
             g.check(round(float(burst.mean()), 2) == LOGGED_BURST_MEAN[seed],
                     f"evoked burst mean {burst.mean():.3f} != the replication's {LOGGED_BURST_MEAN[seed]}")
@@ -139,7 +71,6 @@ def record_job(job):
 
 
 def record(kind, seed, out, sz, stem, rec, g):
-    """Settle, then record ``record_s`` of spontaneous activity: every electrode's and every neuron's spikes."""
     import torch
 
     from biocompute.culture.network import make_config
@@ -149,14 +80,14 @@ def record(kind, seed, out, sz, stem, rec, g):
     dev = SimulatedBiocomputer(make_config("gpu_20k", seed=seed, **(sz.get("culture") or {})),
                                make_mea_config("mcs60", seed=seed), keep_raster=True)
     c = dev.culture
-    if kind == "dead":  # as biocompute.train.setup builds the dead culture
+    if kind == "dead":
         c.w.zero_()
         c.w0.zero_()
     g.check(c.plasticity is None, "plasticity is on")
     w_ref = c.w.clone()
     ck = out / "ckpt" / f"{stem}.pt"
     ck.parent.mkdir(parents=True, exist_ok=True)
-    per = int(round(100.0 / c.cfg.dt_ms))  # substeps per 100 ms read
+    per = int(round(100.0 / c.cfg.dt_ms))
     n = int(round(sz["record_s"] * 10))
     if ck.exists():
         saved = torch.load(ck, weights_only=False)
@@ -179,7 +110,7 @@ def record(kind, seed, out, sz, stem, rec, g):
         b = dev.step(100.0)
         S["et"].append(((t0 - S["t0"]) + b.times_ms) / 1000.0)
         S["ec"].append(b.channels.astype(np.int16))
-        nz = torch.nonzero(dev.last_raster).cpu().numpy()  # (substep, neuron), row-major: ordered by time
+        nz = torch.nonzero(dev.last_raster).cpu().numpy()
         S["nt"].append((nz[:, 0] + S["i"] * per).astype(np.int32))
         S["nn"].append(nz[:, 1].astype(np.int32))
         S["i"] += 1
@@ -211,7 +142,6 @@ def _record_safe(job):
 
 
 def load_row(out: Path, kind: str, seed: int, sz: dict) -> dict | None:
-    """A finished job's row with B0's statistics (``spike_stats``) of its recording; None while it hasn't finished."""
     p = out / "jobs" / f"{job_name(kind, seed, sz)}.json"
     if not p.exists():
         return None
@@ -245,7 +175,7 @@ def score(rows: list, targets: dict, smoke: bool = False) -> dict:
 
 
 def main():
-    ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    ap = argparse.ArgumentParser()
     ap.add_argument("--cultures", type=int, nargs="+", default=list(CULTURES))
     ap.add_argument("--workers", type=int, default=3)
     ap.add_argument("--out", default="outputs/realism_scorecard")

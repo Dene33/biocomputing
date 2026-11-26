@@ -1,28 +1,3 @@
-"""Phase 3.1 add-on: can a simple readout of the vestibular dish detect a push ("step now") better than the same
-readout of a linear filter of the raw IMU? The first test of the dish *computing* (docs/next-steps.md, Phase 4):
-the dish gets only the IMU, so it wins only if its own dynamics (memory, thresholds) make the trigger easier to read.
-
-1. ``collect`` (CPU): teacher stand_push episodes with DART action noise; stores observations, push onsets, episode
-   starts.
-2. ``run`` (GPU): replays the IMU through the dish (as scripts/vestibular_probe.py), and scores push detection.
-
-Label: 1 in the ``--window`` steps after each push onset (default 10 = 200 ms; a recovery triggered within 200 ms
-survives, scripts/reflex_oracle.py). Readouts: cross-validated ridge on
-- ``dish``        the dish's spike features (counts + 40 and 160 ms traces), one config
-- ``imu_now``     the current IMU (6)
-- ``imu_filter``  the IMU over the last ``--lags`` steps (a linear filter with memory as long as the dish's traces)
-- ``imu_filter_sq`` the same plus squares and |values| (a cheap nonlinearity, so the dish isn't compared only
-                  against a purely linear baseline)
-- ``drives_filter`` the stimulation pattern itself (the encoder's sigmoid outputs, one well) over the same lags:
-                  separates what the encoder's thresholds give from what the neurons add
-
-Scores: frame-wise AUC; and per push, the detection latency at a threshold giving 1 false alarm per 10 s outside
-push windows, plus the miss rate (no detection within 300 ms).
-
-    uv run scripts/trigger_probe.py collect
-    uv run scripts/trigger_probe.py run --n-stim 32 --wells 6 --encoding axis
-"""
-
 import argparse
 import json
 import pickle
@@ -71,7 +46,6 @@ def collect(a):
 
 
 def cv_ridge(X, y, folds=5, alphas=np.logspace(-2, 5, 15)):
-    """Out-of-fold ridge scores over contiguous blocks; alpha by out-of-fold squared error."""
     import torch
 
     dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -105,16 +79,14 @@ def auc(score, y):
 
 
 def detection(score, onsets, starts, n, window, fa_per_10s=1.0, max_lat=15):
-    """Threshold at a false-alarm rate outside push windows; per push, steps until the score first crosses it."""
     inside = np.zeros(n, bool)
     for o in onsets:
         inside[o:o + max_lat + 10] = True
     first = np.zeros(n, bool)
     first[starts] = True
-    for k in range(1, 50):  # skip each episode's first second (settling)
+    for k in range(1, 50):
         first[np.clip(np.array(starts) + k, 0, n - 1)] = True
     out = ~inside & ~first
-    # rising crossings outside windows, as a function of threshold: pick the lowest threshold within budget
     budget = fa_per_10s * out.sum() / 500.0
     thr_grid = np.quantile(score[out], np.linspace(0.9, 0.99999, 400))
     thr = thr_grid[-1]
@@ -135,7 +107,6 @@ def detection(score, onsets, starts, n, window, fa_per_10s=1.0, max_lat=15):
 
 
 def lagged(X, lags, starts):
-    """[x_t, x_{t-1}, ..., x_{t-lags+1}], padded with each episode's first value."""
     n = len(X)
     ep = np.zeros(n, int)
     ep[starts] = 1
@@ -187,7 +158,7 @@ def run(a):
         ctrl = build(setup, O)
         ctrl.device.step(1000.0)
         t0 = time.time()
-        F = np.array([ctrl.sense(o) for o in O], np.float32)  # one continuous session, as on a real dish
+        F = np.array([ctrl.sense(o) for o in O], np.float32)
         meta = {"ms_per_step": round((time.time() - t0) / len(O) * 1000, 1), "setup": setup.to_dict()}
         feats["dish"] = F
         np.savez_compressed(OUT / f"feats_{name}.npz", F=F.astype(np.float16))

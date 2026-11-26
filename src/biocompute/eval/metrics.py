@@ -1,5 +1,3 @@
-"""What a run is judged by: the robot's outcome and whether the culture behaves like a culture."""
-
 from __future__ import annotations
 
 import numpy as np
@@ -21,10 +19,6 @@ def robot_metrics(ep, seconds: float, dt: float) -> dict:
 
 
 def culture_stats(raster: np.ndarray, dt_ms: float, burst_bin_ms: float = 10.0, burst_frac: float = 0.05) -> dict:
-    """Spontaneous activity statistics from a (substeps, neurons) bool raster.
-
-    Network bursts: bins of ``burst_bin_ms`` in which more than ``burst_frac`` of the neurons fire, merged when
-    consecutive."""
     steps, n = raster.shape
     seconds = steps * dt_ms / 1000.0
     rates = raster.sum(0) / seconds
@@ -34,7 +28,6 @@ def culture_stats(raster: np.ndarray, dt_ms: float, burst_bin_ms: float = 10.0, 
     active = pop > burst_frac
     starts = np.flatnonzero(active & ~np.r_[False, active[:-1]])
     ibi = np.diff(starts) * burst_bin_ms / 1000.0
-    # Fano factor of the population count in 100 ms bins
     per100 = max(1, int(100 / dt_ms))
     n100 = steps // per100
     counts = raster[: n100 * per100].reshape(n100, per100, n).sum((1, 2))

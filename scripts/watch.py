@@ -1,13 +1,3 @@
-"""Watch a launched run and stop it at the first sign of trouble. Run it in the background: its exit is the alarm.
-
-    uv run scripts/watch.py --unit bio-x --log outputs/x/run.log [--stall-min 15]
-
-Every ``--every-s``: new log lines matching Traceback / GUARD FAIL / <Name>Error / out of memory / Killed / NaN ->
-stop the unit (graceful: resumable jobs save first), print the context, exit 3. No new log output and no heartbeat
-(``<log folder>/heartbeat/*.json`` and ``<log folder>/**/heartbeat``) for ``--stall-min`` -> stop, exit 4. The unit
-ends by itself: exit 0 if it succeeded and its log is clean, else 2. Prints the last lines either way.
-"""
-
 import argparse
 import re
 import subprocess

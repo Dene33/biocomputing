@@ -1,5 +1,3 @@
-"""The experiment scripts' bookkeeping and analysis functions, on made-up rows (no simulation)."""
-
 import importlib.util
 from pathlib import Path
 
@@ -19,7 +17,6 @@ CP = load("cartpole_replication")
 
 
 def test_job_key_changes_with_every_setting():
-    """A finished job or checkpoint is reused only by a run asking for exactly its settings."""
     base = {"scale": 0.0, "rule": "additive", "eta": 0.0, "w_max_inh": 30.0, "floor": 0.5, "seconds": 600.0,
             "rest_s": 20.0}
     k = CP.job_key("drift_x0", base)
@@ -29,8 +26,6 @@ def test_job_key_changes_with_every_setting():
 
 
 def drift_row(seed, scale, homeo, minutes, shift=0.0, rate=1.0, rule="additive"):
-    """A drift arm: own gains 2, cross 0.5, minute-to-minute noise shared by the arms of one culture, and ``shift``
-    added to one cross gain over the last 3 minutes."""
     rng = np.random.default_rng([seed, minutes])
     g = 2.0 * np.eye(2) + 0.5 * (1 - np.eye(2)) + rng.normal(0.0, 0.1, (minutes, 2, 2))
     g[-3:, 0, 1] += shift
@@ -39,7 +34,6 @@ def drift_row(seed, scale, homeo, minutes, shift=0.0, rate=1.0, rule="additive")
 
 
 def test_pathway_reading_needs_full_length_arms():
-    """Under 3 minutes the SE is NaN and nothing can count as moved; the reading must not pass on that."""
     def arms(minutes, shift):
         return [drift_row(s, x, h, minutes, shift if x else 0.0)
                 for s in (0, 1, 2) for x, h in ((0.0, 0.0), (1.0, 1e-5))]
@@ -55,7 +49,7 @@ def test_pathway_reading_needs_full_length_arms():
 
 def test_gate_b1_needs_full_length_arms_and_additive_stdp():
     def rows(minutes, rule="additive"):
-        arms = ((0.0, 0.0, 1.0), (0.0, 1e-5, 1.0), (1.0, 1e-5, 1.2), (1.0, 0.0, 5.0))  # scale, scaling eta, rate
+        arms = ((0.0, 0.0, 1.0), (0.0, 1e-5, 1.0), (1.0, 1e-5, 1.2), (1.0, 0.0, 5.0))
         return [drift_row(s, x, h, minutes, rate=r, rule=rule if x else "additive")
                 for s in (0, 1, 2) for x, h, r in arms]
 
@@ -71,7 +65,6 @@ RD = load("real_drift")
 
 
 def test_ratios_against_a_silent_or_negative_baseline_are_nan():
-    """Preferred gains of -0.05 over the first 3 minutes gave detectable_vs_pref ~1e9 (divided by 1e-9)."""
     g = np.full((RD.MIN_MINUTES, 2, 2), 0.3)
     g[:3] = [[-0.1, -0.05], [-0.1, -0.05]]
     w = RD.window_stats(g, 0.0, np.ones(RD.MIN_MINUTES))
@@ -84,19 +77,17 @@ def null_run(start, rate):
 
 
 def test_hours_leave_out_a_session_whose_first_null_run_is_silent():
-    """Its ratios were all inf -> None, so a summary of the JSON counted a session with no numbers."""
     times = ["2023-11-24T10:00:00", "2023-11-24T12:00:00", "2023-11-24T14:00:00"]
     hours, _, silent = RD.sessions({"live": [null_run(t, r) for t, r in zip(times, (2.0, 3.0, 1.0))],
                                     "silent": [null_run(t, r) for t, r in zip(times, (0.0, 3.0, 1.0))]})
     assert [h["exp"] for h in hours] == ["live"] and silent == ["silent"]
     s = RD.hours_summary(hours, silent)
     assert s["sessions"] == 1 and s["span_h"] == [4.0, 4.0]
-    assert s["rate_vs_first"]["median"] == 1.0 and s["rate_vs_first_max"] == 1.5  # later runs: 1.5x and 0.5x
-    assert s["sessions_in_band_every_run"] == 0  # 0.5x is outside 2/3-1.5x
+    assert s["rate_vs_first"]["median"] == 1.0 and s["rate_vs_first_max"] == 1.5
+    assert s["sessions_in_band_every_run"] == 0
 
 
 def test_time_gaps_do_not_depend_on_the_machine_zone(monkeypatch):
-    """The logs' times carry no zone; read in Berlin's, a gap across its DST switch came out an hour short."""
     import time
 
     monkeypatch.setenv("TZ", "Europe/Berlin")
@@ -109,7 +100,6 @@ def test_time_gaps_do_not_depend_on_the_machine_zone(monkeypatch):
 
 
 def test_closed_loop_files_are_keyed_by_their_settings():
-    """A1 and A2 named episodes by seed alone, so a rerun with another --edit or --seconds reused the old ones."""
     clv, cls, o = load("closed_loop_vestibular"), load("closed_loop_sessions"), Path("out")
     sz = {"data": "d.pkl", "replay_steps": 0, "seconds": 20.0, "edit": "gain"}
     f = clv.episode_file(o, "s12", "culture_edit", 9000, sz)
@@ -124,9 +114,6 @@ def test_closed_loop_files_are_keyed_by_their_settings():
 
 
 def test_no_atomic_float_sums_outside_the_reviewed_places():
-    """On the GPU, index_add_ and its kin add with atomics in a varying order, so a run that sums floats with them
-    doesn't repeat (the 5 s total-input step did this). Sums go through ordered ops (``excitatory_input``, the
-    delivery matrix); a new use must be reviewed and listed here with its reason."""
     import re
 
     reviewed = {"src/biocompute/culture/network.py": "the CPU branch of substep (no atomics on the CPU)",
@@ -140,8 +127,6 @@ def test_no_atomic_float_sums_outside_the_reviewed_places():
 
 
 def test_a2c_refit_edit_recovers_the_channel_and_scores_the_rest():
-    """A2c keeps the decoder and refits only its affine edit: the fit must recover decoded = a + g * true around
-    standing, and the error it leaves on the unseen steps must be ~0 for a channel that doesn't change."""
     from biocompute.eval.dish_channel import IMU_SPREAD
 
     cls = load("closed_loop_sessions")
@@ -155,8 +140,8 @@ def test_a2c_refit_edit_recovers_the_channel_and_scores_the_rest():
     assert e["steps"] == 500 and 0 < e["in_range"] <= 500
     assert np.allclose(e["gain"], g, atol=0.05) and np.allclose(e["intercept"], a, atol=0.01)
     assert e["rest_in_range"] > 2000 and np.abs(e["rest_bias"]).max() < 0.1
-    assert "rest_bias" not in cls.refit_edit(T, P, stand, 3000)  # nothing left to score on
-    P[:, 0] = 0.01 * T[:, 0]  # a dead channel: no usable edit
+    assert "rest_bias" not in cls.refit_edit(T, P, stand, 3000)
+    P[:, 0] = 0.01 * T[:, 0]
     assert cls.refit_edit(T, P, stand, 500)["gain"] is None
 
 
@@ -169,7 +154,7 @@ def test_a2c_reproduction_check_is_exact():
     assert cls.same(x, y)
     y["a"] = np.array([np.nextafter(1.0, 2.0), np.nan])
     assert not cls.same(x, y)
-    assert not cls.same(x, x | {"w": torch.arange(4.0).double()})  # dtype counts
+    assert not cls.same(x, x | {"w": torch.arange(4.0).double()})
     assert not cls.same(x, {k: v for k, v in x.items() if k != "t"})
 
 
@@ -189,15 +174,13 @@ def test_gate_a2c_needs_every_condition_day0_included():
     ok = {c: 35 for c in cls.CONDITIONS}
     assert cls.gate_a2c(*tab(ok), 40)["pass"]
     assert not cls.gate_a2c(*tab(ok | {"day0": 33}), 40)["pass"]
-    assert not cls.gate_a2c(*tab({c: 40 for c in cls.AGED}), 40)["pass"]  # day 0 missing: not complete
+    assert not cls.gate_a2c(*tab({c: 40 for c in cls.AGED}), 40)["pass"]
     g = cls.gate_a2c(*tab(ok | {"newdish": 38}), 40)
     assert g["per_condition"]["newdish"]["only_refit60_full"] == [36, 37]
     assert g["per_condition"]["newdish"]["only_recal_full"] == []
 
 
 def _takeover_dump(rng, radial=True, n=3000):
-    """A made-up culture on a 16 x 16 grid at 100 um: E->E weights grow along the direction away from electrode
-    136 (row 8, column 8) when ``radial``; two inputs whose pulses evoke a wave from their own electrode."""
     gy, gx = np.mgrid[0:16, 0:16]
     exy = np.c_[gx.ravel() * 100.0 - 750, gy.ravel() * 100.0 - 750].astype(np.float32)
     pos = np.c_[rng.uniform(-800, 800, (n, 2)), np.zeros(n)].astype(np.float32)
@@ -215,8 +198,8 @@ def _takeover_dump(rng, radial=True, n=3000):
         pt.append(t), pc.append(e)
         d = np.linalg.norm(exy - exy[e], axis=1)
         for ch in np.flatnonzero(rng.random(256) < 0.9):
-            st.append(t + 1 + d[ch] / 50.0), sc.append(ch)  # a wave at 50 um/ms from the pulsed electrode
-        for ch in np.flatnonzero(d < 300):  # and a few extra spikes near it
+            st.append(t + 1 + d[ch] / 50.0), sc.append(ch)
+        for ch in np.flatnonzero(d < 300):
             st.extend([t + 2 + d[ch] / 50.0, t + 3 + d[ch] / 50.0]), sc.extend([ch, ch])
         t += 60.0
     return {"syn_exc": np.ones(len(pre), bool), "excitatory": np.ones(n, bool), "pre": pre, "post": post, "pos": pos,
@@ -234,14 +217,11 @@ def test_takeover_reading_finds_a_planted_direction_and_only_there():
     assert res["winner"]["score"] > res["loser"]["score"]
     flat, _ = TR.analyse_arm(_takeover_dump(np.random.default_rng(2), radial=False), 136, 155, minute_s=1.0)
     assert abs(flat["winner"]["z"]) < 3
-    # The latency field of the winner's waves runs outward, as the planted weights do.
     c, n_el = TR.field_cosine(maps["latency"][0, 0], maps["weights"], 100.0)
     assert n_el > 100 and c > 0.5
-    # Inputs at different electrodes: decodable from every electrode and in most of the area.
     assert min(res["decode_all"]) > 0.9 and min(res["local_area"]) > 0.5
     rd = TR.reading({"takeover_0": res, "control_0": flat})
-    assert rd["per_culture"]["0"]["confirmed"] and not rd["confirmed"]  # cultures 1 and 2 missing
-    # After-run maps: both scores peak at the planted centre and fall with distance from it; nothing in the flat one.
+    assert rd["per_culture"]["0"]["confirmed"] and not rd["confirmed"]
     for k in ("plain", "within"):
         m = res["after_run"][k]
         assert m["rank_of_winner"] <= 3 and m["peak_dist_to_winner_um"] <= 150 and m["corr_with_dist_to_winner"] < -0.5
@@ -252,14 +232,14 @@ def test_takeover_reading_finds_a_planted_direction_and_only_there():
 def test_burst_spread_recovers_planted_waves_on_wagenaars_layout():
     BS = load("burst_spread")
     xy = BS.wagenaar_xy()
-    assert np.isnan(xy[14]).all() and np.isfinite(np.delete(xy, 14, 0)).all()  # 59 electrodes, 14 the reference
+    assert np.isnan(xy[14]).all() and np.isfinite(np.delete(xy, 14, 0)).all()
     assert tuple(xy[23]) == (200.0, 0.0) and tuple(xy[53]) == (1200.0, 1400.0)
     ok = np.flatnonzero(np.isfinite(xy).all(1))
     P, centre, rng = xy[ok], xy[ok].mean(0), np.random.default_rng(0)
     noise = rng.normal(0, 1.0, len(ok))
-    plane = BS.classify(P, P[:, 0] / 50.0 + noise, centre, rng)  # 50 mm/s along x
+    plane = BS.classify(P, P[:, 0] / 50.0 + noise, centre, rng)
     assert plane["class"] == "plane" and abs(plane["speed_plane_mm_s"] - 50) < 5
-    src = BS.classify(P, np.linalg.norm(P - P[7], axis=1) / 100.0 + noise, centre, rng)  # 100 mm/s from electrode
+    src = BS.classify(P, np.linalg.norm(P - P[7], axis=1) / 100.0 + noise, centre, rng)
     assert src["class"] == "source" and abs(src["speed_source_mm_s"] - 100) < 15
     assert np.hypot(*(np.array(src["site"]) - P[7])) <= 200
     shuffled = [BS.classify(P, rng.permutation(P[:, 0] / 50.0), centre, rng)["class"] for _ in range(20)]
@@ -272,7 +252,6 @@ def test_burst_truth_v2_finds_the_wave_start_despite_early_background_spikes():
     n, dt_ms = 20000, 0.5
     pos = np.c_[rng.uniform(-2000, 2000, (n, 2)), np.zeros(n)].astype(np.float32)
     start = np.array([300.0, -200.0])
-    # One burst at 1.0 s: every neuron spikes twice as a wave from ``start`` passes (100 um/ms), plus background.
     d = np.linalg.norm(pos[:, :2] - start, axis=1)
     tw = 1.0 + d / 100.0 / 1000.0
     ts = np.concatenate([tw + rng.normal(0, 0.002, n), tw + 0.005 + rng.normal(0, 0.002, n),
@@ -300,7 +279,6 @@ def test_burst_spread_per_culture_skips_recordings_without_bursts():
 
 def test_burst_onsets_from_burstlets_and_from_smoothed_rates():
     BS = load("burst_spread")
-    # Three electrodes join a burst at 0, 20 and 40 ms after its start (1.0 s), each with 6 spikes 5 ms apart.
     t = np.concatenate([1.0 + d + np.arange(6) * 0.005 for d in (0.0, 0.02, 0.04)])
     ch = np.repeat([0, 1, 2], 6)
     burst = (1.0, 1.065, {0, 1, 2})
@@ -312,8 +290,6 @@ def test_burst_onsets_from_burstlets_and_from_smoothed_rates():
 
 
 def weak_row(seed, scale, rate=1.0, shift=0.0, minutes=10, cross=0.5, homeo=0.0, rule="additive"):
-    """A drift arm as weak_synapses.py reads it: per-minute rate against rest and per-minute gains (own 2, cross
-    ``cross``, noise shared by one culture's arms), ``shift`` added to one cross gain over the last 3 minutes."""
     r = drift_row(seed, scale, homeo, minutes, shift, rule=rule)
     g = np.array(r["gain_60s"]) + (cross - 0.5) * (1 - np.eye(2))
     return r | {"gain_60s": g.tolist(), "rate_ratio_60s": [1.05] * (minutes - 3) + [1.05 * rate] * 3}
@@ -324,7 +300,7 @@ def test_weak_synapse_variants_scale_count_weights_and_cap_together():
     o = WS.overrides("s400")
     assert o["synapses_per_neuron"] == 400.0 and o["length_um"] == 225.0 and o["delay_buckets"] == 16
     assert np.isclose(o["w_exc"] * 4, 2.2) and np.isclose(o["w_inh"] * 4, -6.0) and np.isclose(o["w_max"] * 4, 10.0)
-    assert set(WS.overrides("s190")) == {"synapses_per_neuron", "w_exc", "w_inh", "w_max"}  # reach as now
+    assert set(WS.overrides("s190")) == {"synapses_per_neuron", "w_exc", "w_inh", "w_max"}
 
 
 def test_weak_synapse_gate_needs_calm_kept_and_separate_cultures():
@@ -333,18 +309,17 @@ def test_weak_synapse_gate_needs_calm_kept_and_separate_cultures():
     g = WS.drift_gate(ok)
     assert g["passed"] == 5 and g["pass"]
     hot = [weak_row(s, x, rate=3.0 if x and s < 3 else 1.0) for s in range(5) for x in (0.0, 1.0)]
-    g = WS.drift_gate(hot)  # three cultures run hot: 2 of 5 left
+    g = WS.drift_gate(hot)
     assert g["passed"] == 2 and not g["pass"] and g["per_culture"]["0"]["calm_ratio_last3"] == 3.0
     moved = [weak_row(s, x, shift=5.0 if x and s < 3 else 0.0) for s in range(5) for x in (0.0, 1.0)]
     g = WS.drift_gate(moved)
     assert g["passed"] == 2 and not g["per_culture"]["0"]["pathways_kept"]
     mixed = [weak_row(s, x, cross=1.5) for s in range(5) for x in (0.0, 1.0)]
-    assert WS.drift_gate(mixed)["passed"] == 0  # no separate pathway to keep without plasticity
-    missing = [r for r in ok if not (r["seed"] in (0, 1, 2) and r["scale"])]  # no encoders: arm absent
+    assert WS.drift_gate(mixed)["passed"] == 0
+    missing = [r for r in ok if not (r["seed"] in (0, 1, 2) and r["scale"])]
     assert WS.drift_gate(missing)["passed"] == 2
     short = [weak_row(s, x, minutes=2) for s in range(5) for x in (0.0, 1.0)]
     assert WS.drift_gate(short)["passed"] == 0
-    # Only the no-plasticity arm and STDP x1 with the 5 s step count; scaling and weight-dependent arms are ignored.
     other = ok + [weak_row(s, 1.0, rate=5.0, homeo=1e-5) for s in range(5)] + [
         weak_row(s, 1.0, rate=5.0, rule="multiplicative") for s in range(5)]
     assert WS.drift_gate(other)["passed"] == 5
@@ -353,7 +328,7 @@ def test_weak_synapse_gate_needs_calm_kept_and_separate_cultures():
 def test_scorecard_jobs_keep_their_names_unless_the_culture_changes():
     RS = load("realism_scorecard")
     sz = {"warm_s": 10.0, "record_s": 600.0, "evoked": True, "evoked_reps": 25, "smoke": False}
-    assert RS.job_name("live", 0, sz) == "live_s0_ed5a2d31"  # the stored scorecard's recordings
+    assert RS.job_name("live", 0, sz) == "live_s0_ed5a2d31"
     assert RS.job_name("live", 0, sz | {"tag": "_s190"}) == "live_s0_ed5a2d31"
     assert RS.job_name("live", 0, sz | {"culture": {"w_exc": 1.1}}) != "live_s0_ed5a2d31"
 
@@ -363,7 +338,7 @@ def test_configure_returns_none_without_two_eligible_pairs():
     first = np.full((k, k), 0.5)
     np.fill_diagonal(first, 0.0)
     cand, rate = np.arange(10, 10 + k), np.arange(k, 0, -1.0)
-    assert CP.configure(cand, rate, first, np.ones(k)) is None  # every encoder bursts on all its pulses
+    assert CP.configure(cand, rate, first, np.ones(k)) is None
     cfg = CP.configure(cand, rate, first, np.zeros(k))
     assert len(set(cfg["enc"] + cfg["dec"])) == 4
 
@@ -372,37 +347,34 @@ DD = load("day_drift")
 
 
 def test_finalspark_column_names_are_read_as_text():
-    """pandas keeps a values block's column names as a protocol-0 pickled list; they are parsed, never unpickled."""
     assert load("finalspark_data")._names(b"(lp0\nVa1\np1\naVa2\np2\naVd1\np3\na.") == ["a1", "a2", "d1"]
     assert load("finalspark_data")._names(b"(lp0\nVmax_voltage_uv\np1\na.") == ["max_voltage_uv"]
 
 
 def test_day_rates_count_only_usable_time_and_clean_events():
-    """Two days; electrode 0 fires 1 Hz on day 0 and 2 Hz on day 1. Day 1 holds a stimulation (excluded 10 min
-    before to 60 min after) and artifact-sized events; neither enters its rate."""
     S = DD.S
     t0 = 1_000_000 * S
     day0 = t0 + np.arange(0, 86400, 1.0) * S
     day1 = t0 + 86400 * S + np.arange(0, 86400, 0.5) * S
     stim = t0 + 86400 * S + 3600 * S * 12
-    art = stim + np.arange(5) * S // 1000  # five 2 mV events right after the stimulation
+    art = stim + np.arange(5) * S // 1000
     t = np.r_[day0, day1, art].astype(np.int64)
     amp = np.r_[np.full(len(day0) + len(day1), -40.0), np.full(5, -2000.0)]
     o = np.argsort(t, kind="stable")
     dr = DD.day_rates(t[o], np.zeros(len(t), np.int64), amp[o], np.array([stim], np.int64))
     assert dr["n_days"] == 2 and dr["valid"].all()
-    assert dr["use_s"][0] == 86400 and dr["use_s"][1] == 86400 - 71 * 60  # 10 + 60 min and the stimulation's minute
+    assert dr["use_s"][0] == 86400 and dr["use_s"][1] == 86400 - 71 * 60
     assert abs(dr["rate"][0, 0] - 1.0) < 1e-9 and abs(dr["rate"][1, 0] - 2.0) < 1e-3
 
 
 def test_lag_changes_and_the_reading():
     rate = np.zeros((4, 32))
-    rate[:, 0] = [1.0, 2.0, 2.0, 0.5]  # electrode 0: x2, x1, x0.25 day to day
-    rate[:, 8:16] = 0.05  # a silent group is left out
+    rate[:, 0] = [1.0, 2.0, 2.0, 0.5]
+    rate[:, 8:16] = 0.05
     ch = DD.lag_changes(rate, np.ones(4, bool), (1,))
     assert ch["1"]["electrode"]["n"] == 3 and ch["1"]["electrode"]["median"] == 1.0
     assert ch["1"]["electrode"]["signed_median"] == 0.0
-    assert ch["1"]["group"]["n"] == 3  # group 0 only (mean 1/8 Hz and up), not the silent one
+    assert ch["1"]["group"]["n"] == 3
     real = {"spont": {L: {"electrode": {"n": 50, "p25": 0.4, "median": 0.8, "p75": 1.2},
                           "group": {"n": 50, "p25": 0.4, "median": 0.8, "p75": 1.2}} for L in ("1", "3", "7")},
             "evoked": {"classes": {c: {"electrode": {"n": 30, "p25": 0.3, "median": 0.5, "p75": 0.9},
@@ -416,7 +388,7 @@ def test_lag_changes_and_the_reading():
     assert c["decision"].startswith("part 2")
     for L in ("1", "3", "7"):
         model["spont"][L] = {"electrode": {"n": 20, "median": 0.8}, "group": {"n": 5, "median": 0.8}}
-    model["spont"]["7"]["electrode"] = gentle  # too gentle at one lag of three: still in range
+    model["spont"]["7"]["electrode"] = gentle
     c = DD.compare(real, model)
     assert c["verdicts"]["spont_electrode"] == "in range" and c["decision"].startswith("aging.py")
 
@@ -430,14 +402,12 @@ def test_evoked_changes_use_shared_settings_and_lag_classes():
           {"t_first": 86400 * S, "delivered": True, "settings": {(k,): resp(base * 0.5) for k in range(12)}},
           {"t_first": 7 * 86400 * S, "delivered": False, "settings": {(k,): resp(base) for k in range(12)}}]
     ev = DD.evoked_changes(sw, 0)
-    assert len(ev["pairs"]) == 1 and ev["pairs"][0]["lag_days"] == 1.0  # the undelivered sweep is left out
+    assert len(ev["pairs"]) == 1 and ev["pairs"][0]["lag_days"] == 1.0
     assert ev["classes"]["1d"]["electrode"]["median"] == 1.0 and ev["classes"]["7d"]["electrode"]["n"] == 0
     assert ev["classes"]["1d"]["group"]["n"] == 1 and ev["noise_floor_electrode"]["median"] == 0.0
 
 
 def test_real_pathways_cycles_pairs_and_reading():
-    """Cycles start where the stimulated local electrode goes down; a planted change moves the planted pathway pairs
-    and leaves unchanged ones at the null's level; the reading follows its thresholds."""
     RP = load("real_pathways")
     local = np.tile(np.repeat(np.arange(8), 40), 6)
     cyc = RP.cycles_of(local)
@@ -445,29 +415,27 @@ def test_real_pathways_cycles_pairs_and_reading():
     pairs = [(0, 3), (1, 4), (2, 5)]
     rng = np.random.default_rng(0)
     d = np.zeros((len(local), 32))
-    for s in range(8):  # in group 1, every input s drives output (s + 1) % 8 by 1.5 spikes, with noise
+    for s in range(8):
         k = local == s
         d[k, 8 + (s + 1) % 8] = rng.normal(1.5, 1.0, k.sum())
     t = RP.pair_tests(d, local, cyc, pairs, [1])
     assert t["n"] == 24 and t["power"] and t["share_moved"] <= 0.25
     d2 = d.copy()
-    d2[cyc >= 3] *= 2.0  # every pathway doubles in the later cycles
+    d2[cyc >= 3] *= 2.0
     t2 = RP.pair_tests(d2, local, cyc, pairs, [1])
     assert t2["n"] == 24 and t2["share_moved"] == 1.0 and t2["null_share"] <= 0.25
     assert RP.reading(t2) == "real pathways drift"
     assert RP.reading(t | {"share_moved": 0.1, "null_share": 0.05}) == "real pathways hold over ~5 minutes"
     assert RP.reading(t | {"power": False}).startswith("inconclusive")
-    assert RP.reading(RP.pair_tests(d, local, cyc, pairs[:2], [1])).startswith("inconclusive")  # 16 < 20
-    assert RP.pair_tests(d, local, cyc, pairs, [0])["n"] == 0  # a silent group has no responding pathway
+    assert RP.reading(RP.pair_tests(d, local, cyc, pairs[:2], [1])).startswith("inconclusive")
+    assert RP.pair_tests(d, local, cyc, pairs, [0])["n"] == 0
 
 
 def test_real_pathways_series_found_and_read():
-    """Repeated single-input series: blocks split on long gaps, fast trains left out; a planted rise in the last block
-    reads as potentiation, an unchanged series as holding."""
     RP = load("real_pathways")
     S, MS = RP.FD.S, RP.FD.MS
-    blocks = [np.arange(80) * 300 * MS + k * 1800 * S for k in range(3)]  # 3 blocks of 80, ~3.3 Hz, 30 min apart
-    fast = 10 * 3600 * S + np.arange(300) * 10 * MS  # 100 Hz: the response window would hold the next pulse
+    blocks = [np.arange(80) * 300 * MS + k * 1800 * S for k in range(3)]
+    fast = 10 * 3600 * S + np.arange(300) * 10 * MS
     t = np.r_[np.concatenate(blocks), fast]
     ev = {"t": t, "n": np.ones(len(t), int), "mask": np.r_[np.full(240, 1 << 8), np.full(300, 1 << 9)],
           "setting": [("a",)] * len(t)}
@@ -487,8 +455,6 @@ def test_real_pathways_series_found_and_read():
 
 
 def test_organoid_blocks_and_group_days():
-    """mcs60 (8 x 8 at 200 um, corners missing) holds 31 complete 2 x 4 blocks per orientation; a group-day needs
-    enough windows with enough active electrodes."""
     OS = load("organoid_scorecard")
     g = (np.arange(8) - 3.5) * 200.0
     xy = np.array([(x, y) for y in g for x in g if not (abs(x) == 700 and abs(y) == 700)])
@@ -503,8 +469,6 @@ def test_organoid_blocks_and_group_days():
 
 
 def test_organoid_map_measures_find_a_planted_pathway():
-    """A model mapping recording where input 2 makes output 5 fire once 20 ms after each pulse: one responding
-    pathway of 56, gain 1, strongest input of output 5 is 2; no bursts, so no excess over chance."""
     OS = load("organoid_scorecard")
     block = [10, 11, 12, 13, 18, 19, 20, 21]
     stim_t = np.arange(8 * 40) * 200.0 + 1000.0
@@ -525,16 +489,16 @@ def test_day_drift_doses_interpolate_and_flag_unreachable_targets():
     d = DD.dose_for(pts, -1, 0.5)
     assert d["reached"] and abs(d["shift"] + 1.5) < 1e-9 and abs(d["spont_culture"] + 1.0) < 1e-9
     up = DD.dose_for(pts, 1, 0.5)
-    assert not up["reached"] and up["shift"] == 2.0  # the largest tried, flagged
-    assert DD.dose_for(pts, -1, 0.05)["shift"] == 0.0  # already there without a shift
-    assert DD.dose_for([], 1, 0.5) == {"shift": None, "reached": False}  # a lag without sessions
+    assert not up["reached"] and up["shift"] == 2.0
+    assert DD.dose_for(pts, -1, 0.05)["shift"] == 0.0
+    assert DD.dose_for([], 1, 0.5) == {"shift": None, "reached": False}
 
 
 def test_a2d_sessions_are_named_by_their_shift_and_a2_names_stay():
     cls = load("closed_loop_sessions")
     sz = {"data": "outputs/probe/teacher_data_20k.pkl", "a1": "outputs/closed_loop_vestibular_affine",
           "recal_steps": 3000, "seconds": 20.0}
-    assert cls.session_stem("s32", "day1", sz) == "s32_day1_c9438b40"  # A2's and A2c's stored sessions
+    assert cls.session_stem("s32", "day1", sz) == "s32_day1_c9438b40"
     assert cls.A2_CONDS == ["day0", "day1", "day3", "day7", "newdish"] and set(cls.A2D_CONDS) <= set(cls.CONDITIONS)
     a, b = cls.session_stem("s32", "day7_down", sz), cls.session_stem("s32", "day7", sz)
     assert a.startswith("s32_day7_down_") and a.split("_")[-1] != b.split("_")[-1]
