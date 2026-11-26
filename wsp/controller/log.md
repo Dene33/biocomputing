@@ -31,7 +31,7 @@ Re-scored on 60 seeds:
 |---|---|---|
 | Zero action | 4.74 | 0/60 |
 | Teacher unchanged | 17.77 | 46/60 |
-| **Gyro gain 1.5 (current track_a.py)** | **18.76** | **50/60** |
+| **Gyro gain 1.5** | **18.76** | **50/60** |
 | Gravity lead 1.0 only | 18.19 | 46/60 |
 | Gyro 1.5 + gravity lead 1.0 | 18.41 | 47/60 |
 

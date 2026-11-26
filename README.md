@@ -12,8 +12,8 @@ The culture drives **all 23 joints of Asimov 1 at 50 Hz** in MuJoCo. Two ways to
 | Path | What |
 | --- | --- |
 | `src/biocompute/device.py` | `Biocomputer` protocol (`stimulate`, `step` → `SpikeBlock`) and `SimulatedBiocomputer`. A real CL1/FinalSpark adapter implements the same protocol. |
-| `src/biocompute/culture/network.py` | `OrganoidCulture`: Izhikevich neurons (80 % excitatory RS/IB/CH, 20 % inhibitory FS/LTS), a flattened organoid lying on the array, distance-dependent sparse connectivity with axonal delays, Tsodyks–Markram short-term depression, Poisson background. `wells=K`: K independent organoids, as on a multi-well plate. Torch, CPU or GPU (synaptic delivery as one sparse matrix–vector product per 0.5 ms substep), seeded. |
-| `src/biocompute/culture/plasticity.py` | STDP, reward-modulated STDP (in-silico upper bound), forgetting towards baseline weights, rest |
+| `src/biocompute/culture/network.py` | `OrganoidCulture`: Izhikevich neurons (80 % excitatory RS/IB/CH, 20 % inhibitory FS/LTS), a flattened organoid lying on the array, distance-dependent sparse connectivity with axonal delays, Tsodyks–Markram short-term depression, Poisson background, optional slow NMDA-type excitation (`nmda_ratio`). `wells=K`: K independent organoids, as on a multi-well plate. Torch, CPU or GPU (synaptic delivery as one sparse matrix–vector product per 0.5 ms substep), seeded. |
+| `src/biocompute/culture/plasticity.py` | `STDP` (additive, or weight-dependent with `multiplicative=True`; optional inhibitory plasticity with `istdp_eta`), `RewardSTDP` (in-silico upper bound), forgetting towards baseline weights, `SynapticScaling` (per-neuron homeostatic scaling, bl1's rule), `Chain` (several rules in order), rest |
 | `src/biocompute/culture/aging.py` | Excitability drift and cell loss over days |
 | `src/biocompute/mea/electrodes.py` | MEA: multi-unit detection with distance-dependent probability, false positives, dead channels, stimulation that falls off with distance, rate and amplitude limits, artifact blanking. Presets `mcs60` (60 channels, 200 µm), `grid256`, `hd1024` (MaxWell-like). One grid per well. |
 | `src/biocompute/interface/` | Encoders (observation → pulses; amplitude or rate coding; identity, PCA, supervised or random projection), spike features, ridge readout (`LinearReadout`, GPU for thousands of features), trained nonlinear decoder (`MLPReadout`), the fixed motor-map decoder, DishBrain feedback |
@@ -21,8 +21,8 @@ The culture drives **all 23 joints of Asimov 1 at 50 Hz** in MuJoCo. Two ways to
 | `src/biocompute/robot/teacher.py` | The trained walking policy (ONNX): the teacher and the ceiling |
 | `src/biocompute/loop.py` | The closed loop. The culture needs 20 ms of its own time to answer, so an action applies one step late. |
 | `src/biocompute/train/` | Tasks, DAgger (serial, and `parallel.py`: several copies of the same dish in worker processes), feedback sessions |
-| `scripts/` | `characterise_culture.py`, `baselines.py`, `train_reservoir.py`, `train_dagger.py` (parallel DAgger, ridge or MLP decoder), `eval_readout.py` (many seeds, ablations), `train_feedback.py`, `evaluate.py`, `view.py`, `train_expert.py` / `program_expert.py` (stance-only balance experts: they cannot pass `stand_push`) |
-| `scripts/` (experiments) | `reflex_oracle.py`, `blind_teacher.py`, `no_imu_student.py`, `vestibular_probe.py`, `trigger_probe.py`, `adaptation_slot.py`, `struggle_signal.py`, `coach_probe.py`, `dish_regimes.py`, `burst_probe.py`, `cartpole_replication.py`, `cebra_probe.py`, `bl1_drift.py` (with `bl1_checks.py`, `bl1_rep_analysis.py`; runs in bl1's own venv), `closed_loop_vestibular.py` (with `closed_loop_falls.py`), `closed_loop_sessions.py`, `public_data_targets.py`, `real_drift.py`, `day_drift.py`, `real_pathways.py`, `organoid_scorecard.py` (the last three on FinalSpark's exports, read by `finalspark_data.py`): one experiment each; results in [docs/route-to-computation.md](docs/route-to-computation.md) and the commit log |
+| `scripts/` | `characterise_culture.py`, `baselines.py`, `train_reservoir.py`, `train_dagger.py` (parallel DAgger, ridge or MLP decoder), `eval_readout.py` (many seeds, ablations), `train_feedback.py`, `evaluate.py`, `view.py`, `train_expert.py` / `program_expert.py` (stance-only balance experts: they cannot pass `stand_push`), `run_suite.sh` (the reservoir comparison: every readout source and MEA size in parallel) |
+| `scripts/` (experiments) | `reflex_oracle.py`, `blind_teacher.py`, `no_imu_student.py`, `vestibular_probe.py`, `trigger_probe.py`, `adaptation_slot.py`, `struggle_signal.py`, `coach_probe.py`, `dish_regimes.py`, `burst_probe.py`, `cartpole_replication.py`, `cebra_probe.py`, `bl1_drift.py` (with `bl1_checks.py`, `bl1_rep_analysis.py`; runs in bl1's own venv), `closed_loop_vestibular.py` (with `closed_loop_falls.py`), `closed_loop_sessions.py`, `public_data_targets.py`, `real_drift.py`, `realism_scorecard.py` (with `burst_spread.py`), `takeover_rerun.py`, `weak_synapses.py`, `day_drift.py`, `real_pathways.py`, `organoid_scorecard.py` (the last three on FinalSpark's exports, read by `finalspark_data.py`): one experiment each; results in [docs/route-to-computation.md](docs/route-to-computation.md) and the commit log |
 | `scripts/launch.py`, `scripts/watch.py`, `src/biocompute/runguard.py` | Guarded long runs: smoke test, detached systemd unit, in-run checks, watchdog, result files named by their settings (`job_key`) |
 | `src/biocompute/eval/dish_channel.py` | A dish as a statistical channel (delay, update rate, noise, gain), the stand-in for the culture in Phases 2 and 3.1 |
 | `wsp/controller/` | Weight-space programming of the robot-side controller (Phase 2). `track_a.py` needs `teacher_weights.npz`, written from the teacher's ONNX by `export_teacher.py` |
@@ -102,8 +102,8 @@ Tasks (`src/biocompute/train/tasks.py`):
 The `cpu_2k` preset is tuned so that spontaneous activity looks like a cortical organoid or culture on an MEA:
 
 - sparse firing of about 0.6 Hz on average, with interneurons faster than excitatory cells;
-- network bursts every ~2–3 s at irregular intervals (CV ≈ 0.3; measured against real cultures, the `gpu_20k`
-  culture bursts every 1.4 s and too regularly: see the realism scorecard under Next);
+- network bursts every ~2–3 s (interval CV ≈ 0.3; measured against real cultures, the `gpu_20k` culture bursts
+  every 1.4 s and too regularly: see the realism scorecard under Next);
 - most spikes inside bursts (~75 %).
 
 Against FinalSpark's organoids (26 November, `scripts/organoid_scorecard.py`, scored on organoid-sized blocks of
@@ -134,7 +134,7 @@ joints. `stand_push`, fresh push seeds (`outputs/report.md`):
 
 | Controller | Survived | Full 20 s |
 | --- | --- | --- |
-| Teacher (ceiling) | 20.0 s | 20/20 |
+| Teacher (ceiling; stored runs on other seeds: `outputs/blind_teacher/results.json`) | 20.0 s | 40/40 |
 | **Culture + MLP decoder + efference copy** | **18.5 s** | **17/20** |
 | Same decoder, no culture (the encoded signals fed in directly) | 17.5 s | 15/20 |
 | Culture with no sensory stimulation | 1.6 s | 0/10 |
@@ -248,10 +248,10 @@ bl1's rate it brings rates to the edge of the band (1.3–1.5×), yet one input 
 culture. Ranked routes: coached adaptation first (fits every platform, cart-pole precedent; a real dish decides),
 push detection tested open loop alongside it, the inner-ear relay as hardware testbed.
 
-**Next** (24 November 2026). We have no real culture and no physical robot for now, so the work runs in two
+**Next** (26 November 2026). We have no real culture and no physical robot for now, so the work runs in two
 simulated tracks ([Order of work without a dish](docs/route-to-computation.md#order-of-work-without-a-dish)).
 Track A puts the simulated culture in the robot's loop (Phase 3.3 of [docs/next-steps.md](docs/next-steps.md));
-its steps A1, A2 and A2c have run (above).
+its steps A1, A2, A2c and A2d have run (above).
 Track B tried to make the culture model good enough to ask learning questions of, behind gates fixed in advance.
 It closed after its first step, a rate controller (B1): rates can be brought to the edge of the band, pathways
 can't, so learning questions wait for a dish. On 25 November a code review of track B's scripts found 13 bugs; all
@@ -263,7 +263,9 @@ simulated steps they lead to, in order: A2c (refit only the edit; passed), a tak
 a realism scorecard of the model ([Order](docs/route-to-computation.md#order)). The scorecard (`scripts/realism_scorecard.py`)
 puts the model in range on 3 of 6 measures against 29 Wagenaar cultures: rates, burst duration and the share of
 spikes in bursts are realistic, but bursts come ten times too often (45 per minute against 4.2), too regularly
-(interval CV 0.32 against 0.87), and a pulse sets off one three times too often (20% against 6.5%). The takeover rerun
+(interval CV 0.32 against 0.87), and a pulse sets off one three times too often (20% against 6.5%; that measure doesn't subtract chance, and at
+the model's burst rate a 200 ms window holds a burst onset 12–14% of the time by chance, so much of the 20% may be
+spontaneous: not tested). The takeover rerun
 confirmed why one input takes over: links pointing away from the winning input strengthen and those pointing back
 weaken, centred exactly on that input in all three cultures, so its pulses come to set off activity over the whole
 array while the other input's stay local (`scripts/takeover_rerun.py`). Track B was reopened for one round, many weak

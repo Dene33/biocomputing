@@ -1,15 +1,16 @@
 # Next steps: from a sensory relay to an organoid that matters
 
-21 November 2026. Context: [README, Status and findings](../README.md#status-and-findings-25-november-2026) and
+21 November 2026. Context: [README, Status and findings](../README.md#status-and-findings-26-november-2026) and
 [organoid-control-ideas.md](organoid-control-ideas.md).
 
-**Status, 25 November 2026.**
+**Status, 26 November 2026.**
 - **Done:** Phase 1.1 and Gate G1; the Phase 2 harness (2.1) and track (a); Phase 3.1; Phase 4's simulation tests
   ([route-to-computation.md](route-to-computation.md)).
-- **Run:** Phase 3.3, the culture in the robot's loop: track A (A1, A2 and A2c) of the route doc's
+- **Run:** Phase 3.3, the culture in the robot's loop: track A (A1, A2, A2c and A2d) of the route doc's
   [Order of work without a dish](route-to-computation.md#order-of-work-without-a-dish). A1 failed on the CL1-sized
   well, and A2 by one episode. A2c passed: keeping the decoder and refitting only its edit holds 37–40/40 in every
-  session, the new dish included. Results in [3.3](#33-closed-loop).
+  session, the new dish included. A2d passed (26 November): the same edit refit holds 35–40/40 under day-to-day
+  change as large as FinalSpark's organoids show. Results in [3.3](#33-closed-loop).
 - **Closed:** track B, after its first step (B1, a rate controller) failed and one check didn't rescue it. The
   model's rates can be brought to the edge of the band (1.3–1.5× rest), but under repeated stimulation one input
   still takes over both outputs. A diagnostic rerun (25 November) confirmed why: the weight change points outward
@@ -26,6 +27,9 @@
   4. a model fix (many weak synapses), by decision. Failed (26 November): the model goes silent, 0 bursts per minute,
      electrode rate 0.54-0.56 Hz against the real 0.7-10.3; track B closed for good;
   5. A1c, optional.
+
+  Then FinalSpark's whole-life exports (route doc, Order, item 5): A2d passed; the pathway half of the drift test
+  can't be read from these records; the model is in range on 0 of 5 measures against the organoids.
 - **Waiting:** Phase 4's learning questions, for a dish.
 - **Parked:** Phase 5 and every real-robot step. There is no dish and no robot for now.
 - **Open, not in the current plan:** Phase 2 track (b).
@@ -101,7 +105,7 @@ The spread over teacher `stand_push` rollouts is small: gyro 0.11–0.15 rad/s (
 | Rate (sample and hold) | ≥ 10 Hz (38/40) | 5 Hz (11/40) | ≥ 10 Hz (39/40) |
 | Quantisation | ≥ 8 levels (35/40) | 4 (25/40) | ≥ 4 levels (38/40) |
 
-- **The gyro sets the latency limit.** 100 ms of delay: gyro alone 20/40, gravity alone 35/40. Gravity tolerates 200 ms
+- **The gyro sets the latency limit.** 100 ms of delay: gyro alone 20/40, gravity alone 38/40. Gravity tolerates 200 ms
   (35/40).
 - **Combined degradations compound.** A dish delivers all of them together:
 
@@ -161,7 +165,7 @@ Borrow csinva's *method*, not their transformer code.
 | File | Role |
 |---|---|
 | `wsp/controller/program.md` | Task, rules, the loop (edit → run → read score → log → repeat, ≥ 20 iterations) |
-| `wsp/controller/controller.py` | `write_weights()`: a small numpy controller, [joint positions, joint velocities, last action, vestibular signal] → 23 actions |
+| `wsp/controller/track_a.py`, `track_b.py` | The controllers, numpy only: track (a) edits the teacher's weights, track (b) is written from scratch; [joint positions, joint velocities, last action, vestibular signal] → 23 actions |
 | `wsp/controller/eval_controller.py` | Runs `stand_push` in MuJoCo with the vestibular signal corrupted by the dish's noise model (from 1.1, later from Phase 3). Prints **one score**: mean survival on validation seeds |
 | `wsp/controller/results.csv` | One row per attempt |
 
@@ -270,7 +274,7 @@ Zero action on the hidden test: 4.4 s, 0/40. With the dish silenced, every teach
 
 ### 3.3 Closed loop
 
-**Status: run (24–25 November 2026). A1 not reached on the CL1-sized well; A2 short by one episode; A2c passed.**
+**Status: run (24–26 November 2026). A1 not reached on the CL1-sized well; A2 short by one episode; A2c and A2d passed.**
 This is track A
 of the route doc
 ([Order of work without a dish](route-to-computation.md#order-of-work-without-a-dish)): step A1 is the closed loop
@@ -411,13 +415,14 @@ It counts as computation only if:
 
 1. **Phase 1.1**, then Gate G1: done.
 2. **Phase 2** harness and track (a), **Phase 3.1**: done. Track (b) is open and not in the current plan.
-3. **Phase 3.3**: run as track A (A1, A2, A2c). A1 and A2 didn't pass on their main configurations; A2c did, so a
-   session needs only the edit refitted (see 3.3).
+3. **Phase 3.3**: run as track A (A1, A2, A2c, A2d). A1 and A2 didn't pass on their main configurations; A2c did, so
+   a session needs only the edit refitted, and A2d showed that holds under day-to-day change of real size (see 3.3).
 4. **Phase 4**: simulation tests done. Track B is closed for good (26 November), so learning questions wait for a dish.
 5. **Phase 5** and every real-robot step: parked until access. The channel test can start as soon as a dish is
    available.
 6. **Next in simulation:** A2c (passed), then the takeover rerun (confirmed), then the realism scorecard (run), then many
-   weak synapses (failed) (route doc, [Order](route-to-computation.md#order), item 4). Left: A1c, optional.
+   weak synapses (failed) (route doc, [Order](route-to-computation.md#order), item 4); then A2d (passed) (item 5). Left:
+   A1c, optional.
    - Decided after A2c: route 3's session protocol is "refit the edit", from 30–60 s of replay.
    - Decision point after the takeover rerun: reopen track B for one targeted round, or close it for good. The
      rerun confirmed the direction explanation (25 November), and the user reopened the track for step 4. That

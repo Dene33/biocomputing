@@ -39,7 +39,7 @@
 - **Organoid.** Gets IMU and joint signals, and outputs "which primitive, now", or "none". Decoded DishBrain-style: argmax over K+1 channel groups, or a linear classifier.
 - **Why plausible.** ~4 bits per push, ~150–300 ms to decide. This is pattern discrimination, the thing cultures have done.
 - **Ablation.** Without the dish, stance only, the robot falls at 160 N (measured). A wrong choice also falls.
-- **Cheap sim tests** (designed, not yet run):
+- **Cheap sim tests** ((a) ran on 21 November, 38e96bf; see the result below):
   - (a) Build the primitives; measure survival with *oracle* choices plus injected error rate and delay. That gives the required accuracy and latency.
   - (b) Open loop: push-direction accuracy from culture features against time since the push, with the existing probe pipeline.
 - **Hardware.** Fits CL1 (few electrodes, sub-ms loop).

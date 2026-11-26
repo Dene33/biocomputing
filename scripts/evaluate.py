@@ -50,7 +50,7 @@ for path in sorted((root / "dagger").glob("*/summary.json")):
     })
 
 lines = ["# Results", "", "## Parallel DAgger (scripts/train_dagger.py)", "",
-         "Final: 10 fresh push seeds. Ablations (scripts/eval_readout.py, 20 fresh seeds): `none` = as trained, "
+         "Final: 10 fresh push seeds. Ablations (scripts/eval_readout.py, fresh seeds, count per cell): `none` = as trained, "
          "`silent` = no sensory stimulation reaches the culture, `dead` = culture without recurrent synapses, "
          "`zero` = default pose.", "",
          "| run | source | wells | encoding | decoder | rounds | best round (s) | final | ablations |",

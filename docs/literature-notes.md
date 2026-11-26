@@ -94,7 +94,7 @@ brakes, which all act on rates or on single synapses, miss the actual problem.
 **Result (25 November 2026): present, in all three cultures** (`takeover_rerun.py`; each rerun equals its stored row
 bit for bit). Away synapses gain 3.1–4.9, those pointing back lose 1.1–1.35; the score is 4.3–6.0 against
 0.009 under scaling alone. Mapped over all 256 electrode positions, it peaks exactly at the winning input in each
-culture and fades with distance (r = −0.99). Hubs don't explain it: the top 1% of neurons hold 3–4% of the gain.
+culture and fades with distance (r = −0.99). Hubs don't explain it: the top 1% of neurons hold 2.7–4.1% of the gain.
 Scaling alone also tilts the score past 2 SE (z 17–18, about 1/500 of the size), so "no such pattern" holds only in
 size, not in significance. Open: whether the orientation causes the takeover or grows with it; both happen in the
 first minute.
@@ -411,8 +411,8 @@ excitable media: a wave keeps circling only if one lap takes longer than the tis
 synapses recover over 2 s (`stp_tau_rec_ms`), but how fast its bursts travel has never been measured. Proposal 4
 measures the speed, after which the condition can be checked.
 
-Measured since (25 November 2026, `burst_spread.py`): bursts travel at about 40–50 mm/s, so a lap around a circle
-1 mm across takes about 60–80 ms, far less than the 2 s recovery. By the condition above (reasoning, not
+Measured since (25 November 2026, `burst_spread.py`): bursts travel at about 31–41 mm/s, so a lap around a circle
+1 mm across takes about 75–100 ms, far less than the 2 s recovery. By the condition above (reasoning, not
 simulated), the model can't keep a wave circling; its few "rotating" bursts (6–9%) are single sweeps.
 
 ### Usable: the takeover test from electrodes alone
@@ -483,7 +483,7 @@ pass the "computes" test.
 
 ## Proposals, in order
 
-None has been run. Each needs a go-ahead and follows the usual guarded-run rules (smoke test, in-run checks,
+All but proposal 3 have run since; outcomes are in the table. Each needed a go-ahead and follows the usual guarded-run rules (smoke test, in-run checks,
 watchdog, fresh seeds, standard baselines). The order adopted afterwards is item 4 of the route doc's
 [Order](route-to-computation.md#order):
 1. proposal 1 (A2c);
@@ -496,9 +496,9 @@ Proposal 3 is dropped.
 
 | # | What | Track | Needs | Reading fixed in advance |
 |---|---|---|---|---|
-| 1 | **A2c:** stale decoder, only the edit refitted (from 60 s; also 10 s and 30 s) | A | A2's session setups (`outputs/closed_loop_sessions/sessions/`), 5 conditions × 40 fresh seeds per replay length | ≥ 34/40 in every condition |
-| 2 | **Takeover rerun** with a final weight dump and every electrode's spike times: one takeover arm per culture plus the scaling-alone arm as control (6 arms × 600 s; the weight-dependent check's 9 arms took 2–2.5 h) | B (diagnostic) | — | Rerun equals the stored rows. Synapses pointing away from the winner gain more than those pointing back, by > 2 SE in all 3 cultures and not in the control. Reported alongside: decoding of the pulsed input across minutes (paper 3), and the electrodes' direction maps compared with the weights (paper 4) |
+| 1 | **A2c:** stale decoder, only the edit refitted (from 60 s; also 10 s and 30 s) | A | A2's session setups (`outputs/closed_loop_sessions/sessions/`), 5 conditions × 40 fresh seeds per replay length | ≥ 34/40 in every condition. *Passed (25 November, 37fcbd3): 37–40/40 in every condition* |
+| 2 | **Takeover rerun** with a final weight dump and every electrode's spike times: one takeover arm per culture plus the scaling-alone arm as control (6 arms × 600 s; the weight-dependent check's 9 arms took 2–2.5 h) | B (diagnostic) | — | Rerun equals the stored rows. Synapses pointing away from the winner gain more than those pointing back, by > 2 SE in all 3 cultures and not in the control. Reported alongside: decoding of the pulsed input across minutes (paper 3), and the electrodes' direction maps compared with the weights (paper 4). *Confirmed (25 November, 4d2f52b) in 3 of 3 cultures* |
 | 3 | **A1 state test:** replay the 17 failing 1 × 12 seeds with whole-well logging. *Dropped (25 November): it explains a relay flaw but changes no decision* | A | A1b setups | Decoding error tracks prior activity in the live culture, not in the dead one |
-| 4 | **Burst spread:** start sites, their stability, crossing times (the wave speed) and pattern class (source, plane, rotating), against nulls that keep each electrode's spikes | B0 | Model first, then the Wagenaar spike files | The method recovers the model's known spread before it is applied to Wagenaar |
-| 5 | **Many weak synapses**, same total input. *Failed (26 November): the cultures go silent (0 bursts per minute); track B closed for good* | B, only if reopened | Drift reruns, slower | ~6.5% of pulses set off a burst; spontaneous activity inside the Wagenaar ranges |
+| 4 | **Burst spread:** start sites, their stability, crossing times (the wave speed) and pattern class (source, plane, rotating), against nulls that keep each electrode's spikes | B0 | Model first, then the Wagenaar spike files | The method recovers the model's known spread before it is applied to Wagenaar. *Not validated (25 November, 010d6d1): only the speed is recovered, not start sites or pattern* |
+| 5 | **Many weak synapses**, same total input. *Failed (26 November, d55805f): the cultures go silent (0 bursts per minute); track B closed for good* | B, only if reopened | Drift reruns, slower | ~6.5% of pulses set off a burst; spontaneous activity inside the Wagenaar ranges |
 | parked | Real dish: STTC with an event-shift null, duplicate-unit merging, geometry reliability over time, decoder tested across sessions, time since the last burst as a covariate, and the takeover test from direction maps if proposal 2 validates it | dish | A culture | — |

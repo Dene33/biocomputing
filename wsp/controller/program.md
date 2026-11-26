@@ -7,8 +7,8 @@ an agent writes a model's weights in code, guided by one validation score. Plan:
 
 Asimov 1 on `stand_push`: stand for 20 s while 120–200 N pushes hit the pelvis every 3 s. The controller drives
 all 23 joints. It sees the joint encoders and its own last command exactly. Its balance signal `vest` (gyro ×0.25
-and projected gravity, `obs[0:6]`) comes through the **dish model** in `dish_model.json`: delayed, at a reduced rate,
-noisy.
+and projected gravity, `obs[0:6]`) comes through the **dish model** in `dish_model.json`: since Phase 3.1 the measured CL1-sized
+channel, with a gain, noise and correlation time per channel and no added delay or hold (`delay: 0, hold: 1`).
 
 ## Files
 
