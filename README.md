@@ -12,11 +12,11 @@ The culture drives **all 23 joints of Asimov 1 at 50 Hz** in MuJoCo. Two ways to
 | Path | What |
 | --- | --- |
 | `src/biocompute/device.py` | `Biocomputer` protocol (`stimulate`, `step` → `SpikeBlock`) and `SimulatedBiocomputer`. A real CL1/FinalSpark adapter implements the same protocol. |
-| `src/biocompute/culture/network.py` | `OrganoidCulture`: Izhikevich neurons (80 % excitatory RS/IB/CH, 20 % inhibitory FS/LTS), a flattened organoid lying on the array, distance-dependent sparse connectivity with axonal delays, Tsodyks–Markram short-term depression, Poisson background, optional slow NMDA-type excitation (`nmda_ratio`). `wells=K`: K independent organoids, as on a multi-well plate. Torch, CPU or GPU (synaptic delivery as one sparse matrix–vector product per 0.5 ms substep), seeded. |
-| `src/biocompute/culture/plasticity.py` | `STDP` (additive, or weight-dependent with `multiplicative=True`; optional inhibitory plasticity with `istdp_eta`), `RewardSTDP` (in-silico upper bound), forgetting towards baseline weights, `SynapticScaling` (per-neuron homeostatic scaling, bl1's rule), `Chain` (several rules in order), rest |
+| `src/biocompute/culture/network.py` | `OrganoidCulture`: Izhikevich neurons (Izhikevich 2003; 80 % excitatory RS/IB/CH, 20 % inhibitory FS/LTS), a flattened organoid lying on the array, distance-dependent sparse connectivity with axonal delays, Tsodyks–Markram short-term depression, Poisson background, optional slow NMDA-type excitation (`nmda_ratio`, gated by the magnesium block, Jahr & Stevens 1990). `wells=K`: K independent organoids, as on a multi-well plate. Torch, CPU or GPU (synaptic delivery as one sparse matrix–vector product per 0.5 ms substep), seeded. |
+| `src/biocompute/culture/plasticity.py` | `STDP` (additive, or weight-dependent with `multiplicative=True`; optional inhibitory plasticity with `istdp_eta`, Vogels et al. 2011), `RewardSTDP` (eligibility trace plus a global reward, Izhikevich 2007: an in-silico upper bound, since no such signal can be delivered through electrodes), forgetting towards baseline weights, `SynapticScaling` (per-neuron homeostatic scaling, Turrigiano 2008, bl1's rule with two fixes: each neuron's own resting rate as target, and the exact exponential step instead of bl1's Euler step, which goes negative far above target), `Chain` (several rules in order), rest |
 | `src/biocompute/culture/aging.py` | Excitability drift and cell loss over days |
 | `src/biocompute/mea/electrodes.py` | MEA: multi-unit detection with distance-dependent probability, false positives, dead channels, stimulation that falls off with distance, rate and amplitude limits, artifact blanking. Presets `mcs60` (60 channels, 200 µm), `grid256`, `hd1024` (MaxWell-like). One grid per well. |
-| `src/biocompute/interface/` | Encoders (observation → pulses; amplitude or rate coding; identity, PCA, supervised or random projection), spike features, ridge readout (`LinearReadout`, GPU for thousands of features), trained nonlinear decoder (`MLPReadout`), the fixed motor-map decoder, DishBrain feedback |
+| `src/biocompute/interface/` | Encoders (observation → pulses; amplitude or rate coding; identity, PCA, supervised or random projection), spike features, ridge readout (`LinearReadout`, GPU for thousands of features), trained nonlinear decoder (`MLPReadout`), the fixed motor-map decoder, DishBrain feedback (Kagan et al. 2022: predictable stimulation, 100 Hz for 100 ms on every sensory electrode, for staying up; unpredictable, 5 Hz for 4 s at random electrodes, for a fall) |
 | `src/biocompute/robot/asimov.py` | `AsimovEnv`: Asimov 1 stepped one 20 ms control step at a time, built on cyclotron's `sim2sim` |
 | `src/biocompute/robot/teacher.py` | The trained walking policy (ONNX): the teacher and the ceiling |
 | `src/biocompute/loop.py` | The closed loop. The culture needs 20 ms of its own time to answer, so an action applies one step late. |
@@ -72,7 +72,10 @@ uv run scripts/reflex_oracle.py                                               # 
 
 Long runs go through `scripts/launch.py`: it smoke-tests the script (`--smoke`, the whole pipeline at tiny scale),
 then starts it as a detached systemd unit, so an editor crash can't kill it. `scripts/watch.py` follows the log and
-stops the unit on an error, a failed in-run check (`biocompute.runguard.Guard`) or a stall:
+stops the unit on an error, a failed in-run check (`biocompute.runguard.Guard`) or a stall. Its exit code is the
+alarm: 3 for an error or failed check, 4 for a stall (no log output or heartbeat for `--stall-min`), 0 for a clean
+end, 2 for an unclean one. `Guard.culture` checks that the state is finite, weights stay within [0, cap] and don't
+pile up at any other value, and electrode rates are plausible:
 
 ```sh
 uv run scripts/launch.py --unit bio-X --log outputs/X/run.log -- scripts/foo.py <args>
@@ -85,6 +88,65 @@ command is run again. Finished jobs and checkpoints are named by every setting t
 results; code changes are not in the name, so after one, run into a fresh `--out`. Runs repeat bit for bit: the same
 seed gives the same result on the GPU, also across a stop and resume. Sums go through ordered operations
 (`OrganoidCulture.excitatory_input`, the delivery matrix), and a test fails on any new atomic float sum.
+
+The commands behind the committed experiment results. Each run's numbers are in its commit, cited in the route doc's
+results table. Each script's original description (design, gates, controls, results) was taken out of the code
+after commit d3c85c4 and stays readable with `git show d3c85c4:<path>`. Long runs use the `launch.py` / `watch.py` pair above with the same unit and log, and
+`systemctl --user stop <unit>` stops one gracefully; relaunching the same command resumes it.
+
+```sh
+uv run scripts/blind_teacher.py; uv run scripts/no_imu_student.py                    # Phase 1.1, Gate G1
+uv run scripts/vestibular_probe.py; uv run scripts/trigger_probe.py collect           # Phase 3.1, push trigger
+uv run scripts/trigger_probe.py run --n-stim 32 --wells 6 --encoding axis
+uv run scripts/adaptation_slot.py; uv run scripts/struggle_signal.py                  # Phase 4 sims
+uv run scripts/coach_probe.py; uv run scripts/coach_probe.py --dose --seeds 0 1
+uv run scripts/dish_regimes.py; uv run scripts/dish_regimes.py --nmda 0.4 --live-only
+uv run scripts/burst_probe.py
+uv run scripts/launch.py --unit bio-cebra --log outputs/cebra_probe/run.log --with cebra -- scripts/cebra_probe.py
+uv run scripts/cartpole_replication.py                                                # cart-pole protocol
+uv run scripts/launch.py --unit bio-cp --log outputs/cartpole_replication/run.log -- \
+    scripts/cartpole_replication.py --drift --drift-scales 1 --drift-pairs 0.01:30 --drift-seconds 600
+uv run scripts/launch.py --unit bio-bl1-rep --log outputs/bl1_drift/rep/run.log -- \
+    --project /mnt/datadisk/repos/bl1 --no-sync python scripts/bl1_drift.py --variant shipped fixed \
+    --seed 42 43 44 45 46 --pulse-ms 20 0.5 --controls --workers 3 --root outputs/bl1_drift/rep
+uv run --project /mnt/datadisk/repos/bl1 --no-sync python scripts/bl1_checks.py      # the port against bl1's code
+python3 scripts/bl1_rep_analysis.py
+# Track A
+uv run scripts/launch.py --unit bio-a1 --log outputs/closed_loop_vestibular/run.log -- \
+    scripts/closed_loop_vestibular.py --workers 3                                     # A1, run 1
+#   A1b: the same command plus --edit affine --seed-base 9100 --out outputs/closed_loop_vestibular_affine
+uv run scripts/closed_loop_falls.py --traces                                          # A1b falls (GPU, ~3 min)
+uv run scripts/launch.py --unit bio-a2 --log outputs/closed_loop_sessions/run.log -- \
+    scripts/closed_loop_sessions.py --workers 3                                       # A2
+uv run scripts/launch.py --unit bio-a2c --log outputs/closed_loop_sessions_refit/run.log -- \
+    scripts/closed_loop_sessions.py --arms refit60 refit30 refit10 recal ideal_imu zero_action \
+    --seed-base 9300 --out outputs/closed_loop_sessions_refit --workers 3              # A2c
+uv run scripts/launch.py --unit bio-a2d --log outputs/day_drift/run.log -- python -I scripts/day_drift.py --workers 3
+uv run scripts/launch.py --unit bio-a2d-cal --log outputs/day_drift/run_calibrate.log -- \
+    python -I scripts/day_drift.py --calibrate --workers 3                            # A2d part 2
+uv run scripts/launch.py --unit bio-a2d-run --log outputs/closed_loop_sessions_a2d/run.log -- \
+    scripts/closed_loop_sessions.py --conds day0 day1_down day1_up day3_down day3_up day7_down day7_up \
+    day7_stress --arms refit60 stale ideal_imu zero_action --seed-base 9400 \
+    --out outputs/closed_loop_sessions_a2d --workers 3                                # A2d
+# Track B and public data
+uv run python -I scripts/public_data_targets.py fetch analyze                        # B0 (downloads are gitignored)
+uv run scripts/launch.py --unit bio-b1 --log outputs/drift_scaling/run.log -- \
+    scripts/cartpole_replication.py --drift --drift-seeds 0 1 2 --drift-scales 0 1 \
+    --drift-homeo 0 1e-5 1e-4 --drift-seconds 600 --workers 4 --out outputs/drift_scaling        # B1
+uv run scripts/launch.py --unit bio-b1m --log outputs/drift_scaling/run_multiplicative.log -- \
+    scripts/cartpole_replication.py --drift --stdp-rule multiplicative --drift-seeds 0 1 2 \
+    --drift-scales 0 1 --drift-homeo 0 1e-5 1e-4 --drift-seconds 600 --workers 4 --out outputs/drift_scaling   # the check
+uv run scripts/launch.py --unit bio-realdrift --log outputs/real_drift/run.log -- python -I scripts/real_drift.py
+uv run scripts/launch.py --unit bio-takeover --log outputs/takeover_rerun/run.log -- scripts/takeover_rerun.py --workers 3
+uv run scripts/launch.py --unit bio-real --log outputs/realism_scorecard/run.log -- scripts/realism_scorecard.py --workers 3
+uv run python -I scripts/burst_spread.py model; uv run python -I scripts/burst_spread.py wagenaar
+uv run scripts/launch.py --unit bio-weak --log outputs/weak_synapses/run_realism.log -- \
+    scripts/weak_synapses.py --part realism --workers 3                               # step 4 (part 2 never ran)
+uv run python -I scripts/real_pathways.py; uv run python -I scripts/real_pathways.py --fs fs437
+uv run python -I scripts/organoid_scorecard.py                                       # organoid column, part A
+uv run scripts/launch.py --unit bio-orgsc --log outputs/organoid_scorecard/run.log -- \
+    python -I scripts/organoid_scorecard.py --evoked --workers 3                      # part B
+```
 
 Tasks (`src/biocompute/train/tasks.py`):
 

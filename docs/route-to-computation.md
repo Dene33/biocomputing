@@ -384,6 +384,70 @@ The round departed from the wording above in two ways, both fixed before it ran:
 One GPU job at a time (8 GB card). Every run is guarded: a smoke test, in-run checks, a watchdog, 40 fresh seeds and
 the standard baselines.
 
+### Readings fixed in advance
+
+Each step was pre-registered in its script's docstring before its first seed or number. The docstrings were taken
+out of the code after commit d3c85c4, and their full text stays readable with `git show d3c85c4:scripts/<script>.py`.
+That text covers design, gates, positive controls, expectations and results. Gates and readings not already given
+above:
+- **A2d** (`closed_loop_sessions.py`). Gate: refit60 ≥ 34/40 full 20 s runs in every session, day 0 included. It is
+  tested only where stale drops below 34/40. Controls: day 0 equals A2's stored session, aging is on its nominal
+  dose, the shift is applied exactly, and no weight moves.
+- **Day-to-day drift** (`day_drift.py`).
+  - Reading: for each measure and lag, the model is too gentle if its median |log2 change| lies below the real 25th
+    percentile, and too strong if above the real 75th.
+  - Verdicts: spontaneous change (electrode and group level) at ≥ 2 of 3 lags; evoked change per electrode at both
+    lags. The evoked change per group is reported, not used.
+  - Any verdict out of range leads to part 2: a calibrated change, then A2c rerun under it (A2d).
+  - Part 2 doses: per lag and direction, the smallest |shift| that reaches the target, interpolated linearly between
+    calibration points. If no point reaches it, the largest shift tried, flagged.
+- **B1** (`cartpole_replication.py`).
+  - Gate: at eta 1e-5, in each of 3 cultures, the last-minute rate per electrode stays within 2/3–1.5× rest, both
+    with scaling alone and with STDP ×1 plus scaling.
+  - The lower bound is ours: calm by muting doesn't count.
+  - Controls: the no-plasticity arm stays in the band, and the old 5 s step runs away.
+  - Only full 10-minute arms count.
+- **Drift gate** (`cartpole_replication.py --drift`, `bl1_drift.py`; fixed before the inhibitory-plasticity sweep):
+  - rate per electrode in the last minute ≤ 1.5× rest;
+  - each decoder's own gain ≥ 2× its cross gain, with the cross gain ≤ 1 spike per pulse.
+- **Real drift** (`real_drift.py`, the cart-pole organoids' "none" runs).
+  - Real tissue holds if ≤ 10% of pathways move, the median rate ratio (last 3 min / first 30 s) is within 2/3–1.5,
+    and the median 2 SE is no larger than the median preferred gain.
+  - It drifts if ≥ 25% move or the ratio exceeds 1.5.
+  - Otherwise it is in between. Without the power, the test is inconclusive.
+- **Takeover rerun** (`takeover_rerun.py`).
+  - Measure: per E→E synapse, the cosine between its direction and the direction from a centre point to its
+    presynaptic neuron. "Away" means > 0.5 and "toward" < −0.5. Score = mean Δw(away) − mean Δw(toward).
+  - Confirmed if, in each of 3 cultures, centred on the winning encoder:
+    1. the score is > 2 SE;
+    2. it beats the scaling-alone arm's score by > 2 SE;
+    3. it beats both the score around the losing encoder and the 95th percentile around every position ≥ 500 µm
+       from both encoders.
+- **Realism scorecard** (`realism_scorecard.py`): a measure is in range when the median of the five cultures lies
+  inside the real cultures' 5–95% range.
+- **Burst spread** (`burst_spread.py`).
+  - Wagenaar's recordings are read as validated only after the method recovers the model's own spread, on bursts
+    starting under the array: median start-site error ≤ 200 µm, pattern class right in ≥ 70%, and median speed ratio
+    within 0.67–1.5.
+  - Otherwise the Wagenaar run is reported as unvalidated.
+- **Many weak synapses** (`weak_synapses.py`).
+  - Part 1: a variant passes when all six gated scorecard measures are in range.
+  - Part 2: in ≥ 3 of 5 cultures, the arm with STDP ×1 and the 5 s total-input step must meet all three:
+    - it is calm: last-3-minute rate within 2/3–1.5× the no-plasticity arm's;
+    - no encoder → decoder gain moves against the no-plasticity arm;
+    - the no-plasticity arm is separate.
+  - Control: the same rule fails the stored runs of the unchanged culture.
+- **Real pathways** (`real_pathways.py`).
+  - The test is inconclusive with < 20 responding pathway-pairs or no power.
+  - Pathways hold if the share moved exceeds the null by ≤ 10 points, and drift if by ≥ 25.
+  - Amendment for single-input series: inconclusive with < 2 responding outputs or no power; hold if no output
+    moved; drift if at least half moved, all in one direction.
+- **Organoid column** (`organoid_scorecard.py`).
+  - Part A: as the realism scorecard, on 8-electrode blocks, against FinalSpark's 5–95% range.
+  - Part B, like real if both hold:
+    - the responding share and the median gain lie within a factor 2 of the real groups' range;
+    - the burst excess is at most max(2× the larger real excess, that excess + 2 points).
+
 ## Leads from recent papers
 
 25 November 2026. Four papers, read against these results in [literature-notes.md](literature-notes.md). Nothing

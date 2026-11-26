@@ -14,12 +14,17 @@ channel, with a gain, noise and correlation time per channel and no added delay 
 
 | File | Role |
 |---|---|
-| `track_a.py` | Track (a): the teacher's weights (78 → 512 → 256 → 128 → 23), edited |
+| `track_a.py` | Track (a): the teacher's weights (78 → 512 → 256 → 128 → 23, ELU), edited |
 | `track_b.py` | Track (b): a transparent controller written from scratch |
 | `eval_controller.py` | Runs 60 validation seeds; prints `score:` (mean survival, s) and logs a row in `results.csv` |
 | `dish_model.json` | The channel the vestibular signal passes through |
-| `teacher_weights.npz` | The teacher's weights (from `export_teacher.py`) |
+| `teacher_weights.npz` | The teacher's weights (from `uv run --with onnx python wsp/controller/export_teacher.py`) |
 | `log.md` | One line per iteration: hypothesis, change, score |
+
+A controller file defines `write_weights() -> dict` (every parameter, written in code), `act(W, jpos, jvel,
+last_action, vest) -> (23,)` and optionally `reset(W)` (clears filter state at each episode start). Inputs are in the
+teacher's observation units: `jpos = obs[9:32]`, `jvel = obs[32:55]`, `last_action = obs[55:78]`, `vest` = the dish's
+estimate of `obs[0:6]`.
 
 ## Rules
 
