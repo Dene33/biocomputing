@@ -136,3 +136,59 @@ def test_no_atomic_float_sums_outside_the_reviewed_places():
     found = {str(p.relative_to(root)) for p in [*root.glob("src/**/*.py"), *SCRIPTS.glob("*.py")]
              if pat.search(p.read_text())}
     assert found <= set(reviewed), found - set(reviewed)
+
+
+def test_a2c_refit_edit_recovers_the_channel_and_scores_the_rest():
+    """A2c keeps the decoder and refits only its affine edit: the fit must recover decoded = a + g * true around
+    standing, and the error it leaves on the unseen steps must be ~0 for a channel that doesn't change."""
+    from biocompute.eval.dish_channel import IMU_SPREAD
+
+    cls = load("closed_loop_sessions")
+    rng = np.random.default_rng(0)
+    stand = np.array([0.0, 0.002, 0.0, -0.063, -0.005, -0.998])
+    T = stand + rng.normal(0, 1, (3000, 6)) * np.r_[IMU_SPREAD[:5], 0]
+    g, a = np.array([0.7, 0.8, 0.9, 0.6, 0.75]), np.array([-0.03, 0.01, 0.09, -0.03, 0.0])
+    P = T.copy()
+    P[:, :5] = a + g * T[:, :5] + rng.normal(0, 0.2, (3000, 5)) * IMU_SPREAD[:5]
+    e = cls.refit_edit(T, P, stand, 500)
+    assert e["steps"] == 500 and 0 < e["in_range"] <= 500
+    assert np.allclose(e["gain"], g, atol=0.05) and np.allclose(e["intercept"], a, atol=0.01)
+    assert e["rest_in_range"] > 2000 and np.abs(e["rest_bias"]).max() < 0.1
+    assert "rest_bias" not in cls.refit_edit(T, P, stand, 3000)  # nothing left to score on
+    P[:, 0] = 0.01 * T[:, 0]  # a dead channel: no usable edit
+    assert cls.refit_edit(T, P, stand, 500)["gain"] is None
+
+
+def test_a2c_reproduction_check_is_exact():
+    import torch
+
+    cls = load("closed_loop_sessions")
+    x = {"w": torch.arange(4.0), "a": np.array([1.0, np.nan]), "q": [(np.arange(2), 3)], "t": 1.5}
+    y = {"w": torch.arange(4.0), "a": np.array([1.0, np.nan]), "q": [(np.arange(2), 3)], "t": 1.5}
+    assert cls.same(x, y)
+    y["a"] = np.array([np.nextafter(1.0, 2.0), np.nan])
+    assert not cls.same(x, y)
+    assert not cls.same(x, x | {"w": torch.arange(4.0).double()})  # dtype counts
+    assert not cls.same(x, {k: v for k, v in x.items() if k != "t"})
+
+
+def test_gate_a2c_needs_every_condition_day0_included():
+    cls = load("closed_loop_sessions")
+    seeds = list(range(40))
+
+    def tab(full_by_cond):
+        by, fulls = {}, {}
+        for cond, k in full_by_cond.items():
+            for arm in ("refit60", "recal"):
+                f = {s: s < (k if arm == "refit60" else 36) for s in seeds}
+                fulls[("s32", cond, arm)] = f
+                by[("s32", cond, arm)] = {"full": sum(f.values()), "n": len(f)}
+        return by, fulls
+
+    ok = {c: 35 for c in cls.CONDITIONS}
+    assert cls.gate_a2c(*tab(ok), 40)["pass"]
+    assert not cls.gate_a2c(*tab(ok | {"day0": 33}), 40)["pass"]
+    assert not cls.gate_a2c(*tab({c: 40 for c in cls.AGED}), 40)["pass"]  # day 0 missing: not complete
+    g = cls.gate_a2c(*tab(ok | {"newdish": 38}), 40)
+    assert g["per_condition"]["newdish"]["only_refit60_full"] == [36, 37]
+    assert g["per_condition"]["newdish"]["only_recal_full"] == []
