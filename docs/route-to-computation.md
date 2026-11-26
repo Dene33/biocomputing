@@ -3,15 +3,18 @@
 22 November 2026. Builds on [next-steps.md](next-steps.md) and the README's status. Each claim cites the script and
 commit that produced it. Simulated results are statements about our model; each is a hypothesis for a real dish.
 
-**Status, 25 November 2026.** The routes below are ranked for real hardware, and every one of their gates needs a
+**Status, 26 November 2026.** The routes below are ranked for real hardware, and every one of their gates needs a
 dish. We have no culture and no physical robot for now, so the routes are parked. Both simulated tracks in
 [Order of work without a dish](#order-of-work-without-a-dish) have run: track A missed its gates narrowly, and track B
 closed after its first step. What waits is listed under [Parked until dish access](#parked-until-dish-access).
 On 25 November a code review of track B's scripts found 13 bugs (among them a scaling step that could turn weights
 negative, cached results reused across settings, and a yardstick that differed between arms). All are fixed with
 tests, every drift arm was rerun, and no verdict changed; the numbers below are from the rerun. Runs now repeat bit
-for bit; a single run of one culture is still one path of a chaotic network. Leads from four recent papers, not yet
-run, are under [Leads from recent papers](#leads-from-recent-papers).
+for bit; a single run of one culture is still one path of a chaotic network. Leads from four recent papers are under
+[Leads from recent papers](#leads-from-recent-papers); all three have run since: A2c passed, the takeover's direction
+explanation was confirmed, and a realism scorecard put the model in range on 3 of 6 measures. Track B was then
+reopened for one round, many weak synapses (step 4), and it failed its first part. With the same total input spread
+over 1.9 to 10 times as many synapses, the model stops bursting altogether. Track B is closed for good.
 
 ## The bar
 
@@ -69,8 +72,12 @@ The robot's balance loop runs at 50 Hz. A dish in that loop may add at most ~40 
 | Does an outside model hold up? bl1 (github.com/m9h/bl1: JAX, Wagenaar-calibrated, STDP + homeostatic scaling) | no. Same drift test on bl1's own code, as shipped and with two of its five bugs fixed, 5 cultures, 600 s, two pulse lengths. Nothing runs away (its STDP is depression-dominated), but the gate is never passed except by running down. Per-neuron synaptic scaling alone holds the non-stimulated electrodes at their resting rate (1.00–1.01× in every culture). With STDP on it holds neither rates (realistic 0.5 ms pulses: 1.25× the no-plasticity arm, still climbing) nor pathways (each decoder's own gain moves ~2 spikes per pulse within 10 minutes, 5 of 10 pathways beyond 2 SE). A potentiation-dominated control shows the test catches upward drift. The port is spike-for-spike bl1's code (`bl1_checks.py`) | `bl1_drift.py`, `bl1_checks.py`, `bl1_rep_analysis.py` 1e3f994 |
 | The culture in the robot's loop (track A1): only the IMU through the dish, decoder and weight edit fixed beforehand | not on a CL1-sized well. 1 well × 12 electrodes: 0/40 with the planned 1/gain edit, 23/40 with an edit that also removes the decoder's offset (gate ≥ 34/40). 1 × 32: 40/40. Silenced dish 0/40, ideal IMU 40/40. A dead culture does as well or better (1 × 12: 32/40), so the dish relays and computes nothing. The planned edit failed because the robot stands leaning 3.6° forward, not upright: the decoder's offset turned into a false lean of 2.35 spreads. Phase 3.1's channel model had no offset and couldn't show it. The remaining 1 × 12 falls follow pushes from the front: the relay reads the pitch rate too high during the recovery, the forward lean grows past the encoder's input limit (4 replay SDs), and past it the teacher's view of the tilt stops changing | `closed_loop_vestibular.py`, `closed_loop_falls.py` |
 | Sessions and drift (track A2): age the culture 1, 3, 7 days or swap in a new dish; stale decoder vs one recalibrated from 60 s of open-loop replay plus one edit (1 × 32) | not passed, by one episode. A new dish breaks the stale relay (0/40), and recalibration restores 36/40. Aging up to 7 days leaves the stale relay at 36–39/40, so the gate was tested only on the new dish. Recalibrated: 33/40 at day 3, 36–37/40 elsewhere, 36/40 even at day 0. The 60 s decoder reads grav_x with noise 0.84–0.89 spreads against 0.53–0.55 for the one fitted on 312 s, so the calibration's length is the limit | `closed_loop_sessions.py` |
+| Sessions with only the edit refitted (track A2c): A1's decoder kept, gain and offset per IMU channel refitted from 60, 30 or 10 s of the session's replay, fresh seeds (1 × 32) | passed. Edit from 60 s: 37–40/40 in every session, new dish 37/40; recalibrated decoder on the same seeds 30–36/40 (new dish 30/40). Pooled 190/200 vs 171/200; 28 seeds stand only with the edit, 9 only with the recalibration. The old decoder (312 s of fitting) is less noisy than a 60 s one (grav_x 0.98 vs 1.61 spreads on the new dish); the edit removes its 1–2.5-spread offsets. 10 s pins the offsets (≤ 0.09 spread) but leaves two new-dish gains 22–29% low (36/40); 30 s pins every gain within 5%. One new dish (one culture seed) | `closed_loop_sessions.py --arms refit60 …` |
 | Does per-neuron synaptic scaling hold rates? (track B1: bl1's rule, our model, 3 cultures, 600 s) | not with our STDP on. Scaling alone keeps every electrode at rest (0.99–1.04× in the last minute, 0.99–1.07× in every minute) without muting the inputs, and brings neurons above 1.5× their own target from 1–4% to ~1%. With STDP at bl1's rate (gate) it runs away like the old total-input step: 6.3–10.2× rest against 5.5–7.8×, E→E weights up 1.4–1.8×. Ten times faster (exploratory): 1.7–2.1× rest from minute 5 on, but the pathways mix (in two cultures a cross gain climbs from 2–3 to 4.7–6.6 spikes per pulse and one decoder follows the wrong encoder). Likely reason: additive STDP against multiplicative scaling only balances at a standing rate error | `cartpole_replication.py --drift --drift-homeo`, `SynapticScaling` |
 | Does weight-dependent STDP let the scaling hold? (the check before closing track B, 3 cultures, 600 s) | rates nearly at ten times bl1's rate, pathways no. At bl1's rate (gate): 2.2–5.0× rest, no better than with the old step (2.2–4.1×). Ten times faster: 1.34–1.53× rest in the last minute, in band in 28 of 30 minutes, inputs still answered (own gains 2.7–6.0 spikes per pulse), the closest any setting came; one culture ends 0.03 over the band (all three inside on the 24 November run, 1.32–1.45×). And 2 of 4 pathways move beyond 2 SE of the no-plasticity arm in every culture, and by the end one input drives both outputs (4.0–6.5 spikes per pulse from the wrong input against 1.0–3.4 from the right one). Scaling alone: 1 of 24 moved (the noise floor). Numbers from the rerun of 25 November after the code review's fixes. Single arms are sensitive: the exp factor's slight change to the weights moved them and flipped some pathway verdicts, since the network's chaos grows any change into another path | `cartpole_replication.py --drift --stdp-rule multiplicative`, `pathways_vs_off` |
+| Why does one input take over? (the takeover rerun: one takeover arm per culture with a weight dump, 3 cultures, 600 s) | links pointing away from the winning input strengthen, links pointing back weaken: away − toward 4.3–6.0 weight units, about 500× the tilt under scaling alone, confirmed in all three cultures by the pre-registered reading. The effect is centred exactly on the winning input (peak of a map over all 256 electrode positions) and fades with distance; not a few hubs. The winner's pulses come to set off activity over the whole array, the loser's stay local; the inputs stay decodable (0.94–1.00 in two cultures), so the readout is captured, the input not erased. Whether orientation causes the takeover or grows with it is not settled | `takeover_rerun.py` |
+| Does the model's spontaneous activity look real? (realism scorecard: B0's yardstick on 5 cultures × 600 s, mcs60 array, against 29 Wagenaar cultures; and burst spread) | half. In range: electrode rate (5.0 Hz vs 2.8 [0.7–10.3]), burst duration (103 ms vs 556 [79–1788]), share of spikes in bursts (0.85). Out of range in every culture: bursts ten times too often (45 per minute vs 4.2 [1.2–15.4]), like clockwork (interval CV 0.32 vs 0.87 [0.56–1.99]), and a pulse sets off a burst 20% of the time vs 6.5% [0–16%]. Burst spread from electrodes isn't validated on the model (speed recovered, start site and pattern not); read with that limit, real bursts are messier and start at fewer sites, at the same speed (30 vs 31–41 mm/s) | `realism_scorecard.py`, `burst_spread.py` |
+| Do many weaker synapses make the model realistic? (step 4: the same total input per neuron spread over 1.9, 4 or 10 times as many synapses, 5 cultures each, 600 s, mcs60 array) | no, the model goes silent. There was not one network burst in 10 minutes in any of the 15 cultures. The electrode rate is 0.54–0.56 Hz, below the real 0.7–10.3, and neurons fire 18–28 times less than now. Only the evoked share is in range (0–4%). With no bursts, that measure probably counts small responses (not checked). Halving each synapse at the same reach is already enough. Each neuron's total input was checked within 1%, and the unchanged culture repeated its stored rows bit for bit. The stability part didn't run, and track B is closed for good | `weak_synapses.py` |
 
 ## The routes
 
@@ -168,7 +175,9 @@ may not offer pharmacology). C2: local CL1 or MaxWell only.
 **Status.** Necessary: without its balance sense the robot falls in 1 s. Hardware-sized: a CL1-sized channel
 (12 electrodes) gives 40/40 after one weight edit. But it computes nothing: a dead culture relays as well. By our bar
 it is not a computation route. Keep it for two jobs: proving a real dish can sit in a 50 Hz loop (latency, drift,
-per-session recalibration by one weight edit), and carrying route 2's signal if C1 passes.
+per-session recalibration by one weight edit), and carrying route 2's signal if C1 passes. In simulation the
+session protocol holds: the old decoder plus a refitted edit (gain and offset per channel, from 30–60 s of replay)
+keeps 37–40/40 after aging and on a new dish (A2c).
 
 **Gates.**
 - **A1, open loop.** Replay recorded IMU and measure the real channel (gain, noise, delay, hold). Fit `DishModel`,
@@ -219,6 +228,10 @@ This is Phase 3.3 of [next-steps.md](next-steps.md#33-closed-loop), and route 3 
     because A1 showed the 1/gain edit fails). The stale relay drops only on a new dish (0/40), where 60 s of
     calibration and one edit restore 36/40. Aging up to 7 days leaves the stale relay at 36–39/40. The recalibrated
     relay reaches 33/40 at day 3 and 36–37/40 elsewhere, 36/40 even at day 0: 60 s is the weak point, not aging.
+  - **A2c (25 November 2026): passed.** Keep the old decoder and refit only the affine edit from the session's
+    replay. With 60 s: 37–40/40 in every session, the new dish 37/40, against 30–36/40 for the recalibrated decoder
+    on the same seeds. 30 s is as good; 10 s pins the offsets but leaves two new-dish gains loose (36/40). A session
+    needs two numbers per IMU channel, not a new decoder. Shown on one new dish.
 
 ### Track B: a culture model good enough for learning questions
 
@@ -231,7 +244,9 @@ the track with a write-up, and learning questions wait for a dish.
 
 - **B0. Public data** (CPU, alongside A1). Recordings of real cultures from other labs:
   - Wagenaar et al. 2006, dissociated cortical cultures (spontaneous, plus stimulation sets if published);
-  - FinalSpark's free dataset (request form);
+  - FinalSpark's free dataset (request form). Found 26 November: a public CC-BY record of spontaneous spikes from
+    human forebrain organoids on FinalSpark's platform (TU Munich, Zenodo 10.5281/zenodo.22755004, v3: 8 electrodes
+    per organoid, 600-1800 s each, ages 75-367 days, no stimulation); not fetched;
   - the Robbins et al. Zenodo record (10.5281/zenodo.17684862), if it holds recordings.
 
   Extract per-electrode rates, burst rate, burst duration, inter-burst interval, recruitment, and the stability of
@@ -270,27 +285,68 @@ threshold, intrinsic excitability, heterosynaptic normalisation. The model still
 track A's relay. Public recordings settle only the rate half: in the cart-pole organoids' game logs, real rates don't
 climb under the same kind of input pulses (`real_drift.py`; parked item 5 below). What real pathways do still needs a
 dish. One more mismatch they show: stimulation sets off a network burst in about 20% of trials in our model (the
-replication's selected encoders: 16–24%), against 6.5% in the organoids (IQR 2.7–10%).
+replication's selected encoders: 16–24%), against 6.5% in the organoids (IQR 2.7–10%). The realism scorecard
+(25 November) confirms it in five cultures (20–21%) and adds two more: spontaneous bursts come ten times too often
+(45 per minute against 4.2) and too regularly (interval CV 0.32 against 0.87).
+
+**Why one input takes over (takeover rerun, 25 November 2026; a diagnostic, the track stays closed).** One takeover
+arm per culture was rerun with a weight dump and every electrode's spikes (`takeover_rerun.py`; each arm repeated
+its stored row bit for bit). The pre-registered direction reading is confirmed in all three cultures. E→E links that
+point away from the winning input gain 3.1–4.9 on average, links pointing back lose 1.1–1.35, about 500 times the
+tilt under scaling alone. Mapped over all 256 electrode positions, the effect is centred exactly on the winning
+input in every culture and fades with distance from it. It is not a few hub neurons: the top 1% hold 3–4% of the
+gain. From the electrodes alone, the winner's pulses set off activity over the whole array (first-spike maps whose
+direction matches the weight change, cosine 0.84–0.87), while the loser's stay local. The network still tells the
+two inputs apart (decoding 0.94–1.00 in two cultures), so the takeover captures the readout rather than erasing the
+input. Not settled: whether the orientation causes the takeover or grows with it, since both happen in the first
+minute.
+
+**Many weak synapses (step 4, 25–26 November 2026): failed; track B is closed for good.** The user reopened the
+track for this one round. Each neuron got 1.9, 4 or 10 times as many synapses, each as much weaker. Each neuron's
+total input stayed within 1% of now, and the unchanged culture repeated its stored results bit for bit
+(`weak_synapses.py`). None of the 15 cultures (3 variants × 5) burst even once in 10 minutes: the busiest 10 ms held
+at most 0.36% of the neurons. The electrode rate fell to 0.54–0.56 Hz (real: 0.7–10.3 Hz), so 1 of 6 measures was
+in range: the evoked share, 0–4%. Halving each synapse at today's reach is already enough. The pre-registered
+expectation, that the cultures would keep bursting, less often and still too regularly, was wrong.
+
+A reading, not tested: in this model, bursts start when strong single inputs coincide, and smaller jolts at the same
+mean never reach ignition. A model that bursts with fine-grained input would need other machinery. The stability part
+was not run, as pre-registered.
+
+The round departed from the wording above in two ways, both fixed before it ran:
+- 1,000 synapses per neuron don't fit at the model's 150 µm reach (about 194 at most), so the round was a dose series
+  that widened the reach only as needed (×1.9 at 150 µm, ×4 at 225 µm, ×10 at 370 µm).
+- The stability arm was to be STDP with the 5 s total-input step, not B1's scaling. That scaling pulls each neuron
+  toward its resting rate within seconds, so a culture whose rate rises under stimulation would fail through the
+  brake.
 
 ### Order
 
 1. A1 on the GPU, with B0 alongside (CPU and network). Done.
-2. A2. Done.
+2. A2. Done. A2c (item 4.1) settles its open point.
 3. B1: not passed (24 November 2026), and a check of weight-dependent STDP didn't change it. Track B is closed;
    B2, B3 and B4 not run.
 4. Next, set on 25 November 2026 after the reading of four papers ([literature-notes.md](literature-notes.md)).
-   None has run yet. Each step is pre-registered, guarded and committed as its own milestone:
+   Each step is pre-registered, guarded and committed as its own milestone:
    1. **A2c** (track A). Keep the old decoder and refit only the affine edit, from 10, 30 and 60 s of replay, on
       fresh seeds. Gate: ≥ 34/40 in every session with the 60 s edit. If it passes, route 3's session protocol
       becomes "refit the edit". If it fails, keep refitting the decoder, from a longer calibration.
+      **Passed (25 November): 37–40/40 in every session; the protocol is "refit the edit", from 30–60 s.**
    2. **Takeover rerun** (track B, a diagnostic; the track stays closed). One takeover arm per culture plus the
       scaling-alone control, with a final weight dump and every electrode's spike times. It tests the direction
       hypothesis, and the electrode-level direction maps a real dish would need.
+      **Confirmed (25 November) in all three cultures: the weight change points outward from the winning input. The
+      track stays closed unless the user reopens it for step 4.**
    3. **Realism scorecard.** B0's yardstick (`spike_stats`) on the model's spontaneous activity against the
       Wagenaar ranges, and burst spread (start sites, speed, pattern), model first.
+      **Run (25 November): 3 of 6 measures in range.** Bursts come ten times too often and too regularly, and a
+      pulse sets off a burst three times too often. The burst-spread method wasn't validated on the model.
    4. Only if step 2 confirms the hypothesis and track B is reopened by decision: **many weak synapses**, one
       time-boxed round. Gate: about 6.5% of pulses set off a burst, spontaneous statistics in range, and the full
       drift gate in ≥ 3 of 5 cultures. A failure ends track B for good.
+      **Failed (25–26 November): with the same total input, the model stops bursting (0 bursts per minute in 15 of
+      15 cultures, electrode rate 0.54–0.56 Hz). Track B is closed for good.** It ran as a dose series (×1.9, ×4,
+      ×10) because 1,000 synapses don't fit at today's reach (see the track B paragraph).
    5. Optional: **A1c**, a wider encoder input limit on the 12-electrode well, as a labelled run.
 
    The notes' A1 state test (proposal 3) is dropped: it explains a relay flaw but changes no decision.

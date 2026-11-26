@@ -91,6 +91,14 @@ where weights move with no timing rule, there should be no such pattern. If the 
 wrong and the takeover goes through something else, for example a few hub neurons. If it is present, B2's candidate
 brakes, which all act on rates or on single synapses, miss the actual problem.
 
+**Result (25 November 2026): present, in all three cultures** (`takeover_rerun.py`; each rerun equals its stored row
+bit for bit). Away synapses gain 3.1–4.9, those pointing back lose 1.1–1.35; the score is 4.3–6.0 against
+0.009 under scaling alone. Mapped over all 256 electrode positions, it peaks exactly at the winning input in each
+culture and fades with distance (r = −0.99). Hubs don't explain it: the top 1% of neurons hold 3–4% of the gain.
+Scaling alone also tilts the score past 2 SE (z 17–18, about 1/500 of the size), so "no such pattern" holds only in
+size, not in significance. Open: whether the orientation causes the takeover or grows with it; both happen in the
+first minute.
+
 ### Our model is in the dense regime
 
 The review warns that if neuron count, synapses per neuron and synapse strength don't match real tissue, waves turn
@@ -106,6 +114,18 @@ a lever to test, not a known fix. The review's scaling argument concerns living 
 would be about 6.5% of pulses setting off a burst, with spontaneous activity inside the Wagenaar ranges. Cost
 (arithmetic): gpu_20k at 1,000 synapses per neuron holds roughly 1–2 GB of synapse data, which fits the 8 GB card,
 but plastic runs would be several times slower.
+
+**Result (26 November 2026): the lever doesn't work in this model; the cultures go silent** (`weak_synapses.py`, step
+4; the track was reopened for this round). 1,000 synapses don't fit at the model's 150 µm reach (about 194 at most),
+so the round was a dose series:
+- ×1.9 synapses at the same reach, ×4 at 225 µm and ×10 at 370 µm;
+- each synapse weaker by the same factor;
+- each neuron's total input within 1% of now.
+
+In all 15 cultures (3 × 5), not one network burst occurred in 10 minutes. The electrode rate was 0.54–0.56 Hz
+(real 0.7–10.3), and neurons fired 18–28 times less. The evoked share came out 0–4%, which is in range. Halving each
+synapse is already enough. The model doesn't get sparse; it stops. A reading, not tested: its bursts need strong single inputs. Track B is
+closed for good.
 
 ### The model can't hold memory in its delays
 
@@ -153,6 +173,14 @@ takes to cross the array. The model has never been compared on this. The review'
 Electrode positions must come from the dataset's documentation, not be assumed. Bursts may also start off the array:
 the gpu_20k culture is 4 mm across, and the 256-electrode grid covers only the central 1.5 mm. Check the method on the
 model first, where every neuron's position and spike is known, then apply it to Wagenaar (proposal 4).
+
+**Result (25 November 2026): the method is not validated** (`burst_spread.py`). On the model it recovers the wave
+speed (electrode against true speed 0.95–0.99), but not the start site to one pitch (578 µm with the pre-registered
+truth, 239 µm with a labelled, sturdier truth; gate 200) nor the pattern class (51–52% agreement; gate 70%). Most
+model bursts start off the array: 67–82% by the two truths. Applied to Wagenaar anyway and read with those limits,
+real bursts are messier than the model's (41% fit no simple pattern, against 2–15%) and start at fewer favoured
+sites (13 electrodes cover 80% of starts, against 31–36), while the speed matches (real 30 mm/s [IQR 21–45], model
+31–41).
 
 ### For the parked real-dish work
 
@@ -289,6 +317,12 @@ decoder in one session and test it in the next. If it holds, refit only the edit
 - **Gate, fixed in advance:** ≥ 34/40 in every condition.
 - **Expected:** at least the recalibrated arm's 33–37/40, and more on the new dish, where grav_x error drops from
   1.70 to 0.98. It may not reach day-0 stale's 39/40 (grav_x 0.98 vs 0.69).
+- **Result (25 November 2026): passed.** From 60 s: 37–40/40 in every condition, the new dish 37/40; the recalibrated
+  arm on the same seeds 30–36/40. Closed loop, grav_x noise after the edit: 0.98 on the new dish (as predicted from
+  the stored sessions), 1.61 for the recalibrated decoder. 30 s is as good; 10 s pins the offsets but leaves two
+  new-dish gains 22–29% low (36/40). Details in `closed_loop_sessions.py`. The caveat above stands: in the model a
+  new dish is the same network type under the same electrodes, so the decoder's transfer between dishes is a model
+  result; between sessions of one dish, route 3's case, it is the protocol to test first.
 
 ### Track B: does the takeover destroy information, or only capture the readout?
 
@@ -377,6 +411,10 @@ excitable media: a wave keeps circling only if one lap takes longer than the tis
 synapses recover over 2 s (`stp_tau_rec_ms`), but how fast its bursts travel has never been measured. Proposal 4
 measures the speed, after which the condition can be checked.
 
+Measured since (25 November 2026, `burst_spread.py`): bursts travel at about 40–50 mm/s, so a lap around a circle
+1 mm across takes about 60–80 ms, far less than the 2 s recovery. By the condition above (reasoning, not
+simulated), the model can't keep a wave circling; its few "rotating" bursts (6–9%) are single sweeps.
+
 ### Usable: the takeover test from electrodes alone
 
 A real dish's weights can't be read, so proposal 2's weight dump has no dish version. If the takeover hypothesis
@@ -392,6 +430,13 @@ A real dish's weights can't be read, so proposal 2's weight dump has no dish ver
 
 Proposal 2's rerun can log every electrode's spike times and check this against the weights. If the electrode measure
 follows the weights, it becomes the pathway test a real dish needs (parked item 5), which public data couldn't answer.
+
+**Result (25 November 2026).** The direction field follows the weights: the winner's first-spike gradient lines up
+with the weight change at mean cosine 0.84–0.87 by minute 10, over all 256 electrodes. The area prediction was wrong
+in direction: the area where the inputs differ grows from 12–17% (scaling alone) to the whole array, because the
+winner's pulses come to set off activity everywhere while the loser's stay local (≥ 30% response on ≤ 6
+electrodes), so the loser has no direction field to turn. For a real dish the sign of a takeover is therefore one
+input's first-spike map spreading over the array while the other's stays local.
 
 The grid matters: gradients need neighbours on every side (their smallest spiral core is 3 × 3 points).
 - Our 16 × 16 grid at 100 µm and high-density arrays (MaxWell) are fine.
@@ -455,5 +500,5 @@ Proposal 3 is dropped.
 | 2 | **Takeover rerun** with a final weight dump and every electrode's spike times: one takeover arm per culture plus the scaling-alone arm as control (6 arms × 600 s; the weight-dependent check's 9 arms took 2–2.5 h) | B (diagnostic) | — | Rerun equals the stored rows. Synapses pointing away from the winner gain more than those pointing back, by > 2 SE in all 3 cultures and not in the control. Reported alongside: decoding of the pulsed input across minutes (paper 3), and the electrodes' direction maps compared with the weights (paper 4) |
 | 3 | **A1 state test:** replay the 17 failing 1 × 12 seeds with whole-well logging. *Dropped (25 November): it explains a relay flaw but changes no decision* | A | A1b setups | Decoding error tracks prior activity in the live culture, not in the dead one |
 | 4 | **Burst spread:** start sites, their stability, crossing times (the wave speed) and pattern class (source, plane, rotating), against nulls that keep each electrode's spikes | B0 | Model first, then the Wagenaar spike files | The method recovers the model's known spread before it is applied to Wagenaar |
-| 5 | **Many weak synapses**, same total input | B, only if reopened | Drift reruns, slower | ~6.5% of pulses set off a burst; spontaneous activity inside the Wagenaar ranges |
+| 5 | **Many weak synapses**, same total input. *Failed (26 November): the cultures go silent (0 bursts per minute); track B closed for good* | B, only if reopened | Drift reruns, slower | ~6.5% of pulses set off a burst; spontaneous activity inside the Wagenaar ranges |
 | parked | Real dish: STTC with an event-shift null, duplicate-unit merging, geometry reliability over time, decoder tested across sessions, time since the last burst as a covariate, and the takeover test from direction maps if proposal 2 validates it | dish | A culture | — |

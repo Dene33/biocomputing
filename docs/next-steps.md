@@ -6,20 +6,25 @@
 **Status, 25 November 2026.**
 - **Done:** Phase 1.1 and Gate G1; the Phase 2 harness (2.1) and track (a); Phase 3.1; Phase 4's simulation tests
   ([route-to-computation.md](route-to-computation.md)).
-- **Run:** Phase 3.3, the culture in the robot's loop: track A (A1 and A2) of the route doc's
-  [Order of work without a dish](route-to-computation.md#order-of-work-without-a-dish). Neither gate passed on its
-  main configuration; results in [3.3](#33-closed-loop).
+- **Run:** Phase 3.3, the culture in the robot's loop: track A (A1, A2 and A2c) of the route doc's
+  [Order of work without a dish](route-to-computation.md#order-of-work-without-a-dish). A1 failed on the CL1-sized
+  well, and A2 by one episode. A2c passed: keeping the decoder and refitting only its edit holds 37–40/40 in every
+  session, the new dish included. Results in [3.3](#33-closed-loop).
 - **Closed:** track B, after its first step (B1, a rate controller) failed and one check didn't rescue it. The
   model's rates can be brought to the edge of the band (1.3–1.5× rest), but under repeated stimulation one input
-  still takes over both outputs.
+  still takes over both outputs. A diagnostic rerun (25 November) confirmed why: the weight change points outward
+  from the winning input, so its pulses come to reach the whole array. The track was reopened for one round, many
+  weak synapses (step 4), which failed on 26 November: with the same total input spread over 1.9-10 times as many
+  synapses, the model stops bursting (0 bursts in 15 of 15 cultures). Track B is closed for good.
 - **Checked (25 November):** a code review of track B's scripts found 13 bugs. All are fixed with tests, every
   affected run was repeated, and no verdict changed. Runs now repeat bit for bit.
-- **Next, not yet run:** the order set after reading four papers (route doc, [Order](route-to-computation.md#order),
-  item 4):
-  1. A2c: keep the decoder and refit only the edit;
-  2. a takeover rerun with a weight dump (a diagnostic; track B stays closed);
-  3. a realism scorecard of the model;
-  4. a model fix (many weak synapses) only by decision;
+- **Next:** the order set after reading four papers (route doc, [Order](route-to-computation.md#order), item 4):
+  1. A2c: keep the decoder and refit only the edit. Passed (25 November);
+  2. a takeover rerun with a weight dump (a diagnostic; track B stays closed). Confirmed (25 November);
+  3. a realism scorecard of the model. Run (25 November): 3 of 6 measures in range; bursts too frequent and
+     regular, pulses set off bursts too often;
+  4. a model fix (many weak synapses), by decision. Failed (26 November): the model goes silent, 0 bursts per minute,
+     electrode rate 0.54-0.56 Hz against the real 0.7-10.3; track B closed for good;
   5. A1c, optional.
 - **Waiting:** Phase 4's learning questions, for a dish.
 - **Parked:** Phase 5 and every real-robot step. There is no dish and no robot for now.
@@ -265,7 +270,8 @@ Zero action on the hidden test: 4.4 s, 0/40. With the dish silenced, every teach
 
 ### 3.3 Closed loop
 
-**Status: run (24 November 2026). A1 not reached on the CL1-sized well; A2 short by one episode.** This is track A
+**Status: run (24–25 November 2026). A1 not reached on the CL1-sized well; A2 short by one episode; A2c passed.**
+This is track A
 of the route doc
 ([Order of work without a dish](route-to-computation.md#order-of-work-without-a-dish)): step A1 is the closed loop
 below, step A2 adds sessions and drift. Results (`scripts/closed_loop_vestibular.py`), full runs of 40:
@@ -311,6 +317,25 @@ Ideal IMU 40/40, zero action 0/40. The gate (recalibrated ≥ 34/40 in every ses
 Only the new dish breaks the stale relay, and recalibration restores it. Aging at the model's rates doesn't, so the
 gate's real test is that one session. The 60 s decoder is the weak link: it scores 36/40 even at day 0, and in closed
 loop it reads grav_x with noise 0.84–0.89 spreads, against 0.53–0.55 for the decoder fitted on 312 s.
+
+A2c, keep the decoder and refit only the edit (same script, seeds 9300–9339, 25 November). A1's decoder stays; only
+the edit (gain and offset per IMU channel) is refitted on the first 60, 30 or 10 s of the session's replay. The
+recalibrated arm reruns on the same seeds for a paired comparison. Full runs of 40:
+
+| Session | Edit from 60 s (gated) | 30 s | 10 s | Recalibrated (60 s) |
+|---|---|---|---|---|
+| Day 0 | 37/40 | 40/40 | 38/40 | 36/40 |
+| Day 1 | 39/40 | 39/40 | 40/40 | 36/40 |
+| Day 3 | 40/40 | 38/40 | 39/40 | 34/40 |
+| Day 7 | 37/40 | 36/40 | 40/40 | 35/40 |
+| New dish | 37/40 | 39/40 | 36/40 | **30/40** |
+
+Ideal IMU 39/40, zero action 0/40. Gate (≥ 34/40 with the 60 s edit in every session): passed. Pooled, the edit
+from 60 s gives 190/200 against 171/200 for the recalibrated decoder; 28 seeds stand only with the edit, 9 only with
+the recalibration. The old decoder, fitted on 312 s, reads grav_x with noise 0.98 spreads on the new dish against
+1.61 for the 60 s decoder; its offsets there (1–2.5 spreads) are what the edit removes. A 10 s edit pins the offsets
+(≤ 0.09 spread) but on the new dish leaves two gains 22–29% low; 30 s pins them within 5%. Route 3's session
+protocol is therefore "refit the edit", from 30–60 s of replay. Shown on one new dish (one culture seed).
 
 The dish plus the Phase 2 controller, on 40 fresh seeds. The decoder and the weight edit are fixed before the first
 closed-loop seed, and plasticity is off. Main configuration: 1 well × 12 electrodes (CL1-sized); comparison 1 × 32.
@@ -368,11 +393,14 @@ It counts as computation only if:
 
 1. **Phase 1.1**, then Gate G1: done.
 2. **Phase 2** harness and track (a), **Phase 3.1**: done. Track (b) is open and not in the current plan.
-3. **Phase 3.3**: run as track A (A1, A2). Neither gate passed on its main configuration (see 3.3).
-4. **Phase 4**: simulation tests done. Learning questions run in simulation only if track B's gates pass.
+3. **Phase 3.3**: run as track A (A1, A2, A2c). A1 and A2 didn't pass on their main configurations; A2c did, so a
+   session needs only the edit refitted (see 3.3).
+4. **Phase 4**: simulation tests done. Track B is closed for good (26 November), so learning questions wait for a dish.
 5. **Phase 5** and every real-robot step: parked until access. The channel test can start as soon as a dish is
    available.
-6. **Next in simulation:** A2c, then the takeover rerun, then the realism scorecard (route doc,
-   [Order](route-to-computation.md#order), item 4).
-   - Decision point after A2c: route 3's session protocol (refit the edit, or refit the decoder).
-   - Decision point after the takeover rerun: reopen track B for one targeted round, or close it for good.
+6. **Next in simulation:** A2c (passed), then the takeover rerun (confirmed), then the realism scorecard (run), then many
+   weak synapses (failed) (route doc, [Order](route-to-computation.md#order), item 4). Left: A1c, optional.
+   - Decided after A2c: route 3's session protocol is "refit the edit", from 30–60 s of replay.
+   - Decision point after the takeover rerun: reopen track B for one targeted round, or close it for good. The
+     rerun confirmed the direction explanation (25 November), and the user reopened the track for step 4. That
+     round failed (26 November), so track B is closed for good.

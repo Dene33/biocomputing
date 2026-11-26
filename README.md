@@ -102,7 +102,8 @@ Tasks (`src/biocompute/train/tasks.py`):
 The `cpu_2k` preset is tuned so that spontaneous activity looks like a cortical organoid or culture on an MEA:
 
 - sparse firing of about 0.6 Hz on average, with interneurons faster than excitatory cells;
-- network bursts every ~2–3 s at irregular intervals (CV ≈ 0.3);
+- network bursts every ~2–3 s at irregular intervals (CV ≈ 0.3; measured against real cultures, the `gpu_20k`
+  culture bursts every 1.4 s and too regularly: see the realism scorecard under Next);
 - most spikes inside bursts (~75 %).
 
 It also responds to single-electrode stimulation. Bursts end because short-term depression uses up synaptic resources, as in culture models. These are plausible ranges, not a fit to one dataset: reports for organoids (e.g. Trujillo et al., *Cell Stem Cell* 2019) and dissociated cultures (Wagenaar et al., *BMC Neuroscience* 2006) vary with age and protocol. The realism dials are neuron count, electrode count and pitch, detection radius, noise, dead channels, stimulation limits, latency, forgetting time constant and aging.
@@ -206,6 +207,10 @@ completely (0/40), and one 60 s open-loop calibration plus one weight edit bring
 culture by up to 7 days doesn't break the old decoder (36–39/40), so the gate (recalibration ≥ 34/40 in every
 session) was tested only on the new dish. It fails by one episode at day 3 (33/40). The 60 s decoder is noisier than
 the one fitted on 5 minutes (36/40 even at day 0), so the calibration's length is the weak point, not the aging.
+A2c (25 November) keeps the old decoder and refits only its edit (gain and offset per IMU channel) from the session's
+replay: from 60 s it holds 37–40/40 in every session, the new dish 37/40, against 30–36/40 for the recalibrated
+decoder on the same seeds. 30 s is as good; 10 s leaves two new-dish gains loose (36/40). A session therefore needs
+two numbers per channel, not a new decoder (shown on one new dish).
 Public data for track B (`scripts/public_data_targets.py`): 81 recordings of 29 dense cortical cultures from
 Wagenaar et al. 2006, and the cart-pole organoids' Zenodo record, give the ranges the model must match. The
 organoids' game logs also give the rate half of a real drift test (`scripts/real_drift.py`): under the input pulses
@@ -231,16 +236,25 @@ push detection tested open loop alongside it, the inner-ear relay as hardware te
 **Next** (24 November 2026). We have no real culture and no physical robot for now, so the work runs in two
 simulated tracks ([Order of work without a dish](docs/route-to-computation.md#order-of-work-without-a-dish)).
 Track A puts the simulated culture in the robot's loop (Phase 3.3 of [docs/next-steps.md](docs/next-steps.md));
-its two steps have run (above).
+its steps A1, A2 and A2c have run (above).
 Track B tried to make the culture model good enough to ask learning questions of, behind gates fixed in advance.
 It closed after its first step, a rate controller (B1): rates can be brought to the edge of the band, pathways
 can't, so learning questions wait for a dish. On 25 November a code review of track B's scripts found 13 bugs; all
 are fixed with tests, every affected run was repeated, and no verdict changed.
 Real-dish and real-robot steps are parked. Ideas behind it: [docs/organoid-control-ideas.md](docs/organoid-control-ideas.md).
 Four recent papers suggest a cheaper session recalibration for track A2 (keep the decoder, refit only the edit) and
-a test of why track B's pathways mix. The notes are in [docs/literature-notes.md](docs/literature-notes.md). The next
-simulated steps, none run yet, in order: A2c (refit only the edit), a takeover rerun with a weight dump, and a
-realism scorecard of the model ([Order](docs/route-to-computation.md#order)).
+a test of why track B's pathways mix. The notes are in [docs/literature-notes.md](docs/literature-notes.md). The
+simulated steps they lead to, in order: A2c (refit only the edit; passed), a takeover rerun with a weight dump, and
+a realism scorecard of the model ([Order](docs/route-to-computation.md#order)). The scorecard (`scripts/realism_scorecard.py`)
+puts the model in range on 3 of 6 measures against 29 Wagenaar cultures: rates, burst duration and the share of
+spikes in bursts are realistic, but bursts come ten times too often (45 per minute against 4.2), too regularly
+(interval CV 0.32 against 0.87), and a pulse sets off one three times too often (20% against 6.5%). The takeover rerun
+confirmed why one input takes over: links pointing away from the winning input strengthen and those pointing back
+weaken, centred exactly on that input in all three cultures, so its pulses come to set off activity over the whole
+array while the other input's stay local (`scripts/takeover_rerun.py`). Track B was reopened for one round, many weak
+synapses: the same total input per neuron spread over 1.9, 4 or 10 times as many synapses (`scripts/weak_synapses.py`).
+It failed on 26 November, because the model goes silent: there was not one network burst in 10 minutes in 15 of 15
+cultures, and the electrode rate fell to 0.54-0.56 Hz (real: 0.7-10.3). Track B is closed for good.
 
 ## Limits of the simulation
 
